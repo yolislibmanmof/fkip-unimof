@@ -1,0 +1,27 @@
+# =====================================
+# FKIP UNIMOF - Security Hardening
+# =====================================
+
+# 1. Matikan directory listing (folder tidak bisa diintip)
+Options -Indexes
+
+# 2. Blokir akses web ke folder sensitif
+RewriteEngine On
+RewriteRule ^(includes|logs)(/|$) - [F,L]
+
+# 3. Blokir file sensitif agar tidak bisa di-download
+<FilesMatch "\.(sql|log|env|ini|sh|bak|config)$">
+    Require all denied
+</FilesMatch>
+
+# 4. Blokir dotfiles
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# 5. Header keamanan ekstra
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
