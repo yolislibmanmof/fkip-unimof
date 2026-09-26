@@ -25,8 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $konten   = clean_html($_POST['konten'] ?? '');
     $tags     = trim($_POST['tags'] ?? '');
     $featured = isset($_POST['is_featured']) ? 1 : 0;
-    $kat_ok   = ['Akademik','Pengumuman','Prestasi','Kegiatan','Riset','Umum'];
-    $st_ok    = ['Draft','Published','Archived'];
+    
+    $kat_ok = ['Akademik','Pengumuman','Prestasi','Kegiatan','Riset','Umum'];
+    $st_ok  = ['Draft','Published','Archived'];
+    
     if (!in_array($kategori, $kat_ok, true)) $kategori = 'Umum';
     if (!in_array($status, $st_ok, true))   $status = 'Draft';
 
@@ -37,12 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Custom slug
     $custom_slug = trim($_POST['custom_slug'] ?? '');
-    if ($custom_slug !== '') {
-        $base = generate_slug($custom_slug);
-    } else {
-        $base = generate_slug($judul);
-    }
+    $base = $custom_slug !== '' ? generate_slug($custom_slug) : generate_slug($judul);
     $slug = $base; $n = 2;
+    
     while (true) {
         $chk = $pdo->prepare("SELECT id FROM berita WHERE slug = ? AND id != ?");
         $chk->execute([$slug, $id]);
@@ -73,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pub = $status === 'Published' ? date('Y-m-d H:i:s') : null;
             $pdo->prepare("INSERT INTO berita (judul, slug, konten, excerpt, gambar, kategori, penulis, status, is_featured, published_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
                 ->execute([$judul, $slug, $konten, $excerpt, $gambar, $kategori, $penulis, $status, $featured, $pub]);
-            // Clear autosave
             flash_message('success', '✅ Berita berhasil ditambahkan.');
         }
     } catch (Exception $e) {
@@ -90,6 +88,287 @@ $breadcrumbs = [['Dashboard', 'dashboard.php'], ['Kelola Berita', 'berita.php'],
 require __DIR__ . '/includes/header.php';
 ?>
 
+<style>
+/* ===== EXTREME MULTIMATE EDITOR STYLES ===== */
+.editor-wrap { max-width: 1400px; margin: 0 auto; }
+
+.editor-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 1rem;
+}
+.editor-header-left { display: flex; align-items: center; gap: 1rem; }
+.editor-header-left h2 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+.back-btn {
+    color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+    padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);
+    border: 1px solid var(--border); transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;
+}
+.back-btn:hover { background: var(--bg-tertiary); color: var(--primary); transform: translateX(-2px); }
+
+.editor-header-right { display: flex; align-items: center; gap: 0.75rem; }
+.autosave-indicator {
+    display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 600;
+    color: var(--text-muted); background: var(--bg-secondary); padding: 0.5rem 1rem;
+    border-radius: 999px; border: 1px solid var(--border); transition: all 0.3s;
+}
+.autosave-indicator.saving { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.autosave-indicator.saved { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+.editor-grid { display: grid; grid-template-columns: 1fr 360px; gap: 2rem; align-items: start; }
+.editor-main, .editor-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.editor-card {
+    background: var(--bg-primary); border-radius: var(--radius-xl); padding: 1.5rem;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: all 0.3s;
+}
+.editor-card:hover { box-shadow: var(--shadow-md); }
+
+.card-title {
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    padding-bottom: 0.75rem; border-bottom: 2px solid var(--bg-tertiary); color: var(--text-primary);
+}
+.field-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;
+}
+.field-group { margin-bottom: 1.25rem; }
+.field-group:last-child { margin-bottom: 0; }
+
+.styled-input, .styled-select {
+    width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: var(--radius-md);
+    font-size: 0.9rem; font-family: inherit; background: var(--bg-secondary); color: var(--text-primary);
+    transition: all 0.2s;
+}
+.styled-input:focus, .styled-select:focus {
+    outline: none; border-color: var(--primary); background: var(--bg-primary);
+    box-shadow: 0 0 0 4px rgba(10,104,71,0.1);
+}
+
+/* Title Card Premium */
+.title-card {
+    padding: 2rem !important;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(10,104,71,0.03) 100%);
+    border: 2px solid var(--border);
+}
+.judul-input {
+    width: 100%; border: none; font-size: 2rem; font-weight: 800; color: var(--text-primary);
+    background: transparent; outline: none; font-family: inherit; padding: 0; margin-bottom: 1rem;
+    line-height: 1.2;
+}
+.judul-input::placeholder { color: var(--text-muted); font-weight: 600; }
+.slug-preview {
+    display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: var(--text-muted);
+    background: var(--bg-tertiary); padding: 0.5rem 1rem; border-radius: var(--radius-md);
+    margin-bottom: 0.75rem; font-family: ui-monospace, monospace; overflow: hidden;
+}
+.slug-prefix { color: var(--text-muted); flex-shrink: 0; }
+.slug-text { color: var(--primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom-slug-input {
+    width: 100%; padding: 0.6rem 1rem; border: 2px solid var(--primary); border-radius: var(--radius-md);
+    font-family: ui-monospace, monospace; font-size: 0.85rem; margin-bottom: 0.75rem; background: var(--bg-primary);
+}
+.slug-edit-btn {
+    background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.85rem; border-radius: var(--radius-md);
+    font-size: 0.8rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; font-family: inherit; font-weight: 600;
+}
+.slug-edit-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Excerpt */
+.excerpt-textarea {
+    width: 100%; padding: 1rem; border: 2px solid var(--border); border-radius: var(--radius-md);
+    font-size: 0.95rem; font-family: inherit; background: var(--bg-secondary); color: var(--text-primary);
+    resize: vertical; transition: all 0.2s; line-height: 1.6;
+}
+.excerpt-textarea:focus {
+    outline: none; border-color: var(--primary); background: var(--bg-primary);
+    box-shadow: 0 0 0 4px rgba(10,104,71,0.1);
+}
+.char-count { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.char-count.warn { color: #f59e0b; }
+.char-count.danger { color: #ef4444; }
+
+/* Content & Toolbar Modern */
+.content-stats { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.rich-toolbar {
+    display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.75rem;
+    background: var(--bg-secondary); border: 2px solid var(--border); border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0; align-items: center;
+}
+.tb-btn {
+    background: var(--bg-primary); border: 1px solid var(--border); padding: 0.4rem 0.75rem;
+    border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+    color: var(--text-secondary); font-family: inherit; min-width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center; gap: 0.25rem; font-weight: 600;
+}
+.tb-btn:hover { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.tb-btn b, .tb-btn i, .tb-btn u { font-size: 0.9rem; }
+.tb-divider { width: 1px; height: 24px; background: var(--border); margin: 0 0.25rem; }
+
+.konten-textarea {
+    width: 100%; padding: 1.5rem; border: 2px solid var(--border); border-top: 1px solid var(--bg-tertiary);
+    border-radius: 0 0 var(--radius-md) var(--radius-md); font-size: 1rem; font-family: ui-monospace, monospace;
+    background: var(--bg-primary); color: var(--text-primary); resize: vertical; min-height: 450px;
+    line-height: 1.8; transition: border-color 0.2s;
+}
+.konten-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(10,104,71,0.1); }
+
+/* Tags Modern */
+.tags-input-wrap {
+    border: 2px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem;
+    background: var(--bg-secondary); transition: all 0.2s; min-height: 52px;
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+}
+.tags-input-wrap:focus-within { border-color: var(--primary); background: var(--bg-primary); box-shadow: 0 0 0 4px rgba(10,104,71,0.1); }
+.tag-pill {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white;
+    padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 0.4rem; animation: tagPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes tagPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tag-pill button {
+    background: rgba(255,255,255,0.2); border: none; color: white; width: 18px; height: 18px;
+    border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; transition: all 0.2s; padding: 0;
+}
+.tag-pill button:hover { background: rgba(255,255,255,0.4); }
+.tag-input-field { border: none; outline: none; flex: 1; min-width: 120px; padding: 0.4rem; background: transparent; font-family: inherit; font-size: 0.9rem; color: var(--text-primary); }
+
+/* Status Radios Modern */
+.status-radios { display: flex; flex-direction: column; gap: 0.5rem; }
+.status-radio {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem;
+    background: var(--bg-secondary); border: 2px solid transparent; border-radius: var(--radius-md);
+    cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);
+}
+.status-radio:hover { background: var(--bg-tertiary); }
+.status-radio input { display: none; }
+.status-radio:has(input:checked).status-draft { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.status-radio:has(input:checked).status-published { background: #dcfce7; border-color: #10b981; color: #166534; }
+.status-radio:has(input:checked).status-archived { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
+.sr-dot {
+    width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; position: relative; flex-shrink: 0;
+}
+.status-radio:has(input:checked) .sr-dot::after {
+    content: ''; position: absolute; inset: 3px; background: currentColor; border-radius: 50%;
+}
+
+/* Checkbox Custom */
+.checkbox-label {
+    display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.9rem;
+    color: var(--text-primary); padding: 0.75rem; border-radius: var(--radius-md); transition: background 0.2s; font-weight: 500;
+}
+.checkbox-label:hover { background: var(--bg-secondary); }
+.checkbox-label input { display: none; }
+.checkbox-custom {
+    width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px;
+    flex-shrink: 0; position: relative; transition: all 0.2s; background: var(--bg-primary);
+}
+.checkbox-label input:checked + .checkbox-custom { background: var(--primary); border-color: var(--primary); }
+.checkbox-label input:checked + .checkbox-custom::after {
+    content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.85rem; font-weight: 700;
+}
+
+/* Meta Info */
+.meta-info { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem; }
+.meta-row { display: flex; justify-content: space-between; font-size: 0.85rem; }
+.meta-row span { color: var(--text-muted); }
+.meta-row strong { color: var(--text-primary); font-weight: 600; }
+
+/* Upload Zone Premium */
+.upload-zone {
+    position: relative; border: 2px dashed var(--border); border-radius: var(--radius-lg);
+    transition: all 0.3s; overflow: hidden; background: var(--bg-secondary);
+}
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(10,104,71,0.03); }
+.upload-file-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2; }
+.upload-placeholder { padding: 2.5rem 1.5rem; text-align: center; pointer-events: none; }
+.upload-icon { font-size: 3rem; margin-bottom: 0.75rem; animation: uploadFloat 3s ease-in-out infinite; }
+@keyframes uploadFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.upload-text { font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; font-size: 1rem; }
+.upload-sub { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.upload-hint { font-size: 0.75rem; color: var(--text-muted); background: var(--bg-tertiary); display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; }
+
+.upload-preview { position: relative; }
+.upload-preview img { width: 100%; max-height: 250px; object-fit: cover; display: block; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.upload-remove {
+    position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(239, 68, 68, 0.9); color: white;
+    border: none; padding: 0.5rem 0.85rem; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; backdrop-filter: blur(4px); display: flex; align-items: center; gap: 0.4rem;
+}
+.upload-remove:hover { background: #dc2626; transform: scale(1.05); }
+
+.current-image { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.current-image img { width: 100%; border-radius: var(--radius-md); margin: 0.75rem 0; border: 1px solid var(--border); }
+.current-image small { font-size: 0.8rem; color: var(--text-muted); display: block; }
+
+/* Tips Card */
+.tips-card { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fcd34d; }
+.tips-card .card-title { color: #92400e; border-bottom-color: rgba(146, 64, 14, 0.2); }
+.tips-list { list-style: none; font-size: 0.85rem; color: #92400e; line-height: 1.8; margin: 0; padding: 0; }
+.tips-list li { padding-left: 0.25rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+/* Preview Modal Premium */
+.preview-modal-box {
+    background: var(--bg-primary); border-radius: var(--radius-xl); max-width: 800px; width: 95%;
+    max-height: 90vh; overflow: hidden; animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4); display: flex; flex-direction: column;
+}
+@keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.preview-header {
+    display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem;
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.preview-header span { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+.preview-close {
+    background: var(--bg-tertiary); border: none; color: var(--text-secondary); width: 36px; height: 36px;
+    border-radius: 50%; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.preview-close:hover { background: #fee2e2; color: #dc2626; transform: rotate(90deg); }
+.preview-body { max-height: calc(90vh - 70px); overflow-y: auto; padding: 3rem; }
+.preview-article { font-family: Georgia, 'Times New Roman', serif; max-width: 680px; margin: 0 auto; }
+.preview-badge {
+    display: inline-block; padding: 0.35rem 1rem; background: var(--primary); color: white;
+    border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1.5rem;
+    font-family: var(--font-primary); letter-spacing: 0.05em;
+}
+.preview-title { font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: var(--text-primary); font-weight: 800; letter-spacing: -0.02em; }
+.preview-meta {
+    color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--bg-tertiary); font-family: var(--font-primary); display: flex; align-items: center; gap: 0.5rem;
+}
+.preview-content { font-size: 1.1rem; line-height: 1.9; color: var(--text-secondary); }
+.preview-content p { margin-bottom: 1.5rem; }
+.preview-content h2, .preview-content h3 { margin: 2rem 0 1rem; color: var(--text-primary); font-family: var(--font-primary); font-weight: 700; }
+.preview-content blockquote {
+    border-left: 4px solid var(--primary); padding: 1rem 1.5rem; margin: 1.5rem 0;
+    background: var(--bg-secondary); font-style: italic; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-primary);
+}
+.preview-content ul, .preview-content ol { margin-bottom: 1.5rem; padding-left: 1.5rem; }
+.preview-content li { margin-bottom: 0.5rem; }
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; z-index: 9999; padding: 2rem;
+    animation: fadeIn 0.3s;
+}
+.modal-overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Responsive */
+@media (max-width: 968px) {
+    .editor-grid { grid-template-columns: 1fr; }
+    .editor-header { flex-direction: column; align-items: flex-start; }
+    .editor-header-right { width: 100%; justify-content: flex-end; }
+    .judul-input { font-size: 1.5rem; }
+    .preview-body { padding: 1.5rem; }
+    .preview-title { font-size: 1.75rem; }
+}
+</style>
+
 <div class="editor-wrap">
     <!-- ===== EDITOR HEADER ===== -->
     <div class="editor-header">
@@ -103,7 +382,7 @@ require __DIR__ . '/includes/header.php';
                 <span class="as-text">Tersimpan di draft lokal</span>
             </span>
             <button type="button" class="btn-sm gray" onclick="openPreview()">👁️ Preview</button>
-            <button type="submit" form="editorForm" class="btn-sm">💾 <?= $edit ? 'Update' : 'Simpan' ?></button>
+            <button type="submit" form="editorForm" class="btn-sm primary">💾 <?= $edit ? 'Update' : 'Simpan' ?></button>
         </div>
     </div>
 
@@ -113,50 +392,44 @@ require __DIR__ . '/includes/header.php';
         <div class="editor-grid">
             <!-- ===== MAIN COLUMN ===== -->
             <div class="editor-main">
-                
                 <!-- Judul -->
                 <div class="editor-card title-card">
-                    <input type="text" name="judul" id="judulInput" 
-                        class="judul-input" 
-                        placeholder="Tulis judul berita yang menarik..." 
-                        required maxlength="255"
+                    <input type="text" name="judul" id="judulInput" class="judul-input" 
+                        placeholder="Tulis judul berita yang menarik..." required maxlength="255"
                         value="<?= sanitize($edit['judul'] ?? '') ?>">
                     <div class="slug-preview">
                         <span class="slug-prefix"><?= base_url('berita-detail.php?slug=') ?></span>
                         <span class="slug-text" id="slugPreview"><?= sanitize($edit['slug'] ?? 'slug-akan-dibuat-otomatis') ?></span>
                     </div>
-                    <input type="text" name="custom_slug" id="customSlug" 
-                        class="custom-slug-input" 
-                        placeholder="Atau ketik slug kustom di sini (opsional)"
-                        style="display:none">
+                    <input type="text" name="custom_slug" id="customSlug" class="custom-slug-input" 
+                        placeholder="Atau ketik slug kustom di sini (opsional)" style="display:none">
                     <button type="button" class="slug-edit-btn" onclick="toggleCustomSlug()">✏️ Edit slug</button>
                 </div>
 
                 <!-- Excerpt -->
                 <div class="editor-card">
                     <label class="field-label">
-                        <span>📝 Ringkasan (excerpt)</span>
+                        <span>📝 Ringkasan (Excerpt)</span>
                         <span class="char-count"><span id="excerptCount"><?= mb_strlen($edit['excerpt'] ?? '') ?></span>/500</span>
                     </label>
-                    <textarea name="excerpt" id="excerptInput" class="excerpt-textarea" 
-                        maxlength="500" rows="3"
+                    <textarea name="excerpt" id="excerptInput" class="excerpt-textarea" maxlength="500" rows="3"
                         placeholder="Ringkasan singkat yang menarik pembaca..."><?= sanitize($edit['excerpt'] ?? '') ?></textarea>
                 </div>
 
                 <!-- Konten dengan Rich Toolbar -->
-                <div class="editor-card">
-                    <label class="field-label">
-                        <span>📄 Konten Berita *</span>
-                        <span class="content-stats">
-                            <span id="wordCount">0</span> kata • 
-                            <span id="readTime">0</span> menit baca
-                        </span>
-                    </label>
-                    
+                <div class="editor-card" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 1.5rem 1.5rem 0.5rem;">
+                        <label class="field-label">
+                            <span>📄 Konten Berita *</span>
+                            <span class="content-stats">
+                                <span id="wordCount">0</span> kata • <span id="readTime">0</span> menit baca
+                            </span>
+                        </label>
+                    </div>
                     <div class="rich-toolbar">
                         <button type="button" class="tb-btn" onclick="execCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
                         <button type="button" class="tb-btn" onclick="execCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-                        <button type="button" class="tb-btn" onclick="execCmd('underline')" title="Underline"><u>U</u></button>
+                        <button type="button" class="tb-btn" onclick="execCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
                         <div class="tb-divider"></div>
                         <button type="button" class="tb-btn" onclick="execCmd('formatBlock','<h2>')" title="Heading 2">H2</button>
                         <button type="button" class="tb-btn" onclick="execCmd('formatBlock','<h3>')" title="Heading 3">H3</button>
@@ -170,33 +443,26 @@ require __DIR__ . '/includes/header.php';
                         <button type="button" class="tb-btn" onclick="insertHR()" title="Horizontal Line">―</button>
                         <button type="button" class="tb-btn" onclick="execCmd('removeFormat')" title="Clear Format">🧹</button>
                     </div>
-
-                    <textarea name="konten" id="kontenInput" class="konten-textarea" 
-                        required placeholder="Tulis konten berita di sini...
-
-Tips:
-• Gunakan toolbar di atas untuk formatting
-• HTML sederhana diizinkan: p, strong, em, ul, li, h2-h4, blockquote, a"></textarea>
+                    <textarea name="konten" id="kontenInput" class="konten-textarea" required 
+                        placeholder="Tulis konten berita di sini...&#10;&#10;Tips:&#10;• Gunakan toolbar di atas untuk formatting&#10;• HTML sederhana diizinkan: p, strong, em, ul, li, h2-h4, blockquote, a"><?= sanitize($edit['konten'] ?? '') ?></textarea>
                 </div>
 
                 <!-- Tags -->
                 <div class="editor-card">
                     <label class="field-label">
                         <span>🏷️ Tags</span>
-                        <small style="color:#94a3b8;margin-left:.5rem">Pisahkan dengan koma</small>
+                        <small style="color:var(--text-muted); margin-left:0.5rem; font-weight:500;">Pisahkan dengan koma atau tekan Enter</small>
                     </label>
                     <div class="tags-input-wrap">
                         <div class="tags-container" id="tagsContainer"></div>
-                        <input type="text" id="tagInput" class="tag-input-field" 
-                            placeholder="Ketik tag lalu tekan Enter atau koma...">
+                        <input type="text" id="tagInput" class="tag-input-field" placeholder="Ketik tag...">
                     </div>
-                    <input type="hidden" name="tags" id="tagsHidden" value="">
+                    <input type="hidden" name="tags" id="tagsHidden" value="<?= sanitize($edit['tags'] ?? '') ?>">
                 </div>
             </div>
 
             <!-- ===== SIDEBAR ===== -->
             <aside class="editor-sidebar">
-                
                 <!-- Status -->
                 <div class="editor-card">
                     <h3 class="card-title">📊 Status & Publikasi</h3>
@@ -205,22 +471,18 @@ Tips:
                         <div class="status-radios">
                             <label class="status-radio status-draft">
                                 <input type="radio" name="status" value="Draft" <?= ($edit['status'] ?? 'Draft') === 'Draft' ? 'checked' : '' ?>>
-                                <span class="sr-dot"></span>
-                                <span>📝 Draft</span>
+                                <span class="sr-dot"></span><span>📝 Draft</span>
                             </label>
                             <label class="status-radio status-published">
                                 <input type="radio" name="status" value="Published" <?= ($edit['status'] ?? '') === 'Published' ? 'checked' : '' ?>>
-                                <span class="sr-dot"></span>
-                                <span>✅ Published</span>
+                                <span class="sr-dot"></span><span>✅ Published</span>
                             </label>
                             <label class="status-radio status-archived">
                                 <input type="radio" name="status" value="Archived" <?= ($edit['status'] ?? '') === 'Archived' ? 'checked' : '' ?>>
-                                <span class="sr-dot"></span>
-                                <span>🗄️ Archived</span>
+                                <span class="sr-dot"></span><span>🗄️ Archived</span>
                             </label>
                         </div>
                     </div>
-
                     <div class="field-group">
                         <label class="checkbox-label">
                             <input type="checkbox" name="is_featured" <?= !empty($edit['is_featured']) ? 'checked' : '' ?>>
@@ -228,7 +490,6 @@ Tips:
                             <span>⭐ Jadikan Berita Utama (Featured)</span>
                         </label>
                     </div>
-
                     <?php if ($edit): ?>
                     <div class="meta-info">
                         <div class="meta-row"><span>Dibuat:</span><strong><?= date('d M Y H:i', strtotime($edit['created_at'])) ?></strong></div>
@@ -242,8 +503,9 @@ Tips:
 
                 <!-- Kategori & Penulis -->
                 <div class="editor-card">
-                    <h3 class="card-title">📁 Kategori</h3>
+                    <h3 class="card-title">📁 Kategori & Penulis</h3>
                     <div class="field-group">
+                        <label class="field-label">Kategori</label>
                         <select name="kategori" class="styled-select">
                             <?php foreach (['Akademik','Pengumuman','Prestasi','Kegiatan','Riset','Umum'] as $k): ?>
                             <option value="<?= $k ?>" <?= ($edit['kategori'] ?? 'Umum') === $k ? 'selected' : '' ?>><?= $k ?></option>
@@ -252,8 +514,7 @@ Tips:
                     </div>
                     <div class="field-group">
                         <label class="field-label">Penulis</label>
-                        <input type="text" name="penulis" class="styled-input" 
-                            maxlength="100" 
+                        <input type="text" name="penulis" class="styled-input" maxlength="100" 
                             value="<?= sanitize($edit['penulis'] ?? $_SESSION['admin_name'] ?? 'Humas FKIP') ?>">
                     </div>
                 </div>
@@ -262,9 +523,7 @@ Tips:
                 <div class="editor-card">
                     <h3 class="card-title">🖼️ Gambar Utama</h3>
                     <div class="upload-zone" id="uploadZone">
-                        <input type="file" name="gambar" id="gambarInput" 
-                            accept="image/jpeg,image/png,image/webp,image/gif" 
-                            class="upload-file-input">
+                        <input type="file" name="gambar" id="gambarInput" accept="image/jpeg,image/png,image/webp,image/gif" class="upload-file-input">
                         <div class="upload-placeholder" id="uploadPlaceholder">
                             <div class="upload-icon">📤</div>
                             <p class="upload-text">Drag & drop gambar di sini</p>
@@ -313,7 +572,7 @@ Tips:
                 <div class="preview-badge" id="previewBadge">Kategori</div>
                 <h1 class="preview-title" id="previewTitle">Judul berita akan muncul di sini...</h1>
                 <div class="preview-meta">
-                    <span id="previewAuthor">Penulis</span> • 
+                    <span>Oleh <strong id="previewAuthor">Penulis</strong></span> • 
                     <span><?= date('d F Y') ?></span> • 
                     <span id="previewReadTime">0 menit baca</span>
                 </div>
@@ -322,150 +581,6 @@ Tips:
         </div>
     </div>
 </div>
-
-<!-- ===== SCOPED STYLES ===== -->
-<style>
-.editor-wrap{max-width:1400px}
-.editor-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
-.editor-header-left{display:flex;align-items:center;gap:1rem}
-.editor-header-left h2{margin:0;font-size:1.35rem}
-.back-btn{color:#64748b;text-decoration:none;font-size:.9rem;padding:.4rem .8rem;background:#f1f5f9;border-radius:8px;transition:all .2s}
-.back-btn:hover{background:#e2e8f0;color:#0f172a}
-.editor-header-right{display:flex;align-items:center;gap:.75rem}
-.autosave-indicator{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:#64748b;background:#f1f5f9;padding:.4rem .75rem;border-radius:999px;transition:all .3s}
-.autosave-indicator.saving{background:#fef3c7;color:#92400e}
-.autosave-indicator.saved{background:#dcfce7;color:#166534}
-
-.editor-form{display:block}
-.editor-grid{display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start}
-.editor-main,.editor-sidebar{display:flex;flex-direction:column;gap:1.25rem}
-.editor-card{background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #f1f5f9}
-.card-title{font-size:.95rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;padding-bottom:.75rem;border-bottom:1px solid #f1f5f9}
-.field-label{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:600;color:#334155;margin-bottom:.5rem}
-.field-group{margin-bottom:1rem}
-.field-group:last-child{margin-bottom:0}
-.styled-input,.styled-select{width:100%;padding:.7rem .9rem;border:2px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;background:#f8fafc;transition:all .2s}
-.styled-input:focus,.styled-select:focus{outline:none;border-color:#0a6847;background:#fff;box-shadow:0 0 0 4px rgba(10,104,71,.1)}
-
-/* Title Card */
-.title-card{padding:2rem!important;background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%)}
-.judul-input{width:100%;border:none;font-size:1.75rem;font-weight:800;color:#0f172a;background:transparent;outline:none;font-family:inherit;padding:0;margin-bottom:.75rem}
-.judul-input::placeholder{color:#cbd5e1}
-.slug-preview{display:flex;align-items:center;gap:.25rem;font-size:.8rem;color:#64748b;background:#f1f5f9;padding:.5rem .85rem;border-radius:8px;margin-bottom:.5rem;font-family:ui-monospace,monospace;overflow:hidden}
-.slug-prefix{color:#94a3b8;flex-shrink:0}
-.slug-text{color:#0a6847;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.custom-slug-input{width:100%;padding:.6rem .85rem;border:2px solid #0a6847;border-radius:8px;font-family:ui-monospace,monospace;font-size:.85rem;margin-bottom:.5rem}
-.slug-edit-btn{background:transparent;border:1px solid #e2e8f0;padding:.35rem .75rem;border-radius:6px;font-size:.75rem;cursor:pointer;color:#64748b;transition:all .2s;font-family:inherit}
-.slug-edit-btn:hover{background:#0a6847;color:#fff;border-color:#0a6847}
-
-/* Excerpt */
-.excerpt-textarea{width:100%;padding:.85rem 1rem;border:2px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;background:#f8fafc;resize:vertical;transition:all .2s;line-height:1.6}
-.excerpt-textarea:focus{outline:none;border-color:#0a6847;background:#fff;box-shadow:0 0 0 4px rgba(10,104,71,.1)}
-.char-count{font-size:.75rem;color:#94a3b8;font-weight:500;font-variant-numeric:tabular-nums}
-.char-count.warn{color:#f59e0b}
-.char-count.danger{color:#ef4444}
-
-/* Content & Toolbar */
-.content-stats{font-size:.75rem;color:#94a3b8;font-weight:500}
-.rich-toolbar{display:flex;flex-wrap:wrap;gap:.25rem;padding:.5rem;background:#f8fafc;border:2px solid #e2e8f0;border-bottom:none;border-radius:10px 10px 0 0;align-items:center}
-.tb-btn{background:#fff;border:1px solid #e2e8f0;padding:.35rem .65rem;border-radius:6px;font-size:.8rem;cursor:pointer;transition:all .15s;color:#475569;font-family:inherit;min-width:32px;display:flex;align-items:center;justify-content:center;gap:.25rem}
-.tb-btn:hover{background:#0a6847;color:#fff;border-color:#0a6847;transform:translateY(-1px)}
-.tb-btn b,.tb-btn i,.tb-btn u{font-size:.85rem}
-.tb-divider{width:1px;height:20px;background:#e2e8f0;margin:0 .25rem}
-.konten-textarea{width:100%;padding:1.25rem;border:2px solid #e2e8f0;border-top:1px solid #f1f5f9;border-radius:0 0 10px 10px;font-size:.92rem;font-family:ui-monospace,monospace;background:#fff;resize:vertical;min-height:400px;line-height:1.7;transition:border-color .2s}
-.konten-textarea:focus{outline:none;border-color:#0a6847;box-shadow:0 0 0 4px rgba(10,104,71,.1)}
-
-/* Tags */
-.tags-input-wrap{border:2px solid #e2e8f0;border-radius:10px;padding:.5rem;background:#f8fafc;transition:all .2s;min-height:48px;display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
-.tags-input-wrap:focus-within{border-color:#0a6847;background:#fff;box-shadow:0 0 0 4px rgba(10,104,71,.1)}
-.tags-container{display:flex;flex-wrap:wrap;gap:.35rem}
-.tag-pill{background:linear-gradient(135deg,#0a6847,#16a34a);color:#fff;padding:.3rem .65rem;border-radius:999px;font-size:.78rem;font-weight:600;display:inline-flex;align-items:center;gap:.3rem;animation:tagPop .2s}
-@keyframes tagPop{from{transform:scale(0)}to{transform:scale(1)}}
-.tag-pill button{background:rgba(255,255,255,.3);border:none;color:#fff;width:18px;height:18px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s;padding:0}
-.tag-pill button:hover{background:rgba(255,255,255,.6)}
-.tag-input-field{border:none;outline:none;flex:1;min-width:120px;padding:.3rem;background:transparent;font-family:inherit;font-size:.85rem}
-
-/* Status radios */
-.status-radios{display:flex;flex-direction:column;gap:.5rem}
-.status-radio{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#f8fafc;border:2px solid transparent;border-radius:10px;cursor:pointer;transition:all .2s;font-size:.85rem}
-.status-radio input{display:none}
-.status-radio:hover{background:#f1f5f9}
-.status-radio:has(input:checked).status-draft{background:#fef3c7;border-color:#f59e0b}
-.status-radio:has(input:checked).status-published{background:#dcfce7;border-color:#10b981}
-.status-radio:has(input:checked).status-archived{background:#f1f5f9;border-color:#64748b}
-.sr-dot{width:12px;height:12px;border-radius:50%;background:#cbd5e1;position:relative}
-.status-radio:has(input:checked) .sr-dot{background:currentColor}
-.status-radio:has(input:checked) .sr-dot::after{content:'';position:absolute;inset:3px;background:#fff;border-radius:50%}
-.status-draft{color:#92400e}
-.status-published{color:#166534}
-.status-archived{color:#475569}
-
-/* Checkbox custom */
-.checkbox-label{display:flex;align-items:center;gap:.75rem;cursor:pointer;font-size:.85rem;color:#334155;padding:.5rem;border-radius:8px;transition:background .2s}
-.checkbox-label:hover{background:#f8fafc}
-.checkbox-label input{display:none}
-.checkbox-custom{width:20px;height:20px;border:2px solid #cbd5e1;border-radius:5px;flex-shrink:0;position:relative;transition:all .2s}
-.checkbox-label input:checked + .checkbox-custom{background:#0a6847;border-color:#0a6847}
-.checkbox-label input:checked + .checkbox-custom::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;font-weight:700}
-
-/* Meta info */
-.meta-info{margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9;display:flex;flex-direction:column;gap:.4rem}
-.meta-row{display:flex;justify-content:space-between;font-size:.8rem}
-.meta-row span{color:#64748b}
-.meta-row strong{color:#0f172a;font-weight:600}
-
-/* Upload Zone */
-.upload-zone{position:relative;border:2px dashed #cbd5e1;border-radius:12px;transition:all .2s;overflow:hidden;background:#fafafa}
-.upload-zone:hover,.upload-zone.dragover{border-color:#0a6847;background:#f0fdf4}
-.upload-file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.upload-placeholder{padding:2rem;text-align:center}
-.upload-icon{font-size:2.5rem;margin-bottom:.5rem;animation:uploadFloat 3s ease-in-out infinite}
-@keyframes uploadFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.upload-text{font-weight:600;color:#0f172a;margin-bottom:.25rem}
-.upload-sub{font-size:.85rem;color:#64748b;margin-bottom:.5rem}
-.upload-hint{font-size:.72rem;color:#94a3b8}
-.upload-preview{position:relative}
-.upload-preview img{width:100%;max-height:250px;object-fit:cover;display:block}
-.upload-remove{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.7);color:#fff;border:none;padding:.4rem .7rem;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s}
-.upload-remove:hover{background:#dc2626}
-.current-image{margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9}
-.current-image img{width:100%;border-radius:8px;margin:.5rem 0}
-.current-image small{font-size:.75rem;color:#94a3b8}
-
-/* Tips card */
-.tips-card{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#fcd34d}
-.tips-list{list-style:none;font-size:.82rem;color:#92400e;line-height:1.8}
-.tips-list li{padding-left:.25rem}
-
-/* Preview Modal */
-.preview-modal-box{background:#fff;border-radius:16px;max-width:800px;width:95%;max-height:90vh;overflow:hidden;animation:zoomIn .3s;box-shadow:0 30px 80px rgba(0,0,0,.4)}
-@keyframes zoomIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-.preview-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;background:#0f172a;color:#fff}
-.preview-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;transition:all .2s}
-.preview-close:hover{background:#dc2626;transform:rotate(90deg)}
-.preview-body{max-height:calc(90vh - 60px);overflow-y:auto;padding:2.5rem}
-.preview-article{font-family:Georgia,serif}
-.preview-badge{display:inline-block;padding:.3rem .85rem;background:#0a6847;color:#fff;border-radius:999px;font-size:.72rem;font-weight:700;text-transform:uppercase;margin-bottom:1rem;font-family:sans-serif}
-.preview-title{font-size:2rem;line-height:1.2;margin-bottom:1rem;color:#0f172a;font-weight:800}
-.preview-meta{color:#94a3b8;font-size:.85rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid #e2e8f0;font-family:sans-serif}
-.preview-content{font-size:1.05rem;line-height:1.9;color:#334155}
-.preview-content p{margin-bottom:1rem}
-.preview-content h2,.preview-content h3{margin:1.5rem 0 .75rem;color:#0f172a;font-family:sans-serif}
-.preview-content blockquote{border-left:4px solid #0a6847;padding:.5rem 1rem;margin:1rem 0;background:#f0fdf4;font-style:italic;border-radius:0 8px 8px 0}
-
-/* Modal overlay (reused) */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.8);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:9999;padding:2rem}
-.modal-overlay.open{display:flex}
-
-/* Responsive */
-@media(max-width:968px){
-    .editor-grid{grid-template-columns:1fr}
-    .editor-header{flex-direction:column;align-items:flex-start}
-    .judul-input{font-size:1.4rem}
-    .preview-body{padding:1.5rem}
-    .preview-title{font-size:1.5rem}
-}
-</style>
 
 <script>
 // ===== Auto-generate slug from judul =====
@@ -594,6 +709,13 @@ const tagsContainer = document.getElementById('tagsContainer');
 const tagsHidden = document.getElementById('tagsHidden');
 let tags = [];
 
+// Load existing tags
+const initialTags = tagsHidden.value;
+if (initialTags) {
+    tags = initialTags.split(',').map(t => t.trim()).filter(t => t);
+    renderTags();
+}
+
 function renderTags() {
     tagsContainer.innerHTML = '';
     tags.forEach((tag, i) => {
@@ -708,7 +830,7 @@ function autoSave() {
     }, 800);
 }
 
-// Load autosaved data if new post and nothing in form
+// Load autosaved data if new post
 (function(){
     <?php if (!$edit): ?>
     try {
@@ -739,11 +861,10 @@ document.getElementById('editorForm').addEventListener('submit', function() {
 function openPreview() {
     document.getElementById('previewTitle').textContent = judulInput.value || 'Judul berita akan muncul di sini...';
     
-    // Render HTML dengan aman (mengganti newline hanya jika bukan tag HTML)
     let rawContent = kontenInput.value;
     let safeContent = rawContent.replace(/\n/g, '<br>'); 
     
-    document.getElementById('previewContent').innerHTML = safeContent || '<p style="color:#94a3b8"><em>Belum ada konten...</em></p>';
+    document.getElementById('previewContent').innerHTML = safeContent || '<p style="color:var(--text-muted)"><em>Belum ada konten...</em></p>';
     
     document.getElementById('previewBadge').textContent = document.querySelector('[name="kategori"]').value;
     document.getElementById('previewAuthor').textContent = document.querySelector('[name="penulis"]').value || 'Humas FKIP';
@@ -763,7 +884,6 @@ kontenInput.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); execCmd('bold'); }
     if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); execCmd('italic'); }
     if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); execCmd('underline'); }
-    // Tab for indent
     if (e.key === 'Tab') {
         e.preventDefault();
         const start = this.selectionStart;

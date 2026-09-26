@@ -1,19 +1,24 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
+
+// ===== AMBIL DATA LANGSUNG DARI DATABASE =====
+// Mengambil hanya yang status='Aktif', diurutkan berdasarkan kolom 'urutan' lalu 'id'
+$stmt = $pdo->query("SELECT * FROM program_studi WHERE status = 'Aktif' ORDER BY urutan ASC, id ASC");
+$prodi = $stmt->fetchAll();
+
 $page_title = 'Program Studi';
-$page_description = '8 Program Studi unggulan FKIP UNIMOF dengan akreditasi terbaik';
-$prodi = get_prodi();
+$page_description = count($prodi) . ' Program Studi unggulan FKIP UNIMOF dengan akreditasi terbaik';
 
 // Warna unik per prodi (gradient)
 $prodi_colors = [
-    0 => ['#3b82f6', '#1d4ed8'], // Biru - Matematika
-    1 => ['#8b5cf6', '#6d28d9'], // Ungu - Fisika
-    2 => ['#10b981', '#059669'], // Hijau - Biologi
-    3 => ['#f59e0b', '#d97706'], // Kuning - Kimia
-    4 => ['#ec4899', '#db2777'], // Pink - Bahasa Inggris
-    5 => ['#ef4444', '#dc2626'], // Merah - Bahasa Indonesia
-    6 => ['#14b8a6', '#0d9488'], // Teal - Ekonomi
-    7 => ['#f97316', '#ea580c'], // Orange - PKN
+    0 => ['#3b82f6', '#1d4ed8'], // Biru
+    1 => ['#8b5cf6', '#6d28d9'], // Ungu
+    2 => ['#10b981', '#059669'], // Hijau
+    3 => ['#f59e0b', '#d97706'], // Kuning
+    4 => ['#ec4899', '#db2777'], // Pink
+    5 => ['#ef4444', '#dc2626'], // Merah
+    6 => ['#14b8a6', '#0d9488'], // Teal
+    7 => ['#f97316', '#ea580c'], // Orange
 ];
 
 require_once __DIR__ . '/includes/header.php';

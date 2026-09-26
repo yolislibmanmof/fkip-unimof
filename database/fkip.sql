@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 26, 2026 at 12:28 AM
+-- Generation Time: Sep 26, 2026 at 08:33 AM
 -- Server version: 5.7.39
 -- PHP Version: 8.2.28
 
@@ -43,7 +43,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`id`, `username`, `password`, `email`, `full_name`, `role`, `last_login`, `created_at`) VALUES
-(1, 'admin', '$2y$10$HZABzARqxulnUeaA54n6EuAhXHvu1eWLxxWA5h5Y1VQtshRiiWVA2', 'admin@fkip-unimof.ac.id', 'Super Admin', 'superadmin', '2026-09-25 18:35:23', '2026-09-25 01:33:39');
+(1, 'admin', '$2y$10$HZABzARqxulnUeaA54n6EuAhXHvu1eWLxxWA5h5Y1VQtshRiiWVA2', 'admin@fkip-unimof.ac.id', 'Super Admin', 'superadmin', '2026-09-26 04:37:32', '2026-09-25 01:33:39');
 
 -- --------------------------------------------------------
 
@@ -190,7 +190,7 @@ CREATE TABLE `berita` (
 INSERT INTO `berita` (`id`, `judul`, `slug`, `konten`, `excerpt`, `gambar`, `kategori`, `penulis`, `views`, `status`, `is_featured`, `published_at`, `created_at`, `updated_at`) VALUES
 (1, 'Pengenalan Kehidupan Kampus Mahasiswa Baru FKIP UNIMOF 2026', 'pengenalan-kehidupan-kampus-mahasiswa-baru-fkip-unimof-2026', '<p>Mahasiswa baru Universitas Muhammadiyah Maumere Tahun 2026 mendapatkan kesempatan mengenal lebih dekat Fakultas Keguruan dan Ilmu Pendidikan beserta delapan program studinya.</p>', 'Mahasiswa baru UNIMOF mendapatkan pembekalan awal kehidupan akademik di FKIP.', NULL, 'Akademik', 'Humas FKIP', 1, 'Published', 1, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-25 02:59:56'),
 (2, 'FKIP UNIMOF Raih Akreditasi Unggul untuk Tiga Program Studi', 'fkip-unimof-raih-akreditasi-unggul-untuk-tiga-program-studi', '<p>Tiga program studi FKIP resmi meraih predikat Unggul dari BAN-PT setelah melalui proses asesmen lapangan yang ketat.</p>', 'Tiga program studi FKIP UNIMOF resmi meraih predikat Unggul dari BAN-PT.', NULL, 'Prestasi', 'Humas FKIP', 0, 'Published', 1, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-25 01:52:08'),
-(3, 'Seminar Nasional Pendidikan: Guru Merdeka di Era Digital', 'seminar-nasional-pendidikan-guru-merdeka-di-era-digital', '<p>FKIP menyelenggarakan seminar nasional bersama pakar pendidikan dari berbagai universitas di Indonesia Timur.</p>', 'FKIP UNIMOF menyelenggarakan seminar nasional pendidikan era digital.', NULL, 'Kegiatan', 'Humas FKIP', 0, 'Published', 0, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-25 01:52:08');
+(3, 'Seminar Nasional Pendidikan: Guru Merdeka di Era Digital', 'seminar-nasional-pendidikan-guru-merdeka-di-era-digital', '<p>FKIP menyelenggarakan seminar nasional bersama pakar pendidikan dari berbagai universitas di Indonesia Timur.</p>', 'FKIP UNIMOF menyelenggarakan seminar nasional pendidikan era digital.', NULL, 'Kegiatan', 'Humas FKIP', 1, 'Published', 0, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-26 02:47:17');
 
 -- --------------------------------------------------------
 

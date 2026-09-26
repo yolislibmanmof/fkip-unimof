@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/config.php';
 require_login();
 
+// ===== PROSES AKSI POST =====
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_token'] ?? '')) {
     $action = $_POST['action'] ?? '';
     $id = (int)($_POST['id'] ?? 0);
@@ -17,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
     exit;
 }
 
+// ===== FILTER & PENCARIAN =====
 $q = trim($_GET['q'] ?? '');
 $jenjang_filter = $_GET['jenjang'] ?? '';
 $status_filter = $_GET['status'] ?? '';
@@ -31,6 +33,7 @@ $stmt = $pdo->prepare("SELECT * FROM program_studi $where ORDER BY created_at DE
 $stmt->execute($params);
 $program_list = $stmt->fetchAll();
 
+// ===== STATISTIK =====
 $stat_total = count($program_list);
 $stat_aktif = (int)$pdo->query("SELECT COUNT(*) FROM program_studi WHERE status='Aktif'")->fetchColumn();
 $stat_s1 = (int)$pdo->query("SELECT COUNT(*) FROM program_studi WHERE jenjang='S1' AND status='Aktif'")->fetchColumn();
@@ -38,7 +41,9 @@ $stat_s2 = (int)$pdo->query("SELECT COUNT(*) FROM program_studi WHERE jenjang='S
 
 $jenjang_stats = [];
 $jenjang_rows = $pdo->query("SELECT jenjang, COUNT(*) as total FROM program_studi WHERE status='Aktif' GROUP BY jenjang")->fetchAll();
-foreach ($jenjang_rows as $r) $jenjang_stats[$r['jenjang']] = (int)$r['total'];
+foreach ($jenjang_rows as $r) {
+    $jenjang_stats[$r['jenjang']] = (int)$r['total'];
+}
 
 $csrf = generate_csrf_token();
 $active_menu = 'prodi';
@@ -58,10 +63,12 @@ require __DIR__ . '/includes/header.php';
 .stat-icon-extreme { font-size: 2.5rem; margin-bottom: 1rem; display: inline-block; }
 .stat-number-extreme { font-family: var(--font-display); font-size: 3rem; font-weight: 900; color: var(--stat-color, var(--primary)); line-height: 1; margin-bottom: 0.5rem; }
 .stat-label-extreme { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
 .chart-section { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
 @media (min-width: 768px) { .chart-section { grid-template-columns: 1fr 1fr; } }
 .chart-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-sm); }
 .chart-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
 .toolbar-extreme { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
 .search-box { flex: 1; min-width: 250px; position: relative; }
 .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; border: 2px solid var(--border); border-radius: var(--radius-md); font-family: inherit; font-size: 0.95rem; transition: all 0.3s; background: var(--bg-secondary); }
@@ -72,6 +79,7 @@ require __DIR__ . '/includes/header.php';
 .btn-action { padding: 0.75rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; border: none; }
 .btn-action.primary { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
 .btn-action.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,185,129,0.4); }
+
 .table-container { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); }
 .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .table-header h2 { font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; }
@@ -82,6 +90,7 @@ table.extreme td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border)
 table.extreme tbody tr { transition: all 0.2s; }
 table.extreme tbody tr:hover { background: var(--bg-secondary); }
 table.extreme tbody tr:last-child td { border-bottom: none; }
+
 .badge-extreme { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
 .badge-aktif { background: #dcfce7; color: #166534; }
 .badge-non-aktif { background: #fee2e2; color: #991b1b; }
@@ -89,6 +98,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 .badge-s2 { background: #f3e8ff; color: #7e22ce; }
 .badge-d3 { background: #fef3c7; color: #92400e; }
 .badge-lainnya { background: #f3f4f6; color: #4b5563; }
+
 .action-buttons { display: flex; gap: 0.5rem; justify-content: flex-end; }
 .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.3s; text-decoration: none; }
 .btn-icon.edit { background: #dbeafe; color: #2563eb; }
@@ -97,12 +107,19 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 .btn-icon.toggle:hover { background: #d97706; color: white; transform: translateY(-2px); }
 .btn-icon.delete { background: #fee2e2; color: #dc2626; }
 .btn-icon.delete:hover { background: #dc2626; color: white; transform: translateY(-2px); }
+
 .empty-state-extreme { text-align: center; padding: 4rem 2rem; background: var(--bg-secondary); border-radius: var(--radius-xl); border: 2px dashed var(--border); }
 .empty-icon-extreme { font-size: 5rem; margin-bottom: 1rem; opacity: 0.5; animation: float 3s ease-in-out infinite; }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-@media (max-width: 640px) { .stats-extreme { grid-template-columns: 1fr; } .toolbar-extreme { flex-direction: column; align-items: stretch; } .search-box { min-width: 100%; } }
+
+@media (max-width: 640px) { 
+    .stats-extreme { grid-template-columns: 1fr; } 
+    .toolbar-extreme { flex-direction: column; align-items: stretch; } 
+    .search-box { min-width: 100%; } 
+}
 </style>
 
+<!-- ===== STATS ===== -->
 <div class="stats-extreme" data-aos="fade-up">
     <div class="stat-card-extreme" style="--stat-color: #3b82f6;">
         <div class="stat-icon-extreme">🎓</div>
@@ -126,6 +143,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
+<!-- ===== CHARTS ===== -->
 <?php if (!empty($jenjang_stats)): ?>
 <div class="chart-section" data-aos="fade-up">
     <div class="chart-card">
@@ -139,6 +157,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 </div>
 <?php endif; ?>
 
+<!-- ===== TOOLBAR ===== -->
 <div class="toolbar-extreme" data-aos="fade-up">
     <div class="search-box">
         <span class="search-icon">🔍</span>
@@ -146,8 +165,8 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
     </div>
     <select class="filter-select" id="jenjangFilter">
         <option value="">Semua Jenjang</option>
-        <option value="S1" <?= $jenjang_filter === 'S1' ? 'selected' : '' ?>> S1</option>
-        <option value="S2" <?= $jenjang_filter === 'S2' ? 'selected' : '' ?>> S2</option>
+        <option value="S1" <?= $jenjang_filter === 'S1' ? 'selected' : '' ?>>🎓 S1</option>
+        <option value="S2" <?= $jenjang_filter === 'S2' ? 'selected' : '' ?>>🎓 S2</option>
         <option value="D3" <?= $jenjang_filter === 'D3' ? 'selected' : '' ?>>🎓 D3</option>
     </select>
     <select class="filter-select" id="statusFilter">
@@ -158,13 +177,14 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
     <a href="program-form.php" class="btn-action primary">➕ Tambah Program</a>
 </div>
 
+<!-- ===== TABLE ===== -->
 <div class="table-container" data-aos="fade-up">
     <div class="table-header">
         <div>
             <h2>🎓 Daftar Program Studi</h2>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Kelola program studi FKIP UNIMOF</p>
         </div>
-        <span style="font-size: 0.85rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.5rem 1rem; border-radius: 999px;"> <?= count($program_list) ?> data</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.5rem 1rem; border-radius: 999px;">📊 <?= $stat_total ?> data</span>
     </div>
     
     <?php if (empty($program_list)): ?>
@@ -216,7 +236,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
                                 <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
                                 <input type="hidden" name="id" value="<?= $p['id'] ?>">
                                 <input type="hidden" name="action" value="delete">
-                                <button class="btn-icon delete" title="Hapus">️</button>
+                                <button class="btn-icon delete" title="Hapus">🗑️</button>
                             </form>
                         </div>
                     </td>
@@ -229,6 +249,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <script>
+// ===== Count Up Animation =====
 function animateCount(el) {
     const target = parseInt(el.dataset.target) || 0;
     const duration = 2000;
@@ -248,6 +269,7 @@ const countObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
 
+// ===== Charts =====
 <?php if (!empty($jenjang_stats)): ?>
 new ApexCharts(document.querySelector("#jenjangChart"), {
     series: <?= json_encode(array_values($jenjang_stats)) ?>,
@@ -269,6 +291,7 @@ new ApexCharts(document.querySelector("#statusChart"), {
 }).render();
 <?php endif; ?>
 
+// ===== Search & Filter Logic =====
 const searchInput = document.getElementById('searchInput');
 const jenjangFilter = document.getElementById('jenjangFilter');
 const statusFilter = document.getElementById('statusFilter');
