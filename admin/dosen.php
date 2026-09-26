@@ -27,7 +27,7 @@ $status_filter = $_GET['status'] ?? '';
 
 $where = 'WHERE 1=1';
 $params = [];
-if ($q !== '') { $where .= ' AND (nama LIKE ? OR nip LIKE ?)'; $params[] = "%$q%"; $params[] = "%$q%"; }
+if ($q !== '') { $where .= ' AND (nama LIKE ? OR nidn LIKE ?)'; $params[] = "%$q%"; $params[] = "%$q%"; }
 if ($jabatan_filter !== '') { $where .= ' AND jabatan_fungsional = ?'; $params[] = $jabatan_filter; }
 if ($status_filter !== '') { $where .= ' AND status = ?'; $params[] = $status_filter; }
 
@@ -149,7 +149,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 <div class="toolbar-extreme" data-aos="fade-up">
     <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Cari nama dosen atau NIP..." value="<?= sanitize($q) ?>">
+        <input type="text" id="searchInput" placeholder="Cari nama dosen atau NIDN..." value="<?= sanitize($q) ?>">
     </div>
     <select class="filter-select" id="jabatanFilter">
         <option value="">Semua Jabatan</option>
@@ -189,7 +189,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
                 <thead>
                     <tr>
                         <th>Dosen</th>
-                        <th>NIP</th>
+                        <th>NIDN</th>
                         <th>Jabatan Fungsional</th>
                         <th>Program Studi</th>
                         <th>Status</th>
@@ -220,7 +220,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
                             </div>
                         </div>
                     </td>
-                    <td><span style="font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);"><?= sanitize($d['nip'] ?: '-') ?></span></td>
+                    <td><span style="font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);"><?= sanitize($d['nidn'] ?: '-') ?></span></td>
                     <td><span class="badge-extreme badge-<?= $jabatan_lower ?>"><?= sanitize($d['jabatan_fungsional'] ?? '-') ?></span></td>
                     <td style="color: var(--text-secondary);"><?= sanitize($d['prodi_nama'] ?? '-') ?></td>
                     <td><span class="badge-extreme <?= $status_class ?>"><?= $d['status'] ?></span></td>

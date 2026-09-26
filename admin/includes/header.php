@@ -1,5 +1,5 @@
 <?php
-// admin/includes/header.php - Layout bersama panel admin (EXTREME MULTIMATE VERSION)
+// admin/includes/header.php - EXTREME MULTIMATE SIDEBAR
 require_login();
 
 $admin_name = htmlspecialchars($_SESSION['admin_name'] ?? $_SESSION['admin_username'] ?? 'Admin', ENT_QUOTES, 'UTF-8');
@@ -14,18 +14,19 @@ try {
 } catch (Exception $e) {}
 $total_notifications = $new_msgs + $draft_count;
 
+// Menu dengan ikon yang LENGKAP dan proper
 $menu_groups = [
     'Utama' => [
         'dashboard' => ['📊', 'Dashboard', 'dashboard.php', 'Overview & statistik']
     ],
     'Konten' => [
         'berita' => ['📰', 'Kelola Berita', 'berita.php', 'CRUD artikel'],
-        'agenda' => ['📅', 'Agenda & Acara', 'agenda.php', 'Jadwal kegiatan'],
+        'agenda' => ['📆', 'Agenda & Acara', 'agenda.php', 'Jadwal kegiatan'],
         'download' => ['📥', 'Download Center', 'download.php', 'Kelola file'],
     ],
     'Akademik' => [
         'prodi' => ['🎓', 'Program Studi', 'program.php', 'Kelola data prodi'],
-        'dosen' => ['👨‍🏫', 'Data Dosen', 'dosen.php', 'Profil pengajar'],
+        'dosen' => ['👨‍', 'Data Dosen', 'dosen.php', 'Profil pengajar'],
         'riset' => ['🔬', 'Riset & Jurnal', 'riset.php', 'Publikasi ilmiah'],
         'jurnal' => ['📚', 'Jurnal Ilmiah', 'jurnal.php', 'Kelola jurnal'],
         'fasilitas' => ['🏢', 'Fasilitas & Lab', 'fasilitas.php', 'Sarana prasarana'],
@@ -51,36 +52,48 @@ $menu_groups = [
 <meta name="robots" content="noindex, nofollow">
 <title><?= sanitize($heading) ?> - Admin FKIP UNIMOF</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?= base_url('admin/assets/css/admin-style.css') ?>">
 <style>
-/* === EXTREME MULTIMATE ADMIN STYLES === */
+/* === EXTREME MULTIMATE SIDEBAR STYLES === */
 :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
     --sidebar-bg: linear-gradient(180deg, #0a6847 0%, #064e34 100%);
     --sidebar-width: 280px;
-    --primary-glow: rgba(10, 104, 71, 0.4);
     --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(255, 255, 255, 0.6);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #0a6847;
+    --primary-light: #16a34a;
+    --shadow-glow: 0 0 40px rgba(10,104,71,0.3);
 }
+
 [data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
     --glass-bg: rgba(15, 23, 42, 0.85);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border: #334155;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { 
     font-family: 'Plus Jakarta Sans', sans-serif; 
-    background: #f8fafc; 
-    color: #0f172a; 
-    overflow-x: hidden; 
-    -webkit-font-smoothing: antialiased;
+    background: var(--bg-secondary); 
+    color: var(--text-primary); 
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
-[data-theme="dark"] body { background: #0f172a; color: #f1f5f9; }
 
-/* Layout */
 .dashboard { display: flex; min-height: 100vh; }
 
-/* Sidebar Premium */
+/* ===== SIDEBAR EXTREME ===== */
 .sidebar { 
     width: var(--sidebar-width); 
     background: var(--sidebar-bg); 
@@ -91,24 +104,31 @@ body {
     overflow-y: auto; 
     overflow-x: hidden; 
     flex-shrink: 0; 
-    box-shadow: 4px 0 24px rgba(0,0,0,0.15); 
+    box-shadow: 4px 0 32px rgba(0,0,0,0.2); 
     z-index: 100; 
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
 }
-/* Custom Scrollbar for Sidebar */
-.sidebar::-webkit-scrollbar { width: 5px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+.sidebar::-webkit-scrollbar-thumb { 
+    background: rgba(255,255,255,0.2); 
+    border-radius: 10px;
+    transition: background 0.3s;
+}
 .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
 
+/* Sidebar Header dengan Glassmorphism */
 .sidebar-header { 
-    padding: 1.5rem; 
+    padding: 2rem 1.5rem; 
     border-bottom: 1px solid rgba(255,255,255,0.1); 
-    background: rgba(0,0,0,0.15); 
-    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.2); 
+    backdrop-filter: blur(20px);
     position: relative;
     overflow: hidden;
 }
+
 .sidebar-header::before {
     content: '';
     position: absolute;
@@ -116,88 +136,187 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
-    animation: rotateGlow 15s linear infinite;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    animation: rotateGlow 20s linear infinite;
+    pointer-events: none;
 }
-@keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@keyframes rotateGlow { 
+    from { transform: rotate(0deg); } 
+    to { transform: rotate(360deg); } 
+}
 
 .sidebar-header h2 { 
-    font-size: 1.25rem; 
+    font-size: 1.5rem; 
     display: flex; 
     align-items: center; 
-    gap: 0.6rem; 
+    gap: 0.75rem; 
     font-weight: 800; 
     letter-spacing: -0.02em;
     position: relative;
     z-index: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
+
 .sidebar-header p { 
     font-size: 0.75rem; 
-    opacity: 0.7; 
+    opacity: 0.8; 
     margin-top: 0.25rem; 
     font-weight: 500;
     position: relative;
     z-index: 1;
 }
 
-.sidebar-menu { list-style: none; padding: 1rem 0.75rem; }
+/* Sidebar Menu */
+.sidebar-menu { 
+    list-style: none; 
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .menu-label { 
-    font-size: 0.65rem; 
+    font-size: 0.7rem; 
     text-transform: uppercase; 
-    letter-spacing: 0.1em; 
+    letter-spacing: 0.15em; 
     color: rgba(255,255,255,0.4); 
     font-weight: 700; 
-    padding: 1rem 0.75rem 0.5rem; 
-    margin-top: 0.5rem; 
+    padding: 1rem 1rem 0.5rem; 
+    margin-top: 0.5rem;
+    transition: color 0.3s;
 }
-.sidebar-menu li { margin-bottom: 0.25rem; }
+
+.sidebar-menu li { 
+    margin-bottom: 0.15rem; 
+}
+
 .sidebar-menu a { 
     display: flex; 
     align-items: center; 
-    gap: 0.75rem; 
-    padding: 0.75rem 1rem; 
+    gap: 0.875rem; 
+    padding: 0.875rem 1rem; 
     color: rgba(255,255,255,0.75); 
     text-decoration: none; 
-    font-size: 0.88rem; 
+    font-size: 0.9rem; 
     font-weight: 500; 
-    border-radius: 10px; 
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+    border-radius: 12px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     position: relative; 
     overflow: hidden;
+    border: 1px solid transparent;
 }
-.sidebar-menu a::before {
+
+/* Icon container dengan efek glow */
+.sidebar-menu .menu-icon { 
+    font-size: 1.25rem; 
+    width: 28px; 
+    text-align: center; 
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transition: transform 0.3s;
+}
+
+/* Text area */
+.sidebar-menu .menu-text { 
+    flex: 1; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+/* Hover effects */
+.sidebar-menu a:hover { 
+    background: rgba(255,255,255,0.12); 
+    color: #fff; 
+    transform: translateX(6px);
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.sidebar-menu a:hover .menu-icon {
+    transform: scale(1.15) rotate(-5deg);
+}
+
+/* Active state dengan gradient */
+.sidebar-menu a.active { 
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%); 
+    color: #fff; 
+    font-weight: 600;
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.sidebar-menu a.active::before {
     content: '';
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 3px;
-    height: 0;
-    background: #fff;
+    width: 4px;
+    height: 60%;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.6) 100%);
     border-radius: 0 4px 4px 0;
-    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
-.sidebar-menu a:hover { 
-    background: rgba(255,255,255,0.1); 
-    color: #fff; 
-    transform: translateX(4px); 
-}
-.sidebar-menu a.active { 
-    background: rgba(255,255,255,0.15); 
-    color: #fff; 
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.sidebar-menu a.active::before { height: 60%; }
-.sidebar-menu .menu-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
-.sidebar-menu .menu-text { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+
+/* Tooltip */
 .sidebar-menu .menu-tooltip { 
     font-size: 0.7rem; 
     opacity: 0; 
-    transform: translateX(-5px); 
-    transition: all 0.3s; 
+    transform: translateX(-10px); 
+    transition: all 0.3s;
+    color: rgba(255,255,255,0.5);
 }
-.sidebar-menu a:hover .menu-tooltip { opacity: 0.6; transform: translateX(0); }
+
+.sidebar-menu a:hover .menu-tooltip { 
+    opacity: 0.7; 
+    transform: translateX(0); 
+}
+
+/* Badge notification di menu */
+.notification-badge {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff; 
+    font-size: 0.7rem; 
+    font-weight: 700; 
+    min-width: 22px; 
+    height: 22px; 
+    border-radius: 999px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 0 6px;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+    animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Separator */
+.sidebar-divider {
+    height: 1px; 
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+    margin: 1.5rem 1rem;
+}
+
+/* Logout button */
+.sidebar-menu a.logout {
+    color: #fca5a5;
+    margin-top: 1rem;
+    border: 1px solid rgba(252,165,165,0.2);
+}
+
+.sidebar-menu a.logout:hover {
+    background: rgba(252,165,165,0.15);
+    border-color: rgba(252,165,165,0.4);
+    color: #fff;
+}
 
 /* Main Content */
 .main { 
@@ -208,7 +327,7 @@ body {
     transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
 }
 
-/* Top Bar Glassmorphism */
+/* Top Bar */
 .top-bar { 
     display: flex; 
     justify-content: space-between; 
@@ -216,69 +335,103 @@ body {
     margin-bottom: 2rem; 
     padding: 1rem 1.5rem; 
     background: var(--glass-bg); 
-    backdrop-filter: blur(16px); 
-    -webkit-backdrop-filter: blur(16px); 
+    backdrop-filter: blur(20px); 
     border: 1px solid var(--glass-border); 
     border-radius: 16px; 
-    box-shadow: var(--glass-shadow); 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08); 
     position: sticky; 
     top: 1rem; 
     z-index: 90; 
     flex-wrap: wrap; 
     gap: 1rem; 
-    transition: all 0.3s ease;
 }
-.top-bar-left h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; letter-spacing: -0.02em; }
-.breadcrumb { display: flex; gap: 0.5rem; font-size: 0.8rem; color: #64748b; align-items: center; font-weight: 500; }
-.breadcrumb a { color: #64748b; text-decoration: none; transition: color 0.2s; }
-.breadcrumb a:hover { color: #0a6847; }
-.breadcrumb span { color: #cbd5e1; }
 
-.top-bar-right { display: flex; gap: 0.75rem; align-items: center; }
+.top-bar-left h1 { 
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    margin-bottom: 0.25rem; 
+    letter-spacing: -0.02em; 
+    color: var(--text-primary); 
+}
 
-/* Notification Dropdown */
+.breadcrumb { 
+    display: flex; 
+    gap: 0.5rem; 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+    align-items: center; 
+    font-weight: 500; 
+}
+
+.breadcrumb a { 
+    color: var(--text-muted); 
+    text-decoration: none; 
+    transition: color 0.2s; 
+}
+
+.breadcrumb a:hover { 
+    color: var(--primary); 
+}
+
+.breadcrumb span { 
+    color: var(--text-secondary); 
+}
+
+.top-bar-right { 
+    display: flex; 
+    gap: 0.75rem; 
+    align-items: center; 
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    width: 42px;
+    height: 42px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.2rem;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px) rotate(15deg);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.theme-toggle .sun-icon { display: none; color: #f59e0b; }
+.theme-toggle .moon-icon { display: block; color: #64748b; }
+
+[data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+[data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+
+/* Notification */
 .notification-wrap { position: relative; }
+
 .notification-btn { 
     width: 42px; 
     height: 42px; 
-    background: #fff; 
-    border: 1px solid #e2e8f0; 
+    background: var(--bg-primary); 
+    border: 1px solid var(--border); 
     border-radius: 12px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     cursor: pointer; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+    transition: all 0.3s; 
     font-size: 1.1rem; 
+    color: var(--text-primary);
 }
-[data-theme="dark"] .notification-btn { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+
 .notification-btn:hover { 
     transform: translateY(-2px); 
-    box-shadow: 0 8px 16px rgba(0,0,0,0.08); 
-}
-.notification-badge { 
-    position: absolute; 
-    top: -4px; 
-    right: -4px; 
-    background: #ef4444; 
-    color: #fff; 
-    font-size: 0.65rem; 
-    font-weight: 800; 
-    min-width: 18px; 
-    height: 18px; 
-    border-radius: 9px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    padding: 0 4px; 
-    border: 2px solid #fff; 
-    animation: pulseBadge 2s infinite;
-}
-@keyframes pulseBadge {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12); 
 }
 
 .notification-dropdown { 
@@ -286,8 +439,8 @@ body {
     top: calc(100% + 8px); 
     right: 0; 
     width: 320px; 
-    background: #fff; 
-    border: 1px solid #e2e8f0; 
+    background: var(--bg-primary); 
+    border: 1px solid var(--border); 
     border-radius: 16px; 
     box-shadow: 0 20px 40px rgba(0,0,0,0.15); 
     opacity: 0; 
@@ -297,72 +450,60 @@ body {
     z-index: 200; 
     overflow: hidden; 
 }
-[data-theme="dark"] .notification-dropdown { background: #1e293b; border-color: #334155; }
+
 .notification-dropdown.show { 
     opacity: 1; 
     visibility: visible; 
     transform: translateY(0) scale(1); 
 }
+
 .notif-header { 
     padding: 1rem 1.25rem; 
-    border-bottom: 1px solid #f1f5f9; 
+    border-bottom: 1px solid var(--border); 
     font-weight: 700; 
     font-size: 0.9rem; 
     display: flex; 
-    justify-content: space-between; 
+    justify-content: space-between;
+    color: var(--text-primary);
 }
-[data-theme="dark"] .notif-header { border-color: #334155; }
+
 .notif-item { 
     padding: 1rem 1.25rem; 
-    border-bottom: 1px solid #f1f5f9; 
+    border-bottom: 1px solid var(--border); 
     display: flex; 
     gap: 0.75rem; 
     align-items: flex-start; 
     transition: background 0.2s; 
     cursor: pointer; 
     text-decoration: none; 
-    color: inherit; 
+    color: var(--text-primary);
 }
-[data-theme="dark"] .notif-item { border-color: #334155; }
-.notif-item:hover { background: #f8fafc; }
-[data-theme="dark"] .notif-item:hover { background: #334155; }
-.notif-icon { 
-    width: 36px; 
-    height: 36px; 
-    border-radius: 10px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 1rem; 
-    flex-shrink: 0; 
-}
-.notif-icon.msg { background: #dbeafe; color: #2563eb; }
-.notif-icon.draft { background: #fef3c7; color: #d97706; }
-.notif-content h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; }
-.notif-content p { font-size: 0.75rem; color: #64748b; line-height: 1.4; }
+
+.notif-item:hover { background: var(--bg-secondary); }
 
 /* User Info */
 .user-info { 
     display: flex; 
     align-items: center; 
     gap: 0.75rem; 
-    background: #fff; 
+    background: var(--bg-primary); 
     padding: 0.4rem 0.4rem 0.4rem 1rem; 
     border-radius: 999px; 
-    border: 1px solid #e2e8f0; 
+    border: 1px solid var(--border); 
     cursor: pointer; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    transition: all 0.3s; 
 }
-[data-theme="dark"] .user-info { background: #1e293b; border-color: #334155; }
+
 .user-info:hover { 
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
     transform: translateY(-2px); 
-    border-color: #cbd5e1;
+    border-color: var(--text-secondary);
 }
+
 .user-avatar { 
     width: 36px; 
     height: 36px; 
-    background: linear-gradient(135deg, #0a6847, #16a34a); 
+    background: linear-gradient(135deg, var(--primary), var(--primary-light)); 
     color: #fff; 
     border-radius: 50%; 
     display: flex; 
@@ -374,42 +515,29 @@ body {
     box-shadow: 0 2px 8px rgba(10,104,71,0.3);
 }
 
-/* Re-use existing styles with minor tweaks for consistency */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-.stat-card { background: #fff; padding: 1.5rem; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 1rem; border: 1px solid #f1f5f9; transition: all 0.3s; position: relative; overflow: hidden; }
-[data-theme="dark"] .stat-card { background: #1e293b; border-color: #334155; }
-.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
-.stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
-.stat-info h3 { font-size: 1.75rem; line-height: 1; margin-bottom: 0.25rem; font-weight: 800; }
-.stat-info p { color: #64748b; font-size: 0.85rem; margin-bottom: 0.25rem; }
-.stat-info small { font-size: 0.75rem; font-weight: 600; }
-
-.card { background: #fff; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 1.5rem; border: 1px solid #f1f5f9; }
-[data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
-.card-header h2 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
-
-.btn-sm { padding: 0.5rem 1rem; background: #0a6847; color: #fff; border: none; border-radius: 10px; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-family: inherit; font-weight: 600; transition: all 0.3s; }
-.btn-sm:hover { background: #084d35; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(10,104,71,0.3); }
-.btn-sm.gray { background: #f1f5f9; color: #475569; }
-[data-theme="dark"] .btn-sm.gray { background: #334155; color: #cbd5e1; }
-.btn-sm.gray:hover { background: #e2e8f0; }
-
 /* Responsive */
 @media (max-width: 1024px) {
-    .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); box-shadow: 8px 0 32px rgba(0,0,0,0.2); }
-    .main { max-width: 100vw; padding: 1rem; }
-    .top-bar { padding: 0.75rem 1rem; }
-    .notification-dropdown { width: 280px; right: -1rem; }
-}
-@media (max-width: 640px) {
-    .stats-grid { grid-template-columns: 1fr; }
-    .top-bar-left h1 { font-size: 1.25rem; }
+    .sidebar { 
+        position: fixed; 
+        left: 0; 
+        top: 0; 
+        transform: translateX(-100%); 
+    }
+    .sidebar.open { 
+        transform: translateX(0); 
+        box-shadow: 8px 0 32px rgba(0,0,0,0.3); 
+    }
+    .main { 
+        max-width: 100vw; 
+        padding: 1rem; 
+    }
 }
 
-/* Utility Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+/* Alert animation */
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
 .alert { animation: fadeIn 0.3s ease; }
 </style>
 </head>
@@ -429,22 +557,22 @@ body {
                 <div class="menu-label"><?= $group_name ?></div>
                 <?php foreach ($items as $key => $m): ?>
                 <li>
-                    <a href="<?= $m[2] ?>" class="<?= $active === $key ? 'active' : '' ?>">
+                    <a href="<?= $m[2] ?>" class="<?= $active === $key ? 'active' : '' ?>" title="<?= $m[3] ?? '' ?>">
                         <span class="menu-icon"><?= $m[0] ?></span>
                         <span class="menu-text">
                             <?= $m[1] ?>
+                            <?php if ($key === 'kontak' && $new_msgs > 0): ?>
+                                <span class="notification-badge"><?= $new_msgs ?></span>
+                            <?php endif; ?>
                         </span>
-                        <?php if ($key === 'kontak' && $new_msgs > 0): ?>
-                            <span class="notification-badge" style="position:static; min-width:20px; height:20px; font-size:0.7rem; border:none;"><?= $new_msgs ?></span>
-                        <?php endif; ?>
                     </a>
                 </li>
                 <?php endforeach; ?>
             <?php endforeach; ?>
             
-            <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 1rem 0.75rem;"></div>
+            <div class="sidebar-divider"></div>
             <li>
-                <a href="logout.php" style="color: #fca5a5;">
+                <a href="logout.php" class="logout">
                     <span class="menu-icon">🚪</span>
                     <span class="menu-text">Keluar Sistem</span>
                 </a>
@@ -455,9 +583,7 @@ body {
     <main class="main">
         <div class="top-bar">
             <div class="top-bar-left">
-                <!-- Mobile Toggle -->
-                <button onclick="toggleSidebar()" style="display:none; background:none; border:none; font-size:1.5rem; cursor:pointer; margin-right:0.75rem; color: inherit;" id="mobileMenuBtn">☰</button>
-                
+                <button onclick="toggleSidebar()" style="display:none; background:none; border:none; font-size:1.5rem; cursor:pointer; margin-right:0.75rem; color: var(--text-primary);" id="mobileMenuBtn">☰</button>
                 <h1><?= sanitize($heading) ?></h1>
                 <nav class="breadcrumb">
                     <?php foreach ($breadcrumbs as $i => $crumb): ?>
@@ -465,46 +591,50 @@ body {
                             <a href="<?= $crumb[1] ?>"><?= sanitize($crumb[0]) ?></a>
                             <span>›</span>
                         <?php else: ?>
-                            <span style="color: #0f172a; font-weight: 600;"><?= sanitize($crumb[0]) ?></span>
+                            <span style="color: var(--text-primary); font-weight: 600;"><?= sanitize($crumb[0]) ?></span>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </nav>
             </div>
             
             <div class="top-bar-right">
-                <!-- Notification Dropdown -->
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle Dark Mode" title="Ganti Tema">
+                    <span class="sun-icon">☀️</span>
+                    <span class="moon-icon">🌙</span>
+                </button>
+
                 <div class="notification-wrap">
                     <button class="notification-btn" id="notifBtn" aria-label="Notifikasi">
                         🔔
                         <?php if ($total_notifications > 0): ?>
-                            <span class="notification-badge"><?= $total_notifications > 9 ? '9+' : $total_notifications ?></span>
+                            <span class="notification-badge" style="position:absolute; top:-4px; right:-4px; min-width:18px; height:18px; font-size:0.65rem; border:2px solid var(--bg-primary);"><?= $total_notifications > 9 ? '9+' : $total_notifications ?></span>
                         <?php endif; ?>
                     </button>
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="notif-header">
                             <span>Notifikasi</span>
-                            <span style="font-size:0.75rem; color:#64748b; font-weight:500; cursor:pointer;" onclick="clearNotifs()">Tandai semua dibaca</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500; cursor:pointer;" onclick="clearNotifs()">Tandai semua dibaca</span>
                         </div>
                         <?php if ($total_notifications === 0): ?>
-                            <div style="padding: 2rem; text-align: center; color: #64748b; font-size: 0.85rem;">
+                            <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
                                 🎉 Tidak ada notifikasi baru
                             </div>
                         <?php else: ?>
                             <?php if ($new_msgs > 0): ?>
                             <a href="kontak.php" class="notif-item">
-                                <div class="notif-icon msg">✉️</div>
-                                <div class="notif-content">
-                                    <h4><?= $new_msgs ?> Pesan Baru</h4>
-                                    <p>Pengunjung menunggu balasan Anda</p>
+                                <div style="width:36px;height:36px;border-radius:10px;background:#dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:1rem;">✉️</div>
+                                <div>
+                                    <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);"><?= $new_msgs ?> Pesan Baru</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">Pengunjung menunggu balasan</div>
                                 </div>
                             </a>
                             <?php endif; ?>
                             <?php if ($draft_count > 0): ?>
                             <a href="berita.php" class="notif-item">
-                                <div class="notif-icon draft">📝</div>
-                                <div class="notif-content">
-                                    <h4><?= $draft_count ?> Berita Draft</h4>
-                                    <p>Perlu ditinjau sebelum dipublikasi</p>
+                                <div style="width:36px;height:36px;border-radius:10px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:1rem;">📝</div>
+                                <div>
+                                    <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);"><?= $draft_count ?> Berita Draft</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">Perlu ditinjau sebelum publikasi</div>
                                 </div>
                             </a>
                             <?php endif; ?>
@@ -512,12 +642,11 @@ body {
                     </div>
                 </div>
 
-                <!-- User Profile -->
                 <div class="user-info">
                     <div class="user-avatar"><?= strtoupper(substr($admin_name, 0, 1)) ?></div>
                     <div style="line-height: 1.2;">
-                        <div style="font-size:0.85rem; font-weight:700; color:#0f172a;"><?= $admin_name ?></div>
-                        <div style="font-size:0.7rem; color:#64748b; font-weight:500;"><?= ucfirst($_SESSION['admin_role'] ?? 'admin') ?></div>
+                        <div style="font-size:0.85rem; font-weight:700; color:var(--text-primary);"><?= $admin_name ?></div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:500;"><?= ucfirst($_SESSION['admin_role'] ?? 'admin') ?></div>
                     </div>
                 </div>
             </div>

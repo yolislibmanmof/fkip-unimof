@@ -1,26 +1,26 @@
-        <!-- ===== ADMIN FOOTER ===== -->
-        <footer class="admin-footer" style="margin-top: 4rem; padding: 2rem 0 1rem; border-top: 1px solid var(--glass-border);">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; color: #64748b; font-size: 0.85rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 1.2rem;">🎓</span>
-                    <div>
-                        &copy; <?= date('Y') ?> <strong style="color: var(--primary, #0a6847);">FKIP UNIMOF</strong> Admin Panel.
-                        <span style="opacity: 0.7; display: block; font-size: 0.75rem; margin-top: 0.2rem;">Mencerdaskan bangsa dengan teknologi.</span>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-                    <span style="background: #f1f5f9; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #475569;">
-                        v<?= defined('APP_VERSION') ? APP_VERSION : '1.0.0' ?>
-                    </span>
-                    <a href="<?= base_url() ?>" target="_blank" style="color: #64748b; text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#0a6847'; this.style.transform='translateY(-1px)'" onmouseout="this.style.color='#64748b'; this.style.transform='translateY(0)'">
-                        🌐 Website Publik
-                    </a>
-                    <a href="https://github.com/yolislibmanmof/fkip-unimof" target="_blank" style="color: #64748b; text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#0a6847'; this.style.transform='translateY(-1px)'" onmouseout="this.style.color='#64748b'; this.style.transform='translateY(0)'">
-                        🐙 GitHub
-                    </a>
-                </div>
+<!-- ===== ADMIN FOOTER ===== -->
+<footer class="admin-footer" style="margin-top: 4rem; padding: 2rem 0 1rem; border-top: 1px solid var(--border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; color: var(--text-muted); font-size: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.2rem;">🎓</span>
+            <div>
+                &copy; <?= date('Y') ?> <strong style="color: var(--primary);">FKIP UNIMOF</strong> Admin Panel.
+                <span style="opacity: 0.7; display: block; font-size: 0.75rem; margin-top: 0.2rem;">Mencerdaskan bangsa dengan teknologi.</span>
             </div>
-        </footer>
+        </div>
+        <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <span style="background: var(--bg-tertiary); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">
+                v<?= defined('APP_VERSION') ? APP_VERSION : '1.0.0' ?>
+            </span>
+            <a href="<?= base_url() ?>" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='var(--primary)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='translateY(0)'">
+                🌐 Website Publik
+            </a>
+            <a href="https://github.com/yolislibmanmof/fkip-unimof" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='var(--primary)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='translateY(0)'">
+                🐙 GitHub
+            </a>
+        </div>
+    </div>
+</footer>
     </main>
 </div>
 
@@ -69,7 +69,7 @@ if (notifBtn && notifDropdown) {
 
 function clearNotifs() {
     if (notifDropdown) {
-        notifDropdown.innerHTML = '<div style="padding: 2rem; text-align: center; color: #64748b; font-size: 0.85rem;">🎉 Tidak ada notifikasi baru</div>';
+        notifDropdown.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">🎉 Tidak ada notifikasi baru</div>';
     }
     const badge = document.querySelector('.notification-badge');
     if (badge) badge.style.display = 'none';
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (entry.isIntersecting) {
                 const fills = entry.target.querySelectorAll('.chart-bar-fill, .progress-fill, .ring-fill, .perf-ring-fill');
                 fills.forEach(fill => {
-                    const width = fill.style.width || fill.dataset.width || fill.getAttribute('style').match(/stroke-dasharray:([^,]+)/)?.[1];
+                    const width = fill.style.width || fill.dataset.width || fill.getAttribute('style')?.match(/stroke-dasharray:([^,]+)/)?.[1];
                     if (width) {
                         fill.style.width = '0%';
                         if (fill.tagName === 'circle') {
@@ -164,9 +164,42 @@ window.timeAgo = function(timestamp) {
     return 'Baru saja';
 };
 
+// ==========================================
+// 6. DARK MODE TOGGLE LOGIC (EXTREME MULTIMATE)
+// ==========================================
+const themeToggle = document.getElementById('themeToggle');
+const htmlElement = document.documentElement;
+
+// Cek preferensi yang tersimpan di localStorage atau preferensi sistem OS
+const savedTheme = localStorage.getItem('admin_theme');
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+// Terapkan tema saat halaman dimuat
+if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+    htmlElement.setAttribute('data-theme', 'dark');
+}
+
+// Event listener untuk tombol toggle
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Terapkan tema baru
+        htmlElement.setAttribute('data-theme', newTheme);
+        
+        // Simpan ke localStorage agar tetap konsisten saat refresh/login ulang
+        localStorage.setItem('admin_theme', newTheme);
+        
+        // Opsional: Tambahkan efek transisi halus pada body
+        document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    });
+}
+
 console.log('%c🎓 FKIP UNIMOF Admin', 'color:#0a6847;font-size:16px;font-weight:bold');
-console.log('%cSistem siap dan berjalan dengan optimal!', 'color:#64748b');
+console.log('%cSistem siap dan berjalan dengan optimal! (Dark Mode Ready 🌙)', 'color:#64748b');
 </script>
+<script src="<?= base_url('admin/assets/js/admin.js') ?>"></script>
 
 </body>
 </html>

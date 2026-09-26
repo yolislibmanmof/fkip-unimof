@@ -12,7 +12,7 @@ if ($id > 0) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_token'] ?? '')) {
     $nama = trim($_POST['nama']);
-    $nip = trim($_POST['nip']);
+    $nidn = trim($_POST['nidn']);
     $jabatan = $_POST['jabatan_fungsional'];
     $pendidikan = trim($_POST['pendidikan_terakhir']);
     $prodi_id = (int)($_POST['program_studi_id'] ?? 0);
@@ -34,12 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
     }
 
     if ($edit) {
-        $pdo->prepare("UPDATE dosen SET nama=?, nip=?, jabatan_fungsional=?, pendidikan_terakhir=?, program_studi_id=?, bio=?, foto=?, status=? WHERE id=?")
-            ->execute([$nama, $nip, $jabatan, $pendidikan, $prodi_id, $bio, $foto, $status, $id]);
+        $pdo->prepare("UPDATE dosen SET nama=?, nidn=?, jabatan_fungsional=?, pendidikan_terakhir=?, program_studi_id=?, bio=?, foto=?, status=? WHERE id=?")
+            ->execute([$nama, $nidn, $jabatan, $pendidikan, $prodi_id, $bio, $foto, $status, $id]);
         flash_message('success', '✅ Data dosen berhasil diperbarui.');
     } else {
-        $pdo->prepare("INSERT INTO dosen (nama, nip, jabatan_fungsional, pendidikan_terakhir, program_studi_id, bio, foto, status) VALUES (?,?,?,?,?,?,?,?)")
-            ->execute([$nama, $nip, $jabatan, $pendidikan, $prodi_id, $bio, $foto, $status]);
+        $pdo->prepare("INSERT INTO dosen (nama, nidn, jabatan_fungsional, pendidikan_terakhir, program_studi_id, bio, foto, status) VALUES (?,?,?,?,?,?,?,?)")
+           ->execute([$nama, $nidn, $jabatan, $pendidikan, $prodi_id, $bio, $foto, $status]);
         flash_message('success', '✅ Dosen baru berhasil ditambahkan.');
     }
     header('Location: dosen.php');
@@ -99,7 +99,7 @@ require __DIR__ . '/includes/header.php';
 .preview-avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #0a6847, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; margin: 0 auto 1.5rem; overflow: hidden; border: 3px solid var(--border); }
 .preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .preview-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; line-height: 1.3; }
-.preview-nip { text-align: center; font-size: 0.9rem; color: var(--text-muted); font-family: monospace; margin-bottom: 1.5rem; }
+.preview-nidn { text-align: center; font-size: 0.9rem; color: var(--text-muted); font-family: monospace; margin-bottom: 1.5rem; }
 .preview-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 .preview-meta-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: var(--text-secondary); }
 .preview-meta-item strong { color: var(--text-primary); font-weight: 600; }
@@ -141,8 +141,8 @@ require __DIR__ . '/includes/header.php';
                         <input type="text" id="nama" name="nama" class="form-input" required placeholder="Contoh: Dr. Ahmad, M.Pd." value="<?= sanitize($edit['nama'] ?? '') ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">NIP</label>
-                        <input type="text" id="nip" name="nip" class="form-input" placeholder="Contoh: 198001012005011001" value="<?= sanitize($edit['nip'] ?? '') ?>">
+                        <label class="form-label">NIDN</label>
+                       <input type="text" id="nidn" name="nidn" class="form-input" placeholder="Contoh: 198001012005011001" value="<?= sanitize($edit['nidn'] ?? '') ?>"> <input type="text" id="nidn" name="nidn" class="form-input" placeholder="Contoh: 198001012005011001" value="<?= sanitize($edit['nidn'] ?? '') ?>">
                     </div>
                 </div>
                 <div class="form-row">
@@ -238,7 +238,7 @@ require __DIR__ . '/includes/header.php';
         <div id="previewContent">
             <div class="preview-avatar" id="previewAvatar"><span id="previewInitials">👤</span></div>
             <h2 class="preview-title" id="previewTitle">Nama dosen akan muncul di sini...</h2>
-            <div class="preview-nip" id="previewNip">NIP: -</div>
+            <div class="preview-nidn" id="previewNidn">NIDN: -</div>
             
             <div class="preview-meta">
                 <div class="preview-meta-item">
@@ -333,7 +333,7 @@ function formatFileSize(bytes) {
 
 function updatePreview() {
     const nama = document.getElementById('nama').value || 'Nama dosen akan muncul di sini...';
-    const nip = document.getElementById('nip').value || '-';
+    const nidn = document.getElementById('nidn').value || '-';
     const jabatan = document.getElementById('jabatan_fungsional').value || 'Tenaga Pengajar';
     const pendidikan = document.getElementById('pendidikan_terakhir').value || '-';
     const bio = document.getElementById('bio').value;
@@ -343,7 +343,7 @@ function updatePreview() {
     const prodiText = prodiSelect.options[prodiSelect.selectedIndex]?.text || '-';
 
     document.getElementById('previewTitle').textContent = nama;
-    document.getElementById('previewNip').textContent = 'NIP: ' + (nip || '-');
+    document.getElementById('previewNidn').textContent = 'NIDN: ' + (nidn || '-');
     document.getElementById('previewJabatan').textContent = jabatan;
     document.getElementById('previewPendidikan').textContent = pendidikan;
     document.getElementById('previewProdi').textContent = prodiText;
@@ -381,7 +381,7 @@ function triggerAutosave() {
     autosaveTimer = setTimeout(() => {
         const data = {
             nama: document.getElementById('nama').value,
-            nip: document.getElementById('nip').value,
+            nidn: document.getElementById('nidn').value,
             jabatan_fungsional: document.getElementById('jabatan_fungsional').value,
             pendidikan_terakhir: document.getElementById('pendidikan_terakhir').value,
             program_studi_id: document.getElementById('program_studi_id').value,
@@ -408,7 +408,7 @@ function triggerAutosave() {
             const data = JSON.parse(saved);
             if (confirm(`Ada draft tersimpan dari ${new Date(data.saved_at).toLocaleString('id-ID')}. Muat draft tersebut?`)) {
                 document.getElementById('nama').value = data.nama || '';
-                document.getElementById('nip').value = data.nip || '';
+                document.getElementById('nidn').value = data.nidn || '';
                 document.getElementById('jabatan_fungsional').value = data.jabatan_fungsional || 'Tenaga Pengajar';
                 document.getElementById('pendidikan_terakhir').value = data.pendidikan_terakhir || '';
                 document.getElementById('program_studi_id').value = data.program_studi_id || '';
@@ -424,7 +424,7 @@ function triggerAutosave() {
 })();
 <?php endif; ?>
 
-['nama', 'nip', 'jabatan_fungsional', 'pendidikan_terakhir', 'program_studi_id', 'bio', 'status'].forEach(id => {
+['nama', 'nidn', 'jabatan_fungsional', 'pendidikan_terakhir', 'program_studi_id', 'bio', 'status'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => { updatePreview(); triggerAutosave(); });
     document.getElementById(id).addEventListener('change', () => { updatePreview(); triggerAutosave(); });
 });
