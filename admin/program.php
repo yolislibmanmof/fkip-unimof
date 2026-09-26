@@ -79,6 +79,8 @@ require __DIR__ . '/includes/header.php';
 .btn-action { padding: 0.75rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; border: none; }
 .btn-action.primary { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
 .btn-action.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,185,129,0.4); }
+.btn-action.outline { background: transparent; color: var(--text-primary); border: 2px solid var(--border); }
+.btn-action.outline:hover { border-color: var(--primary); color: var(--primary); }
 
 .table-container { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); }
 .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
@@ -97,12 +99,18 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
 .badge-s1 { background: #dbeafe; color: #1e40af; }
 .badge-s2 { background: #f3e8ff; color: #7e22ce; }
 .badge-d3 { background: #fef3c7; color: #92400e; }
+.badge-info { background: #e0e7ff; color: #3730a3; }
 .badge-lainnya { background: #f3f4f6; color: #4b5563; }
+
+.update-indicator { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-muted); }
+.update-indicator::before { content: '•'; color: var(--primary); }
 
 .action-buttons { display: flex; gap: 0.5rem; justify-content: flex-end; }
 .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.3s; text-decoration: none; }
 .btn-icon.edit { background: #dbeafe; color: #2563eb; }
 .btn-icon.edit:hover { background: #2563eb; color: white; transform: translateY(-2px); }
+.btn-icon.view { background: #dcfce7; color: #166534; }
+.btn-icon.view:hover { background: #16a34a; color: white; transform: translateY(-2px); }
 .btn-icon.toggle { background: #fef3c7; color: #d97706; }
 .btn-icon.toggle:hover { background: #d97706; color: white; transform: translateY(-2px); }
 .btn-icon.delete { background: #fee2e2; color: #dc2626; }
@@ -218,6 +226,11 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
                         <?php if (!empty($p['deskripsi'])): ?>
                             <br><small style="color: var(--text-muted); font-size: 0.8rem;"><?= excerpt($p['deskripsi'], 60) ?></small>
                         <?php endif; ?>
+                        <?php if (!empty($p['updated_at'])): ?>
+                            <div class="update-indicator">
+                                Update: <?= date('d M Y H:i', strtotime($p['updated_at'])) ?>
+                            </div>
+                        <?php endif; ?>
                     </td>
                     <td><span style="font-family: monospace; font-weight: 700; color: var(--primary);"><?= sanitize($p['singkatan'] ?? '-') ?></span></td>
                     <td><span class="badge-extreme <?= $jenjang_class ?>"><?= sanitize($p['jenjang']) ?></span></td>
@@ -225,6 +238,7 @@ table.extreme tbody tr:last-child td { border-bottom: none; }
                     <td><span class="badge-extreme <?= $status_class ?>"><?= $p['status'] ?></span></td>
                     <td>
                         <div class="action-buttons">
+                            <a href="<?= base_url('program-detail.php?id=' . $p['id']) ?>" target="_blank" class="btn-icon view" title="Lihat di Publik">👁️</a>
                             <a href="program-form.php?id=<?= $p['id'] ?>" class="btn-icon edit" title="Edit">✏️</a>
                             <form method="POST" style="display:inline" onsubmit="return confirm('Ubah status program ini?')">
                                 <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">

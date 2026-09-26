@@ -1759,3 +1759,157 @@ ul { list-style: none; }
     .nav-dropdown-premium.mobile-open .dropdown-menu-premium { display: block; }
     .nav-dropdown-premium.mobile-open .arrow-premium { transform: rotate(180deg); }
 }
+
+/* ===== MISSING PROGRAM STUDI STYLES ===== */
+.program-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.program-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.program-stat strong {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+/* Badge Variants */
+.badge-unggul { 
+    background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+    color: white; 
+}
+.badge-baik-sekali { 
+    background: linear-gradient(135deg, #94a3b8, #64748b); 
+    color: white; 
+}
+.badge-baik { 
+    background: linear-gradient(135deg, #cd7f32, #b87333); 
+    color: white; 
+}
+.badge-terakreditasi { 
+    background: var(--bg-secondary); 
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+/* Quick View Modal */
+.quick-view-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 2rem;
+}
+.quick-view-modal.show { 
+    display: flex; 
+}
+.quick-view-box {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes modalPop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.quick-view-header {
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--modal-color-1, var(--primary)), var(--modal-color-2, var(--primary-light)));
+    color: white;
+    position: relative;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+.quick-view-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.quick-view-close:hover { 
+    background: rgba(255,255,255,0.3); 
+    transform: rotate(90deg); 
+}
+.quick-view-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+.quick-view-header p { 
+    opacity: 0.9; 
+    font-size: 0.95rem; 
+    color: white;
+}
+.quick-view-body { 
+    padding: 2rem; 
+}
+.quick-view-info { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 1rem; 
+    margin-bottom: 1.5rem; 
+}
+.quick-view-info-item {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+.quick-view-info-item strong {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+.quick-view-info-item span { 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    color: var(--text-primary); 
+}
+.quick-view-actions { 
+    display: flex; 
+    gap: 1rem; 
+}
+.quick-view-actions .btn { 
+    flex: 1; 
+    justify-content: center; 
+}
+
+/* Page Hero Content */
+.page-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+@media (max-width: 768px) {
+    .quick-view-info { grid-template-columns: 1fr; }
+    .quick-view-actions { flex-direction: column; }
+}

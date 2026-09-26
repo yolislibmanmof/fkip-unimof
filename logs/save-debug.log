@@ -1,0 +1,2 @@
+2026-09-26 23:04:17 | POST masuk | csrf=OK | id=1 | keys=csrf_token,kode,jenjang,nama,nama_en,singkatan,akreditasi,ketua_prodi,nidn_kaprodi,deskripsi,visi,misi,kurikulum,prospek_kerja,jumlah_dosen,jumlah_mahasiswa,status,urutan | visi="FINAL"
+2026-09-26 23:04:17 | UPDATE OK | affected=1 | id=1

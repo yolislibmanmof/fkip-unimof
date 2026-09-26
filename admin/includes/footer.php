@@ -111,17 +111,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.querySelectorAll('.card, .stat-ultimate-card').forEach(card => observer.observe(card));
     
-    // Add loading state to submit buttons
-    document.querySelectorAll('button[type="submit"], .btn-sm').forEach(btn => {
+    // Loading state AMAN: hanya ganti teks visual, JANGAN disable tombol
+    // (Men-disable tombol submit saat click = membatalkan pengiriman form di Chrome)
+    document.querySelectorAll('button[type="submit"]').forEach(btn => {
         btn.addEventListener('click', function() {
-            if (this.type === 'submit' && this.form && !this.form.checkValidity()) return;
-            const originalText = this.innerHTML;
+            if (this.form && !this.form.checkValidity()) return;
+            if (!this.dataset.orig) this.dataset.orig = this.innerHTML;
             this.innerHTML = '⏳ Memproses...';
-            this.disabled = true;
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.disabled = false;
-            }, 2000);
+            // Tidak ada this.disabled = true di sini
         });
     });
 });

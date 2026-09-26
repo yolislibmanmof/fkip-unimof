@@ -32,7 +32,7 @@ $is_info = in_array($current_page, ['berita.php', 'agenda.php', 'download.php', 
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/style.css') ?>?v=<?= time() ?>">
     
     <!-- Critical Inline CSS for Navbar (Ensures perfect look immediately) -->
     <style>
