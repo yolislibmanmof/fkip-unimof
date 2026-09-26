@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 26, 2026 at 08:33 AM
+-- Generation Time: Sep 26, 2026 at 11:12 AM
 -- Server version: 5.7.39
 -- PHP Version: 8.2.28
 
@@ -411,7 +411,7 @@ CREATE TABLE `program_studi` (
   `jenjang` enum('D3','S1','S2','S3') COLLATE utf8mb4_unicode_ci DEFAULT 'S1',
   `akreditasi` enum('Unggul','Baik Sekali','Baik','Terakreditasi') COLLATE utf8mb4_unicode_ci DEFAULT 'Terakreditasi',
   `ketua_prodi` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nip_kaprodi` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nidn_kaprodi` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `deskripsi` text COLLATE utf8mb4_unicode_ci,
   `visi` text COLLATE utf8mb4_unicode_ci,
   `misi` text COLLATE utf8mb4_unicode_ci,
@@ -431,8 +431,8 @@ CREATE TABLE `program_studi` (
 -- Dumping data for table `program_studi`
 --
 
-INSERT INTO `program_studi` (`id`, `kode`, `nama`, `nama_en`, `singkatan`, `jenjang`, `akreditasi`, `ketua_prodi`, `nip_kaprodi`, `deskripsi`, `visi`, `misi`, `kurikulum`, `prospek_kerja`, `logo`, `banner`, `jumlah_dosen`, `jumlah_mahasiswa`, `status`, `urutan`, `created_at`, `updated_at`) VALUES
-(1, 'PMAT', 'Pendidikan Matematika', NULL, 'PMAT', 'S1', 'Unggul', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 'Aktif', 1, '2026-09-25 01:33:39', '2026-09-25 01:33:39'),
+INSERT INTO `program_studi` (`id`, `kode`, `nama`, `nama_en`, `singkatan`, `jenjang`, `akreditasi`, `ketua_prodi`, `nidn_kaprodi`, `deskripsi`, `visi`, `misi`, `kurikulum`, `prospek_kerja`, `logo`, `banner`, `jumlah_dosen`, `jumlah_mahasiswa`, `status`, `urutan`, `created_at`, `updated_at`) VALUES
+(1, 'PMAT', 'Pendidikan Matematika', '', 'PMAT', 'S1', 'Terakreditasi', 'tes', 'TES', 'tes', 'tut tet tot', 'tut tet tot', 'tut tet tot', 'tut tet tot', NULL, NULL, 3, 5, 'Aktif', 1, '2026-09-25 01:33:39', '2026-09-26 10:57:52'),
 (2, 'PFIS', 'Pendidikan Fisika', NULL, 'PFIS', 'S1', 'Baik Sekali', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 'Aktif', 2, '2026-09-25 01:33:39', '2026-09-25 01:33:39'),
 (3, 'PBIO', 'Pendidikan Biologi', NULL, 'PBIO', 'S1', 'Unggul', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 'Aktif', 3, '2026-09-25 01:33:39', '2026-09-25 01:33:39'),
 (4, 'PKIM', 'Pendidikan Kimia', NULL, 'PKIM', 'S1', 'Baik Sekali', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 'Aktif', 4, '2026-09-25 01:33:39', '2026-09-25 01:33:39'),
