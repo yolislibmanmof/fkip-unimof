@@ -57,7 +57,7 @@ $active_menu = 'kerjasama';
 $page_heading = 'Kelola Kerjasama & Mitra';
 $breadcrumbs = [['Dashboard', 'dashboard.php'], ['Kelola Kerjasama', null]];
 
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/includes/header.php';
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -359,4 +359,4 @@ function applyFilters() {
 console.log('%c🤝 Kelola Kerjasama FKIP UNIMOF', 'color: #3b82f6; font-size: 16px; font-weight: bold;');
 </script>
 
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; 

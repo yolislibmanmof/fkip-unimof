@@ -53,7 +53,7 @@ $active_menu = 'kerjasama';
 $page_heading = $edit ? 'Edit Mitra' : 'Tambah Mitra';
 $breadcrumbs = [['Dashboard', 'dashboard.php'], ['Kerjasama', 'kerjasama.php'], [$page_heading, null]];
 
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/includes/header.php';
 ?>
 
 <style>
@@ -503,4 +503,4 @@ console.log('%c🤝 Form Kerjasama FKIP UNIMOF', 'color: #3b82f6; font-size: 16p
 console.log('%cShortcut: Ctrl+S untuk simpan cepat', 'color: #64748b;');
 </script>
 
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; 
