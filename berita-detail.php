@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Share Functions
 function shareTo(platform) {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('<?= addslashes(sanitize($b['judul'])) ?>');
+    const text = encodeURIComponent(<?= json_encode(sanitize($b['judul'])) ?>);
     let shareUrl = '';
     if (platform === 'wa') shareUrl = `https://wa.me/?text=${text}%20${url}`;
     if (platform === 'fb') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;

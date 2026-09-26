@@ -193,8 +193,8 @@ require __DIR__ . '/includes/header.php';
                 <div class="msg-side">
                     <time class="msg-time"><?= time_ago(strtotime($p['created_at'])) ?></time>
                     <div class="row-quick">
-                        <button class="rq-btn" title="Balas" onclick="event.stopPropagation(); openMessage(this.closest('.msg-row')); setTimeout(()=>document.getElementById('replyBtn').click(),100)">↩️</button>
-                      <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, <?= json_encode(sanitize($p['nama'])) ?>)">🗑️</button> <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, <?= json_encode(sanitize($p['nama'])) ?>)">🗑️</button> <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, '<?= addslashes(sanitize($p['nama'])) ?>')">🗑️</button>
+                    <button class="rq-btn" title="Balas" onclick="event.stopPropagation(); openMessage(this.closest('.msg-row')); setTimeout(()=>document.getElementById('replyBtn').click(),100)">↩️</button>
+                    <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, <?= json_encode(sanitize($p['nama'])) ?>)">🗑️</button>
                     </div>
                 </div>
             </div>

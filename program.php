@@ -357,7 +357,7 @@ require_once __DIR__ . '/includes/header.php';
                 data-jenjang="<?= sanitize($p['jenjang']) ?>"
                 data-akreditasi="<?= sanitize($p['akreditasi']) ?>"
                 style="--card-color-1: <?= $colors[0] ?>; --card-color-2: <?= $colors[1] ?>;"
-                onclick="openQuickView(<?= $p['id'] ?>, '<?= addslashes(sanitize($p['nama'])) ?>', '<?= sanitize($p['jenjang']) ?>', '<?= sanitize($p['akreditasi']) ?>', '<?= sanitize($p['singkatan']) ?>', '<?= $colors[0] ?>', '<?= $colors[1] ?>')">
+                onclick="openQuickView(<?= $p['id'] ?>, <?= json_encode(sanitize($p['nama'])) ?>, <?= json_encode(sanitize($p['jenjang'])) ?>, <?= json_encode(sanitize($p['akreditasi'])) ?>, <?= json_encode(sanitize($p['singkatan'])) ?>, <?= json_encode($colors[0]) ?>, <?= json_encode($colors[1]) ?>)">
                 
                 <div class="program-number"><?= str_pad($i + 1, 2, '0', STR_PAD_LEFT) ?></div>
                 <div class="program-icon"><?= $icons[$i] ?? '🎓' ?></div>
