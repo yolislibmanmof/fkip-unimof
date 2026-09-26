@@ -5,7 +5,7 @@ require_login();
 // ===== Helper: deteksi pesan prioritas =====
 if (!function_exists('is_priority_msg')) {
     function is_priority_msg(string $text): bool {
-        return (bool)preg_match('/mendesak|urgent|segera|penting|darurat|deadline|asesmen|segera/i', $text);
+        return (bool)preg_match('/mendesak|urgent|segera|penting|darurat|deadline|asesmen/i', $text);
     }
 }
 
@@ -194,7 +194,7 @@ require __DIR__ . '/includes/header.php';
                     <time class="msg-time"><?= time_ago(strtotime($p['created_at'])) ?></time>
                     <div class="row-quick">
                         <button class="rq-btn" title="Balas" onclick="event.stopPropagation(); openMessage(this.closest('.msg-row')); setTimeout(()=>document.getElementById('replyBtn').click(),100)">↩️</button>
-                        <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, '<?= addslashes(sanitize($p['nama'])) ?>')">🗑️</button>
+                       <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, <?= json_encode(sanitize($p['nama'])) ?>)">🗑️</button> <button class="rq-btn danger" title="Hapus" onclick="event.stopPropagation(); askDelete(<?= $p['id'] ?>, '<?= addslashes(sanitize($p['nama'])) ?>')">🗑️</button>
                     </div>
                 </div>
             </div>

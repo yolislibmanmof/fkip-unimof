@@ -262,8 +262,7 @@ require __DIR__ . '/includes/header.php';
                 <?php if ($b['is_featured']): ?>
                     <span class="featured-star" title="Featured">⭐</span>
                 <?php endif; ?>
-                <div class="grid-thumb" onclick="previewImage('<?= asset('uploads/' . basename($b['gambar'] ?: '')) ?>', '<?= sanitize($b['judul']) ?>')">
-                    <?php if ($b['gambar']): ?>
+                <div class="grid-thumb" onclick="previewImage('<?= asset('uploads/' . basename($b['gambar'] ?: '')) ?>', <?= json_encode(sanitize($b['judul'])) ?>)">                    <?php if ($b['gambar']): ?>
                         <img src="<?= asset('uploads/' . basename($b['gambar'])) ?>" alt="">
                     <?php else: ?>
                         <div class="thumb-placeholder-grid">📰</div>
@@ -285,7 +284,7 @@ require __DIR__ . '/includes/header.php';
                         <?= $b['status'] === 'Published' ? '📤' : '📥' ?>
                     </button>
                     <button class="ga-btn" onclick="quickAction(<?= $b['id'] ?>, 'duplicate')" title="Duplikat">📋</button>
-                    <button class="ga-btn danger" onclick="confirmDelete(<?= $b['id'] ?>, '<?= addslashes(sanitize($b['judul'])) ?>')" title="Hapus">🗑️</button>
+                    <button class="ga-btn danger" onclick="confirmDelete(<?= $b['id'] ?>, <?= json_encode(sanitize($b['judul'])) ?>)" title="Hapus">🗑️</button>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -313,8 +312,7 @@ require __DIR__ . '/includes/header.php';
                 <tr data-id="<?= $b['id'] ?>" class="berita-row">
                     <td><input type="checkbox" class="row-check" value="<?= $b['id'] ?>" form="bulkForm" name="ids[]" onchange="updateBulkBar()"></td>
                     <td>
-                        <div class="table-thumb" onclick="previewImage('<?= asset('uploads/' . basename($b['gambar'] ?: '')) ?>', '<?= sanitize($b['judul']) ?>')">
-                            <?php if ($b['gambar']): ?>
+                        <div class="table-thumb" onclick="previewImage('<?= asset('uploads/' . basename($b['gambar'] ?: '')) ?>', <?= json_encode(sanitize($b['judul'])) ?>)">                            <?php if ($b['gambar']): ?>
                                 <img src="<?= asset('uploads/' . basename($b['gambar'])) ?>" alt="">
                             <?php else: ?>
                                 <div class="thumb-ph">📰</div>
@@ -354,8 +352,7 @@ require __DIR__ . '/includes/header.php';
                                 <?= $b['status'] === 'Published' ? '📤' : '📥' ?>
                             </button>
                             <button class="act-btn" onclick="quickAction(<?= $b['id'] ?>, 'duplicate')" title="Duplikat">📋</button>
-                            <button class="act-btn danger" onclick="confirmDelete(<?= $b['id'] ?>, '<?= addslashes(sanitize($b['judul'])) ?>')" title="Hapus">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="act-btn danger" onclick="confirmDelete(<?= $b['id'] ?>, <?= json_encode(sanitize($b['judul'])) ?>)" title="Hapus">                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/>
                                 </svg>
