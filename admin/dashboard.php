@@ -16,16 +16,13 @@ $published_count = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE status='P
 
 // ===== SPARKLINE DATA (7 hari terakhir) =====
 $sparkline_berita = [];
-$sparkline_labels = [];
 for ($i = 6; $i >= 0; $i--) {
-    $date = date('Y-m-d', strtotime("-$i days"));
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM berita WHERE DATE(created_at) = ?");
-    $stmt->execute([$date]);
+    $stmt->execute([date('Y-m-d', strtotime("-$i days"))]);
     $sparkline_berita[] = (int)$stmt->fetchColumn();
-    $sparkline_labels[] = date('d M', strtotime($date));
 }
 
-// Trend calculation
+// ===== TREND CALCULATION =====
 $week_now = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
 $week_prev = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
 $trend_berita = $week_prev > 0 ? round((($week_now - $week_prev) / $week_prev) * 100, 1) : 0;
@@ -40,15 +37,10 @@ $kat_total = array_sum(array_column($kat_stats, 'total')) ?: 1;
 $kat_labels = array_column($kat_stats, 'kategori');
 $kat_data = array_column($kat_stats, 'total');
 
-// ===== PRODI STATS =====
-$prodi_stats = $pdo->query("SELECT ps.nama, COUNT(d.id) as jml_dosen FROM program_studi ps LEFT JOIN dosen d ON ps.id = d.program_studi_id WHERE ps.status = 'Aktif' GROUP BY ps.id ORDER BY jml_dosen DESC LIMIT 5")->fetchAll();
-
 // ===== DATA TERBARU =====
-$berita_terbaru = $pdo->query("SELECT * FROM berita ORDER BY created_at DESC LIMIT 4")->fetchAll();
-$pesan_terbaru = $pdo->query("SELECT * FROM kontak ORDER BY created_at DESC LIMIT 4")->fetchAll();
-
-// ===== AGENDA HARI INI =====
-$agenda_hari_ini = $pdo->query("SELECT * FROM agenda WHERE tanggal_mulai <= CURDATE() AND (tanggal_selesai IS NULL OR tanggal_selesai >= CURDATE()) AND status = 'Aktif' LIMIT 3")->fetchAll();
+$berita_terbaru = $pdo->query("SELECT id, judul, status, views, created_at, gambar FROM berita ORDER BY created_at DESC LIMIT 4")->fetchAll();
+$pesan_terbaru = $pdo->query("SELECT id, nama, subjek, pesan, status, created_at FROM kontak ORDER BY created_at DESC LIMIT 4")->fetchAll();
+$agenda_hari_ini = $pdo->query("SELECT judul, jenis, tanggal_mulai FROM agenda WHERE tanggal_mulai <= CURDATE() AND (tanggal_selesai IS NULL OR tanggal_selesai >= CURDATE()) AND status = 'Aktif' LIMIT 3")->fetchAll();
 
 // ===== PERFORMANCE SCORE =====
 $score = 0;
@@ -57,33 +49,30 @@ if ($total_dosen > 10) $score += 25;
 if ($total_prodi >= 8) $score += 25;
 if ($total_pesan == 0) $score += 25; elseif ($total_pesan < 5) $score += 15;
 
-// ===== GREETING =====
+// ===== GREETING & QUOTE =====
 $hour = (int)date('H');
 if ($hour < 11) { $greeting = 'Selamat Pagi'; $greet_emoji = '☀️'; $greet_color = '#f59e0b'; }
 elseif ($hour < 15) { $greeting = 'Selamat Siang'; $greet_emoji = '🌤️'; $greet_color = '#f97316'; }
 elseif ($hour < 18) { $greeting = 'Selamat Sore'; $greet_emoji = '🌅'; $greet_color = '#ef4444'; }
 else { $greeting = 'Selamat Malam'; $greet_emoji = '🌙'; $greet_color = '#6366f1'; }
 
-// ===== QUOTE ISLAMI =====
 $quotes = [
     '"Barangsiapa yang menempuh jalan untuk mencari ilmu, Allah akan memudahkan baginya jalan menuju surga." — HR. Muslim',
     '"Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain." — HR. Ahmad',
-    '"Tuntutlah ilmu dari buaian hingga ke liang lahat." — Pepatah Arab',
-    '"Ilmu itu lebih baik daripada harta. Ilmu menjaga engkau dan engkau menjaga harta." — Ali bin Abi Thalib',
-    '"Didiklah anak-anakmu sesuai dengan zamannya, karena mereka hidup di zaman mereka bukan pada zamanmu." — Ali bin Abi Thalib',
+    '"Tuntutlah ilmu dari buaian hingga ke liang lahat." — Pepatah Arab'
 ];
 $quote = $quotes[array_rand($quotes)];
 
 $active_menu = 'dashboard';
 $page_heading = 'Dashboard';
 $breadcrumbs = [['Dashboard', null]];
+
 require __DIR__ . '/includes/header.php';
 ?>
 
-<!-- ApexCharts CDN for Extreme Data Visualization -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<!-- ============ WELCOME HERO ============ -->
+<!-- ===== WELCOME HERO ===== -->
 <section class="welcome-hero" data-aos="fade-down">
     <div class="welcome-bg-pattern"></div>
     <div class="welcome-content">
@@ -107,7 +96,6 @@ require __DIR__ . '/includes/header.php';
             <div class="live-clock">
                 <div class="clock-display" id="liveClock">--:--:--</div>
                 <div class="clock-date" id="liveDate">--</div>
-                <div class="clock-hijri" id="liveHijri">🕌 Memuat...</div>
             </div>
             <div class="command-hint">
                 <kbd>Ctrl</kbd> + <kbd>K</kbd> untuk <strong>Command Palette</strong>
@@ -116,9 +104,8 @@ require __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- ============ ULTIMATE STATS ============ -->
+<!-- ===== ULTIMATE STATS ===== -->
 <div class="stats-ultimate">
-    <!-- Card Berita -->
     <div class="stat-ultimate-card" style="--card-accent:#10b981" data-aos="fade-up">
         <div class="stat-ultimate-header">
             <div class="stat-ultimate-icon">📰</div>
@@ -126,63 +113,47 @@ require __DIR__ . '/includes/header.php';
                 <?= $trend_berita >= 0 ? '↑' : '↓' ?> <?= abs($trend_berita) ?>%
             </div>
         </div>
-        <div class="stat-ultimate-value">
-            <span class="count-up" data-target="<?= $total_berita ?>">0</span>
-        </div>
+        <div class="stat-ultimate-value"><span class="count-up" data-target="<?= $total_berita ?>">0</span></div>
         <div class="stat-ultimate-label">Total Berita</div>
-        <div class="stat-ultimate-meta">
-            <span class="meta-pill green">+<?= $published_today ?> hari ini</span>
-        </div>
+        <div class="stat-ultimate-meta"><span class="meta-pill green">+<?= $published_today ?> hari ini</span></div>
         <div id="chartBerita" class="sparkline-chart"></div>
     </div>
 
-    <!-- Card Prodi -->
     <div class="stat-ultimate-card" style="--card-accent:#3b82f6" data-aos="fade-up" data-aos-delay="100">
         <div class="stat-ultimate-header">
             <div class="stat-ultimate-icon">🎓</div>
             <div class="stat-ultimate-trend stable">● Active</div>
         </div>
-        <div class="stat-ultimate-value">
-            <span class="count-up" data-target="<?= $total_prodi ?>">0</span>
-        </div>
+        <div class="stat-ultimate-value"><span class="count-up" data-target="<?= $total_prodi ?>">0</span></div>
         <div class="stat-ultimate-label">Program Studi</div>
-        <div class="stat-ultimate-meta">
-            <span class="meta-pill blue"><?= $total_dosen ?> dosen</span>
-        </div>
+        <div class="stat-ultimate-meta"><span class="meta-pill blue"><?= $total_dosen ?> dosen</span></div>
         <div class="stat-ultimate-progress">
             <div class="progress-ring-mini">
                 <svg viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="16" class="ring-bg"/>
-                    <circle cx="18" cy="18" r="16" class="ring-fill" style="stroke-dasharray:<?= ($total_prodi/8) * 100 ?>, 100"/>
+                    <circle cx="18" cy="18" r="16" class="ring-fill" style="stroke-dasharray:<?= min(100, ($total_prodi/8) * 100) ?>, 100"/>
                 </svg>
-                <span><?= round(($total_prodi/8)*100) ?>%</span>
+                <span><?= min(100, round(($total_prodi/8)*100)) ?>%</span>
             </div>
             <small>Target 8 Prodi</small>
         </div>
     </div>
 
-    <!-- Card Prestasi -->
     <div class="stat-ultimate-card" style="--card-accent:#f59e0b" data-aos="fade-up" data-aos-delay="200">
         <div class="stat-ultimate-header">
             <div class="stat-ultimate-icon">🏆</div>
             <div class="stat-ultimate-trend up">⭐ Top</div>
         </div>
-        <div class="stat-ultimate-value">
-            <span class="count-up" data-target="<?= $total_prestasi ?>">0</span>
-        </div>
+        <div class="stat-ultimate-value"><span class="count-up" data-target="<?= $total_prestasi ?>">0</span></div>
         <div class="stat-ultimate-label">Prestasi</div>
-        <div class="stat-ultimate-meta">
-            <span class="meta-pill amber"><?= $total_alumni ?> alumni</span>
-        </div>
+        <div class="stat-ultimate-meta"><span class="meta-pill amber"><?= $total_alumni ?> alumni</span></div>
         <div class="stat-ultimate-achievements">
             <div class="achievement-orb" style="--orb-delay:0s">🥇</div>
             <div class="achievement-orb" style="--orb-delay:0.3s">🥈</div>
             <div class="achievement-orb" style="--orb-delay:0.6s">🥉</div>
-            <div class="achievement-orb" style="--orb-delay:0.9s">🎖️</div>
         </div>
     </div>
 
-    <!-- Card Pesan -->
     <div class="stat-ultimate-card <?= $total_pesan > 0 ? 'has-alert' : '' ?>" style="--card-accent:#ef4444" data-aos="fade-up" data-aos-delay="300">
         <div class="stat-ultimate-header">
             <div class="stat-ultimate-icon">✉️</div>
@@ -190,13 +161,9 @@ require __DIR__ . '/includes/header.php';
                 <?= $trend_pesan >= 0 ? '↑' : '↓' ?> <?= abs($trend_pesan) ?>%
             </div>
         </div>
-        <div class="stat-ultimate-value">
-            <span class="count-up" data-target="<?= $total_pesan ?>">0</span>
-        </div>
+        <div class="stat-ultimate-value"><span class="count-up" data-target="<?= $total_pesan ?>">0</span></div>
         <div class="stat-ultimate-label">Pesan Baru</div>
-        <div class="stat-ultimate-meta">
-            <span class="meta-pill red"><?= $total_pesan > 0 ? 'Perlu respon' : 'Semua bersih' ?></span>
-        </div>
+        <div class="stat-ultimate-meta"><span class="meta-pill red"><?= $total_pesan > 0 ? 'Perlu respon' : 'Semua bersih' ?></span></div>
         <?php if ($total_pesan > 0): ?>
             <div class="alert-pulse-indicator">
                 <span class="pulse-ring"></span>
@@ -207,88 +174,62 @@ require __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- ============ MAIN DASHBOARD GRID ============ -->
+<!-- ===== MAIN DASHBOARD GRID ===== -->
 <div class="dashboard-ultimate-grid">
-    
-    <!-- ===== LEFT COLUMN ===== -->
+    <!-- LEFT COLUMN -->
     <div class="dashboard-col-ultimate">
-        
-        <!-- Quick Command Actions -->
+        <!-- Quick Actions -->
         <div class="card ultimate" data-aos="fade-up">
             <div class="card-header">
                 <h2>⚡ Aksi Cepat</h2>
-                <button class="btn-command" onclick="openCommandPalette()" title="Ctrl+K">
-                    <kbd>⌘</kbd> Command
-                </button>
+                <button class="btn-command" onclick="openCommandPalette()" title="Ctrl+K"><kbd>⌘</kbd> Command</button>
             </div>
             <div class="quick-actions-ultimate">
                 <a href="berita-form.php" class="qa-ultimate-btn" style="--btn-color:#10b981">
                     <div class="qa-ultimate-icon-wrap"><span>✍️</span></div>
-                    <div class="qa-ultimate-text">
-                        <strong>Tulis Berita</strong>
-                        <small>Buat artikel baru</small>
-                    </div>
+                    <div class="qa-ultimate-text"><strong>Tulis Berita</strong><small>Buat artikel baru</small></div>
                     <div class="qa-ultimate-arrow">→</div>
                 </a>
                 <a href="kontak.php" class="qa-ultimate-btn" style="--btn-color:#3b82f6">
                     <div class="qa-ultimate-icon-wrap"><span>💬</span></div>
-                    <div class="qa-ultimate-text">
-                        <strong>Balas Pesan</strong>
-                        <small><?= $total_pesan ?> menunggu</small>
-                    </div>
+                    <div class="qa-ultimate-text"><strong>Balas Pesan</strong><small><?= $total_pesan ?> menunggu</small></div>
                     <div class="qa-ultimate-arrow">→</div>
                 </a>
                 <a href="<?= base_url() ?>" class="qa-ultimate-btn" target="_blank" style="--btn-color:#8b5cf6">
                     <div class="qa-ultimate-icon-wrap"><span>🌐</span></div>
-                    <div class="qa-ultimate-text">
-                        <strong>Website Publik</strong>
-                        <small>Lihat tampilan</small>
-                    </div>
-                    <div class="qa-ultimate-arrow">→</div>
-                </a>
-                <a href="berita.php" class="qa-ultimate-btn" style="--btn-color:#f59e0b">
-                    <div class="qa-ultimate-icon-wrap"><span>📚</span></div>
-                    <div class="qa-ultimate-text">
-                        <strong>Kelola Konten</strong>
-                        <small><?= $draft_count ?> draft</small>
-                    </div>
+                    <div class="qa-ultimate-text"><strong>Website Publik</strong><small>Lihat tampilan</small></div>
                     <div class="qa-ultimate-arrow">→</div>
                 </a>
             </div>
         </div>
 
-        <!-- Berita Terbaru Ultimate -->
+        <!-- Latest News -->
         <div class="card ultimate" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header">
                 <h2>📰 Berita Terbaru</h2>
                 <a href="berita.php" class="btn-sm">Lihat Semua →</a>
             </div>
-            
             <?php if (empty($berita_terbaru)): ?>
-                <div class="empty-state-ultimate">
-                    <div class="empty-illustration">📭</div>
-                    <p>Belum ada berita</p>
-                </div>
+                <div class="empty-state-ultimate"><div class="empty-illustration">📭</div><p>Belum ada berita</p></div>
             <?php else: ?>
                 <div class="berita-ultimate-list">
-                    <?php foreach ($berita_terbaru as $b): ?>
+                    <?php foreach ($berita_terbaru as $b): 
+                        $img = !empty($b['gambar']) ? asset('uploads/' . basename($b['gambar'])) : null;
+                    ?>
                     <a href="berita-form.php?id=<?= $b['id'] ?>" class="berita-ultimate-item">
                         <div class="berita-ultimate-thumb">
-                            <?php if ($b['gambar']): ?>
-                                <img src="<?= asset('uploads/' . basename($b['gambar'])) ?>" alt="">
+                            <?php if ($img): ?>
+                                <img src="<?= $img ?>" alt="">
                             <?php else: ?>
-                                <div class="thumb-gradient" style="background:linear-gradient(135deg,hsl(<?= rand(150,280) ?>,70%,60%),hsl(<?= rand(150,280) ?>,70%,40%))"><span>📰</span></div>
+                                <div class="thumb-gradient"><span>📰</span></div>
                             <?php endif; ?>
-                            <div class="berita-ultimate-overlay">
-                                <span>✏️ Edit</span>
-                            </div>
+                            <div class="berita-ultimate-overlay"><span>✏️ Edit</span></div>
                         </div>
                         <div class="berita-ultimate-info">
                             <h4><?= sanitize($b['judul']) ?></h4>
                             <div class="berita-ultimate-meta">
                                 <span class="badge-ultimate badge-<?= strtolower($b['status']) ?>"><?= $b['status'] ?></span>
                                 <span>👁 <?= number_format($b['views']) ?></span>
-                                <span><?= time_ago(strtotime($b['created_at'])) ?></span>
                             </div>
                         </div>
                     </a>
@@ -305,47 +246,26 @@ require __DIR__ . '/includes/header.php';
             </div>
             <div class="kanban-mini">
                 <?php
-                $draft = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE status='Draft'")->fetchColumn();
-                $pub = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE status='Published'")->fetchColumn();
                 $arch = (int)$pdo->query("SELECT COUNT(*) FROM berita WHERE status='Archived'")->fetchColumn();
                 ?>
                 <div class="kanban-column draft">
-                    <div class="kanban-col-header">
-                        <span class="kanban-icon">📝</span>
-                        <span>Draft</span>
-                        <span class="kanban-count"><?= $draft ?></span>
-                    </div>
-                    <div class="kanban-items">
-                        <?php if ($draft > 0): ?><div class="kanban-item">Menunggu review</div><?php else: ?><div class="kanban-empty">✓ Kosong</div><?php endif; ?>
-                    </div>
+                    <div class="kanban-col-header"><span class="kanban-icon">📝</span><span>Draft</span><span class="kanban-count"><?= $draft_count ?></span></div>
+                    <div class="kanban-items"><?= $draft_count > 0 ? '<div class="kanban-item">Menunggu review</div>' : '<div class="kanban-empty">✓ Kosong</div>' ?></div>
                 </div>
                 <div class="kanban-column published">
-                    <div class="kanban-col-header">
-                        <span class="kanban-icon">✅</span>
-                        <span>Published</span>
-                        <span class="kanban-count"><?= $pub ?></span>
-                    </div>
-                    <div class="kanban-items">
-                        <?php if ($pub > 0): ?><div class="kanban-item">Aktif di website</div><?php else: ?><div class="kanban-empty">Belum ada</div><?php endif; ?>
-                    </div>
+                    <div class="kanban-col-header"><span class="kanban-icon">✅</span><span>Published</span><span class="kanban-count"><?= $published_count ?></span></div>
+                    <div class="kanban-items"><?= $published_count > 0 ? '<div class="kanban-item">Aktif di website</div>' : '<div class="kanban-empty">Belum ada</div>' ?></div>
                 </div>
                 <div class="kanban-column archived">
-                    <div class="kanban-col-header">
-                        <span class="kanban-icon">🗄️</span>
-                        <span>Archived</span>
-                        <span class="kanban-count"><?= $arch ?></span>
-                    </div>
-                    <div class="kanban-items">
-                        <?php if ($arch > 0): ?><div class="kanban-item">Arsip</div><?php else: ?><div class="kanban-empty">✓ Kosong</div><?php endif; ?>
-                    </div>
+                    <div class="kanban-col-header"><span class="kanban-icon">🗄️</span><span>Archived</span><span class="kanban-count"><?= $arch ?></span></div>
+                    <div class="kanban-items"><?= $arch > 0 ? '<div class="kanban-item">Arsip</div>' : '<div class="kanban-empty">✓ Kosong</div>' ?></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== RIGHT COLUMN ===== -->
+    <!-- RIGHT COLUMN -->
     <div class="dashboard-col-ultimate">
-        
         <!-- Performance Score -->
         <div class="card ultimate performance-card" data-aos="fade-left">
             <div class="card-header">
@@ -405,7 +325,7 @@ require __DIR__ . '/includes/header.php';
                         </div>
                         <div class="agenda-content">
                             <h4><?= sanitize($ag['judul']) ?></h4>
-                            <span class="badge-ultimate badge-<?= $ag['jenis'] ?>"><?= ucfirst($ag['jenis']) ?></span>
+                            <span class="badge-ultimate badge-<?= strtolower($ag['jenis']) ?>"><?= ucfirst($ag['jenis']) ?></span>
                         </div>
                     </div>
                 <?php endforeach; endif; ?>
@@ -414,47 +334,44 @@ require __DIR__ . '/includes/header.php';
 
         <!-- Donut Chart Kategori -->
         <div class="card ultimate donut-card" data-aos="fade-left" data-aos-delay="150">
-            <div class="card-header">
-                <h2>🍩 Distribusi Kategori</h2>
-            </div>
+            <div class="card-header"><h2>🍩 Distribusi Kategori</h2></div>
             <div class="donut-wrap">
                 <div id="chartDonut" class="donut-chart-apex"></div>
                 <div class="donut-legend" id="donutLegend">
-                    <!-- Legend will be populated by JS -->
+                    <?php if (!empty($kat_stats)): ?>
+                        <?php 
+                        $colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+                        foreach ($kat_stats as $i => $k): 
+                            $color = $colors[$i % count($colors)];
+                            $katName = htmlspecialchars($k['kategori'], ENT_QUOTES, 'UTF-8');
+                        ?>
+                            <div class="legend-item" onclick="window.donutChartInstance?.toggleSeries('<?= $katName ?>')">
+                                <span class="legend-color" style="background:<?= $color ?>"></span>
+                                <span class="legend-label"><?= $katName ?></span>
+                                <span class="legend-value"><?= $k['total'] ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <small style="color:#94a3b8">Belum ada data</small>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <!-- System Info -->
         <div class="card ultimate system-card" data-aos="fade-left" data-aos-delay="200">
-            <div class="card-header">
-                <h2>💻 System Info</h2>
-            </div>
+            <div class="card-header"><h2>💻 System Info</h2></div>
             <div class="system-info-list">
-                <div class="sys-item">
-                    <span>PHP Version</span>
-                    <strong><?= phpversion() ?></strong>
-                </div>
-                <div class="sys-item">
-                    <span>Server</span>
-                    <strong><?= php_uname('s') ?></strong>
-                </div>
-                <div class="sys-item">
-                    <span>Database</span>
-                    <strong>MySQL <?= $pdo->query("SELECT VERSION()")->fetchColumn() ?></strong>
-                </div>
-                <div class="sys-item">
-                    <span>App Version</span>
-                    <strong>v<?= APP_VERSION ?></strong>
-                </div>
+                <div class="sys-item"><span>PHP Version</span><strong><?= phpversion() ?></strong></div>
+                <div class="sys-item"><span>Server</span><strong><?= php_uname('s') ?></strong></div>
+                <div class="sys-item"><span>Database</span><strong>MySQL <?= $pdo->query("SELECT VERSION()")->fetchColumn() ?></strong></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============ BOTTOM SECTION ============ -->
+<!-- ===== BOTTOM SECTION ===== -->
 <div class="dashboard-ultimate-grid" style="margin-top:1.5rem">
-    
     <!-- Pesan Terbaru -->
     <div class="dashboard-col-ultimate">
         <div class="card ultimate" data-aos="fade-up">
@@ -463,10 +380,7 @@ require __DIR__ . '/includes/header.php';
                 <a href="kontak.php" class="btn-sm">Buka Inbox →</a>
             </div>
             <?php if (empty($pesan_terbaru)): ?>
-                <div class="empty-state-ultimate">
-                    <div class="empty-illustration">📭</div>
-                    <p>Inbox bersih!</p>
-                </div>
+                <div class="empty-state-ultimate"><div class="empty-illustration">📭</div><p>Inbox bersih!</p></div>
             <?php else: ?>
                 <div class="pesan-ultimate-list">
                     <?php foreach ($pesan_terbaru as $p): ?>
@@ -482,9 +396,7 @@ require __DIR__ . '/includes/header.php';
                             <div class="pesan-ultimate-subject"><?= sanitize($p['subjek'] ?: '(tanpa subjek)') ?></div>
                             <p><?= excerpt($p['pesan'], 80) ?></p>
                         </div>
-                        <?php if ($p['status'] === 'Baru'): ?>
-                            <div class="unread-indicator"></div>
-                        <?php endif; ?>
+                        <?php if ($p['status'] === 'Baru'): ?><div class="unread-indicator"></div><?php endif; ?>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -495,9 +407,7 @@ require __DIR__ . '/includes/header.php';
     <!-- Activity Timeline -->
     <div class="dashboard-col-ultimate">
         <div class="card ultimate" data-aos="fade-up" data-aos-delay="100">
-            <div class="card-header">
-                <h2>🕐 Aktivitas Terkini</h2>
-            </div>
+            <div class="card-header"><h2>🕐 Aktivitas Terkini</h2></div>
             <div class="timeline-ultimate">
                 <?php
                 $timeline = [];
@@ -530,7 +440,7 @@ require __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- ============ COMMAND PALETTE MODAL ============ -->
+<!-- ===== COMMAND PALETTE MODAL ===== -->
 <div class="command-palette-overlay" id="commandPalette" onclick="if(event.target===this)closeCommandPalette()">
     <div class="command-palette-box">
         <div class="command-palette-header">
@@ -559,7 +469,7 @@ require __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- ============ ULTIMATE STYLES (Scoped) ============ -->
+<!-- ===== ULTIMATE STYLES (Scoped) ===== -->
 <style>
 /* === WELCOME HERO === */
 .welcome-hero{position:relative;background:linear-gradient(135deg,#0a6847 0%,#084d35 50%,#16213e 100%);color:#fff;padding:2.5rem;border-radius:24px;overflow:hidden;margin-bottom:2rem;box-shadow:0 20px 60px rgba(10,104,71,.3)}
@@ -582,7 +492,6 @@ require __DIR__ . '/includes/header.php';
 .live-clock{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);padding:1.5rem;border-radius:16px;text-align:center;min-width:200px}
 .clock-display{font-size:2.5rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
 .clock-date{font-size:.85rem;opacity:.85;margin-top:.5rem}
-.clock-hijri{font-size:.75rem;opacity:.75;margin-top:.25rem}
 .command-hint{display:flex;align-items:center;gap:.5rem;font-size:.8rem;opacity:.85}
 .command-hint kbd{background:rgba(255,255,255,.2);padding:.25rem .5rem;border-radius:6px;font-family:inherit;font-weight:700;border:1px solid rgba(255,255,255,.3)}
 
@@ -607,12 +516,8 @@ require __DIR__ . '/includes/header.php';
 .meta-pill.blue{background:#dbeafe;color:#1e40af}
 .meta-pill.amber{background:#fef3c7;color:#92400e}
 .meta-pill.red{background:#fee2e2;color:#991b1b}
-
-/* Sparkline Chart Container */
 .sparkline-chart{margin-top:1rem;height:50px;}
 .donut-chart-apex{min-height:200px;}
-
-/* Progress ring mini */
 .stat-ultimate-progress{display:flex;align-items:center;gap:1rem;margin-top:.5rem}
 .progress-ring-mini{position:relative;width:50px;height:50px;flex-shrink:0}
 .progress-ring-mini svg{transform:rotate(-90deg)}
@@ -620,13 +525,9 @@ require __DIR__ . '/includes/header.php';
 .progress-ring-mini .ring-fill{fill:none;stroke:var(--card-accent);stroke-width:3;stroke-linecap:round;transition:stroke-dasharray 1s ease}
 .progress-ring-mini span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--card-accent)}
 .stat-ultimate-progress small{font-size:.75rem;color:#64748b}
-
-/* Achievement orbs */
 .stat-ultimate-achievements{display:flex;gap:.5rem;margin-top:.5rem}
 .achievement-orb{width:36px;height:36px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;animation:orbFloat 3s ease-in-out infinite;animation-delay:var(--orb-delay)}
 @keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-
-/* Alert pulse indicator */
 .alert-pulse-indicator{position:absolute;top:1.5rem;right:1.5rem;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .pulse-dot{width:12px;height:12px;background:#ef4444;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;position:relative;z-index:2}
 .pulse-ring{position:absolute;inset:0;border:2px solid #ef4444;border-radius:50%;animation:pulseRing 2s infinite}
@@ -637,8 +538,6 @@ require __DIR__ . '/includes/header.php';
 .dashboard-ultimate-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:1.5rem}
 .dashboard-col-ultimate{display:flex;flex-direction:column;gap:1.5rem}
 .card.ultimate{background:#fff;border-radius:20px;padding:1.75rem;box-shadow:0 4px 20px rgba(0,0,0,.06);border:1px solid #f1f5f9}
-
-/* Quick Actions Ultimate */
 .quick-actions-ultimate{display:flex;flex-direction:column;gap:.75rem}
 .qa-ultimate-btn{display:flex;align-items:center;gap:1rem;padding:1rem;background:#f8fafc;border-radius:14px;text-decoration:none;color:#0f172a;transition:all .3s;position:relative;overflow:hidden;border:1px solid transparent}
 .qa-ultimate-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--btn-color);transition:width .3s}
@@ -650,26 +549,20 @@ require __DIR__ . '/includes/header.php';
 .qa-ultimate-text small{font-size:.75rem;color:#64748b}
 .qa-ultimate-arrow{color:var(--btn-color);font-size:1.25rem;opacity:.5;transition:all .3s}
 .qa-ultimate-btn:hover .qa-ultimate-arrow{opacity:1;transform:translateX(4px)}
-
-/* Command button */
 .btn-command{background:#0f172a;color:#fff;border:none;padding:.4rem .85rem;border-radius:8px;font-size:.75rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;font-family:inherit;font-weight:600;transition:all .3s}
 .btn-command:hover{background:#1e293b;transform:translateY(-1px)}
 .btn-command kbd{background:rgba(255,255,255,.2);padding:.1rem .4rem;border-radius:4px;font-size:.7rem}
-
-/* Berita Ultimate */
 .berita-ultimate-list{display:flex;flex-direction:column;gap:.75rem}
 .berita-ultimate-item{display:flex;gap:1rem;padding:.75rem;background:#f8fafc;border-radius:14px;text-decoration:none;color:inherit;transition:all .3s;position:relative;overflow:hidden}
 .berita-ultimate-item:hover{background:#f1f5f9;transform:translateX(4px)}
 .berita-ultimate-thumb{width:100px;height:70px;border-radius:10px;overflow:hidden;flex-shrink:0;position:relative}
 .berita-ultimate-thumb img{width:100%;height:100%;object-fit:cover}
-.thumb-gradient{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.75rem}
+.thumb-gradient{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.75rem;background:linear-gradient(135deg,#667eea,#764ba2)}
 .berita-ultimate-overlay{position:absolute;inset:0;background:rgba(10,104,71,.85);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.85rem;opacity:0;transition:opacity .3s}
 .berita-ultimate-item:hover .berita-ultimate-overlay{opacity:1}
 .berita-ultimate-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
 .berita-ultimate-info h4{font-size:.95rem;margin-bottom:.5rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .berita-ultimate-meta{display:flex;gap:.75rem;align-items:center;font-size:.75rem;color:#64748b;flex-wrap:wrap}
-
-/* Badge ultimate */
 .badge-ultimate{padding:.25rem .65rem;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .badge-published{background:#dcfce7;color:#166534}
 .badge-draft{background:#fef3c7;color:#92400e}
@@ -679,8 +572,6 @@ require __DIR__ . '/includes/header.php';
 .badge-wisuda{background:#fef3c7;color:#92400e}
 .badge-libur{background:#e0e7ff;color:#4338ca}
 .badge-info{background:#dbeafe;color:#1e40af}
-
-/* Kanban mini */
 .kanban-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
 .kanban-column{background:#f8fafc;border-radius:12px;padding:.75rem;min-height:150px;border-top:3px solid}
 .kanban-column.draft{border-color:#f59e0b}
@@ -694,8 +585,6 @@ require __DIR__ . '/includes/header.php';
 .kanban-column.published .kanban-item{color:#10b981}
 .kanban-column.archived .kanban-item{color:#64748b}
 .kanban-empty{text-align:center;padding:1rem .5rem;color:#94a3b8;font-size:.75rem;font-style:italic}
-
-/* Performance card */
 .performance-wrap{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center}
 .performance-ring{position:relative;width:140px;height:140px;flex-shrink:0}
 .performance-ring svg{transform:rotate(-90deg);width:100%;height:100%}
@@ -710,8 +599,6 @@ require __DIR__ . '/includes/header.php';
 .perf-detail-item:hover{background:#f8fafc}
 .perf-check{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;background:#e2e8f0;color:#64748b}
 .perf-detail-item.done .perf-check{background:#10b981;color:#fff}
-
-/* Calendar card */
 .calendar-card .today-date{font-size:.8rem;color:#64748b;background:#f1f5f9;padding:.3rem .7rem;border-radius:999px}
 .agenda-list{display:flex;flex-direction:column;gap:.75rem}
 .agenda-item{display:flex;gap:1rem;padding:.85rem;background:#f8fafc;border-radius:12px;transition:all .3s}
@@ -724,8 +611,6 @@ require __DIR__ . '/includes/header.php';
 .agenda-empty{text-align:center;padding:2rem 1rem;color:#64748b}
 .agenda-empty-icon{font-size:3rem;margin-bottom:.5rem;opacity:.5}
 .agenda-empty small{font-size:.75rem;opacity:.75}
-
-/* Donut chart */
 .donut-wrap{display:grid;grid-template-columns:150px 1fr;gap:1.5rem;align-items:center}
 .donut-legend{display:flex;flex-direction:column;gap:.5rem}
 .legend-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem;padding:.4rem;border-radius:8px;transition:background .2s;cursor:pointer}
@@ -733,15 +618,11 @@ require __DIR__ . '/includes/header.php';
 .legend-color{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 .legend-label{flex:1;color:#475569}
 .legend-value{font-weight:700;color:#0a6847;background:#dcfce7;padding:.1rem .5rem;border-radius:999px;font-size:.75rem}
-
-/* System info */
 .system-info-list{display:flex;flex-direction:column;gap:.5rem}
 .sys-item{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:#f8fafc;border-radius:10px;font-size:.85rem;transition:all .3s}
 .sys-item:hover{background:#f1f5f9;transform:translateX(3px)}
 .sys-item span{color:#64748b}
 .sys-item strong{color:#0f172a;font-family:ui-monospace,monospace;font-size:.8rem}
-
-/* Pesan Ultimate */
 .pesan-ultimate-list{display:flex;flex-direction:column;gap:.75rem}
 .pesan-ultimate-item{display:flex;gap:1rem;padding:1rem;background:#f8fafc;border-radius:14px;transition:all .3s;position:relative}
 .pesan-ultimate-item:hover{background:#f1f5f9}
@@ -755,8 +636,6 @@ require __DIR__ . '/includes/header.php';
 .pesan-ultimate-body p{font-size:.82rem;color:#64748b;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
 .unread-indicator{position:absolute;top:1rem;right:1rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;animation:unreadPulse 2s infinite}
 @keyframes unreadPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.7}}
-
-/* Timeline Ultimate */
 .timeline-ultimate{display:flex;flex-direction:column;gap:0;padding-left:.5rem}
 .timeline-ultimate-item{display:flex;gap:1rem;position:relative;padding-bottom:1.25rem}
 .timeline-ultimate-item:last-child{padding-bottom:0}
@@ -768,13 +647,9 @@ require __DIR__ . '/includes/header.php';
 .timeline-ultimate-icon{font-size:1.25rem;flex-shrink:0}
 .timeline-ultimate-content p{font-size:.85rem;margin:0 0 .2rem;line-height:1.4}
 .timeline-ultimate-content small{font-size:.7rem;color:#94a3b8}
-
-/* Empty state ultimate */
 .empty-state-ultimate{text-align:center;padding:2.5rem 1rem;color:#64748b}
 .empty-illustration{font-size:4rem;margin-bottom:.75rem;opacity:.4;animation:emptyFloat 3s ease-in-out infinite}
 @keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-
-/* === COMMAND PALETTE === */
 .command-palette-overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding-top:15vh;z-index:10000;animation:cmdFadeIn .2s}
 .command-palette-overlay.open{display:flex}
 @keyframes cmdFadeIn{from{opacity:0}to{opacity:1}}
@@ -793,8 +668,6 @@ require __DIR__ . '/includes/header.php';
 .cmd-text{flex:1}
 .cmd-shortcut{font-size:.7rem;color:#94a3b8;background:#f1f5f9;padding:.15rem .4rem;border-radius:4px;font-family:ui-monospace,monospace}
 .command-palette-footer{display:flex;gap:1rem;padding:.75rem 1.5rem;border-top:1px solid #e2e8f0;background:#f8fafc;font-size:.75rem;color:#64748b}
-
-/* Responsive */
 @media(max-width:968px){
     .welcome-content{grid-template-columns:1fr}
     .welcome-right{align-items:flex-start}
@@ -818,7 +691,7 @@ require __DIR__ . '/includes/header.php';
     </defs>
 </svg>
 
-<!-- ============ ULTIMATE SCRIPTS ============ -->
+<!-- ===== ULTIMATE SCRIPTS ===== -->
 <script>
 // === LIVE CLOCK ===
 function updateClock() {
@@ -833,14 +706,6 @@ function updateClock() {
     const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const dateEl = document.getElementById('liveDate');
     if (dateEl) dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-    
-    const hijriEl = document.getElementById('liveHijri');
-    if (hijriEl) {
-        try {
-            const hijri = new Intl.DateTimeFormat('id-u-ca-islamic', {day:'numeric',month:'long',year:'numeric'}).format(now);
-            hijriEl.textContent = '🕌 ' + hijri + ' H';
-        } catch(e) { hijriEl.textContent = ''; }
-    }
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -858,7 +723,6 @@ function animateCount(el) {
     }
     requestAnimationFrame(step);
 }
-
 const countObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -868,33 +732,6 @@ const countObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.3 });
 document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
-
-// === CONFETTI on first load today ===
-(function(){
-    const today = new Date().toDateString();
-    const key = 'fkip_confetti_' + today;
-    if (!localStorage.getItem(key)) {
-        localStorage.setItem(key, '1');
-        launchConfetti();
-    }
-})();
-
-function launchConfetti() {
-    const colors = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-    for (let i = 0; i < 60; i++) {
-        const piece = document.createElement('div');
-        piece.style.cssText = `position:fixed;width:${6+Math.random()*6}px;height:${6+Math.random()*10}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}vw;top:-20px;z-index:9999;pointer-events:none;border-radius:2px;opacity:0.9;`;
-        document.body.appendChild(piece);
-        const x = (Math.random()-.5)*400;
-        const y = window.innerHeight + 100;
-        const rot = Math.random()*720;
-        const dur = 2500 + Math.random()*1500;
-        piece.animate([
-            { transform:'translateY(0) translateX(0) rotate(0)', opacity:1 },
-            { transform:`translateY(${y}px) translateX(${x}px) rotate(${rot}deg)`, opacity:0 }
-        ], { duration: dur, easing:'cubic-bezier(.25,.46,.45,.94)' }).onfinish = () => piece.remove();
-    }
-}
 
 // === APEXCHARTS: SPARKLINE ===
 const sparklineOptions = {
@@ -918,57 +755,41 @@ const donutOptions = {
     legend: { show: false },
     stroke: { show: true, colors: ['#fff'], width: 2 }
 };
-const donutChart = new ApexCharts(document.querySelector("#chartDonut"), donutOptions);
-donutChart.render();
-
-// Custom Legend for Donut
-const legendContainer = document.getElementById('donutLegend');
-<?php if (!empty($kat_stats)): ?>
-    <?php foreach ($kat_stats as $i => $k): ?>
-        const color<?= $i ?> = ['<?= implode("','", ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']) ?>'][<?= $i ?> % 6];
-        legendContainer.innerHTML += `
-            <div class="legend-item" onclick="donutChart.toggleSeries('${addslashes($k['kategori'])}')">
-                <span class="legend-color" style="background:${color<?= $i ?>}"></span>
-                <span class="legend-label"><?= sanitize($k['kategori']) ?></span>
-                <span class="legend-value"><?= $k['total'] ?></span>
-            </div>
-        `;
-    <?php endforeach; ?>
-<?php else: ?>
-    legendContainer.innerHTML = '<small style="color:#94a3b8">Belum ada data</small>';
-<?php endif; ?>
+window.donutChartInstance = new ApexCharts(document.querySelector("#chartDonut"), donutOptions);
+window.donutChartInstance.render();
 
 // === COMMAND PALETTE ===
 const palette = document.getElementById('commandPalette');
 const cmdInput = document.getElementById('commandInput');
-const cmdResults = document.getElementById('commandResults');
 
 function openCommandPalette() {
-    palette.classList.add('open');
-    setTimeout(() => cmdInput.focus(), 50);
+    if (palette) {
+        palette.classList.add('open');
+        setTimeout(() => cmdInput?.focus(), 50);
+    }
 }
 function closeCommandPalette() {
-    palette.classList.remove('open');
-    cmdInput.value = '';
-    filterCommands('');
+    if (palette) {
+        palette.classList.remove('open');
+        if (cmdInput) cmdInput.value = '';
+    }
 }
 
 document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        if (palette.classList.contains('open')) closeCommandPalette();
+        if (palette?.classList.contains('open')) closeCommandPalette();
         else openCommandPalette();
     }
-    if (e.key === 'Escape' && palette.classList.contains('open')) {
+    if (e.key === 'Escape' && palette?.classList.contains('open')) {
         closeCommandPalette();
     }
 });
 
-cmdInput?.addEventListener('input', (e) => filterCommands(e.target.value.toLowerCase()));
-
-function filterCommands(q) {
-    const items = cmdResults.querySelectorAll('.command-item');
-    const sections = cmdResults.querySelectorAll('.command-section');
+cmdInput?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    const items = document.querySelectorAll('.command-item');
+    const sections = document.querySelectorAll('.command-section');
     items.forEach(item => {
         const search = (item.dataset.search || '') + ' ' + item.textContent.toLowerCase();
         item.style.display = search.includes(q) ? 'flex' : 'none';
@@ -977,7 +798,7 @@ function filterCommands(q) {
         const visible = [...sec.querySelectorAll('.command-item')].some(i => i.style.display !== 'none');
         sec.style.display = visible ? 'block' : 'none';
     });
-}
+});
 
 // === DARK MODE TOGGLE ===
 function toggleDarkMode() {
@@ -988,19 +809,6 @@ function toggleDarkMode() {
 if (localStorage.getItem('admin_dark') === '1') {
     document.body.classList.add('dark-mode');
 }
-
-// === KEYBOARD SHORTCUTS 1-4 ===
-document.addEventListener('keydown', (e) => {
-    if (!palette.classList.contains('open')) return;
-    if (e.metaKey || e.ctrlKey) {
-        const links = cmdResults.querySelectorAll('.command-item');
-        const num = parseInt(e.key);
-        if (num >= 1 && num <= 4 && links[num-1]) {
-            e.preventDefault();
-            links[num-1].click();
-        }
-    }
-});
 
 console.log('%c🎓 FKIP UNIMOF Admin Ultimate', 'color:#0a6847;font-size:20px;font-weight:bold');
 console.log('%cTip: Tekan Ctrl+K untuk Command Palette', 'color:#64748b');
