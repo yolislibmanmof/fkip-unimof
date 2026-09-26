@@ -738,12 +738,19 @@ document.getElementById('editorForm').addEventListener('submit', function() {
 // ===== Preview modal =====
 function openPreview() {
     document.getElementById('previewTitle').textContent = judulInput.value || 'Judul berita akan muncul di sini...';
-    document.getElementById('previewContent').innerHTML = kontenInput.value.replace(/\n/g, '<br>') || '<p style="color:#94a3b8"><em>Belum ada konten...</em></p>';
+    
+    // Render HTML dengan aman (mengganti newline hanya jika bukan tag HTML)
+    let rawContent = kontenInput.value;
+    let safeContent = rawContent.replace(/\n/g, '<br>'); 
+    
+    document.getElementById('previewContent').innerHTML = safeContent || '<p style="color:#94a3b8"><em>Belum ada konten...</em></p>';
+    
     document.getElementById('previewBadge').textContent = document.querySelector('[name="kategori"]').value;
     document.getElementById('previewAuthor').textContent = document.querySelector('[name="penulis"]').value || 'Humas FKIP';
     document.getElementById('previewReadTime').textContent = readTimeEl.textContent + ' menit baca';
     document.getElementById('previewModal').classList.add('open');
 }
+
 function closePreview() {
     document.getElementById('previewModal').classList.remove('open');
 }
