@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 01, 2026 at 10:09 AM
+-- Generation Time: Oct 01, 2026 at 01:08 PM
 -- Server version: 5.7.39
 -- PHP Version: 8.2.28
 
@@ -48,7 +48,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`id`, `username`, `password`, `email`, `full_name`, `role`, `status`, `last_login`, `last_ip`, `last_user_agent`, `two_factor_enabled`, `two_factor_secret`, `created_at`) VALUES
-(1, 'admin', '$2y$10$HZABzARqxulnUeaA54n6EuAhXHvu1eWLxxWA5h5Y1VQtshRiiWVA2', 'admin@fkip-unimof.ac.id', 'Super Admin', 'superadmin', 'Active', '2026-10-01 07:07:21', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 0, NULL, '2026-09-25 01:33:39');
+(1, 'admin', '$2y$10$HZABzARqxulnUeaA54n6EuAhXHvu1eWLxxWA5h5Y1VQtshRiiWVA2', 'admin@fkip-unimof.ac.id', 'Super Admin', 'superadmin', 'Active', '2026-10-01 11:57:58', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 0, NULL, '2026-09-25 01:33:39');
 
 -- --------------------------------------------------------
 
@@ -96,7 +96,10 @@ INSERT INTO `admin_login_logs` (`id`, `admin_id`, `ip_address`, `user_agent`, `s
 (24, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 05:20:16'),
 (25, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 05:21:19'),
 (26, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 06:58:51'),
-(27, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 07:07:21');
+(27, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 07:07:21'),
+(28, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 10:19:27'),
+(29, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 11:24:58'),
+(30, 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'success', '2026-10-01 11:57:58');
 
 -- --------------------------------------------------------
 
@@ -150,8 +153,7 @@ CREATE TABLE `akreditasi` (
 
 INSERT INTO `akreditasi` (`id`, `nama_prodi`, `badan_akreditasi`, `peringkat`, `nomor_sk`, `tanggal_terbit`, `tanggal_berlaku`, `sertifikat_file`, `status`, `created_at`) VALUES
 (1, 'Pendidikan Matematika', 'BAN-PT', 'Unggul', '1234/SK/BAN-PT/Akred/S/2023', '2023-01-15', '2028-01-15', NULL, 'Aktif', '2026-09-25 16:14:09'),
-(2, 'Pendidikan Biologi', 'BAN-PT', 'Unggul', '1235/SK/BAN-PT/Akred/S/2023', '2023-02-20', '2028-02-20', NULL, 'Aktif', '2026-09-25 16:14:09'),
-(3, 'Pendidikan Bahasa Inggris', 'LAMDIK', 'Baik Sekali', '1236/SK/LAMDIK/Akred/S/2022', '2022-05-10', '2027-05-10', NULL, 'Aktif', '2026-09-25 16:14:09');
+(2, 'Pendidikan Biologi', 'BAN-PT', 'Unggul', '1235/SK/BAN-PT/Akred/S/2023', '2023-02-20', '2028-02-20', NULL, 'Aktif', '2026-09-25 16:14:09');
 
 -- --------------------------------------------------------
 
@@ -167,7 +169,6 @@ CREATE TABLE `alumni` (
   `pekerjaan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `perusahaan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lokasi` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `testimonial` text COLLATE utf8mb4_unicode_ci,
   `foto` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `linkedin` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -180,12 +181,11 @@ CREATE TABLE `alumni` (
 -- Dumping data for table `alumni`
 --
 
-INSERT INTO `alumni` (`id`, `nama`, `program_studi_id`, `tahun_lulus`, `pekerjaan`, `perusahaan`, `lokasi`, `testimonial`, `foto`, `linkedin`, `created_at`, `testimoni`, `status`, `prestasi`) VALUES
-(1, 'Yohanes Berchmans', 1, 2020, 'Guru Matematika', 'SMA Negeri 1 Maumere', 'Maumere, NTT', NULL, NULL, NULL, '2026-09-25 12:58:36', 'FKIP UNIMOF membentuk saya menjadi pendidik yang kompeten dan berkarakter.', 'Aktif', 'Juara 1 Olimpiade Matematika Tingkat Provinsi 2023'),
-(2, 'Maria Klarissa', 3, 2019, 'Peneliti Biologi', 'LIPI', 'Jakarta', NULL, NULL, NULL, '2026-09-25 12:58:36', 'Pengalaman kuliah di FKIP UNIMOF sangat berkesan. Dosen-dosen yang supportive.', 'Aktif', 'Medali Emas PIMNAS 2022'),
-(3, 'Petrus Kleden', 5, 2021, 'Guru Bahasa Inggris', 'SMP Negeri 2 Ende', 'Ende, NTT', NULL, NULL, NULL, '2026-09-25 12:58:36', 'Saya bangga menjadi alumni FKIP UNIMOF. Ilmu yang didapat sangat aplikatif.', 'Aktif', 'Guru Berprestasi Tingkat Kabupaten 2024'),
-(4, 'Agnes Doa', 7, 2018, 'Wirausaha', 'Doa Education Center', 'Maumere, NTT', NULL, NULL, NULL, '2026-09-25 12:58:36', 'FKIP UNIMOF mengajarkan jiwa entrepreneurship. Sekarang saya punya lembaga bimbingan belajar sendiri.', 'Aktif', 'Founder Education Center dengan 200+ siswa'),
-(5, 'Dominggus Tefa', 2, 2022, 'Lanjut Studi', 'Universitas Gadjah Mada', 'Yogyakarta', NULL, NULL, NULL, '2026-09-25 12:58:36', 'Beasiswa berkat prestasi di FKIP UNIMOF membawa saya ke S2 di UGM.', 'Aktif', 'Penerima Beasiswa LPDP 2023');
+INSERT INTO `alumni` (`id`, `nama`, `program_studi_id`, `tahun_lulus`, `pekerjaan`, `perusahaan`, `lokasi`, `foto`, `linkedin`, `created_at`, `testimoni`, `status`, `prestasi`) VALUES
+(1, 'Yohanes Berchmans', 1, 2020, 'Guru Matematika', 'SMA Negeri 1 Maumere', 'Maumere, NTT', NULL, NULL, '2026-09-25 12:58:36', 'FKIP UNIMOF membentuk saya menjadi pendidik yang kompeten dan berkarakter.', 'Aktif', 'Juara 1 Olimpiade Matematika Tingkat Provinsi 2023'),
+(2, 'Maria Klarissa', 3, 2019, 'Peneliti Biologi', 'LIPI', 'Jakarta', NULL, NULL, '2026-09-25 12:58:36', 'Pengalaman kuliah di FKIP UNIMOF sangat berkesan. Dosen-dosen yang supportive.', 'Aktif', 'Medali Emas PIMNAS 2022'),
+(3, 'Petrus Kleden', 5, 2021, 'Guru Bahasa Inggris', 'SMP Negeri 2 Ende', 'Ende, NTT', NULL, NULL, '2026-09-25 12:58:36', 'Saya bangga menjadi alumni FKIP UNIMOF. Ilmu yang didapat sangat aplikatif.', 'Aktif', 'Guru Berprestasi Tingkat Kabupaten 2024'),
+(5, 'Dominggus Tefa', 2, 2022, 'Lanjut Studi', 'Universitas Gadjah Mada', 'Yogyakarta', NULL, NULL, '2026-09-25 12:58:36', 'Beasiswa berkat prestasi di FKIP UNIMOF membawa saya ke S2 di UGM.', 'Aktif', 'Penerima Beasiswa LPDP 2023');
 
 -- --------------------------------------------------------
 
@@ -210,8 +210,7 @@ CREATE TABLE `beasiswa` (
 --
 
 INSERT INTO `beasiswa` (`id`, `nama`, `jenis`, `sumber`, `nominal`, `syarat`, `deadline`, `status`, `created_at`) VALUES
-(1, 'Beasiswa Prestasi Akademik', 'Prestasi Akademik', 'Yayasan Muhammadiyah', '100% SPP + Uang Pangkal', 'Rata-rata rapor minimal 85, Juara 1-3 tingkat Kabupaten/Provinsi', '2026-08-30', 'Tertutup', '2026-09-25 15:13:56'),
-(2, 'Beasiswa KIP Kuliah', 'KIP Kuliah', 'Kemdikbudristek', '100% SPP + Uang Saku', 'Memiliki KIP, penghasilan orang tua maksimal Rp 4.000.000/bulan', '2026-07-15', 'Tertutup', '2026-09-25 15:13:56');
+(1, 'Beasiswa Prestasi Akademik', 'Prestasi Akademik', 'Yayasan Muhammadiyah', '100% SPP + Uang Pangkal', 'Rata-rata rapor minimal 85, Juara 1-3 tingkat Kabupaten/Provinsi', '2026-08-30', 'Tertutup', '2026-09-25 15:13:56');
 
 -- --------------------------------------------------------
 
@@ -243,8 +242,7 @@ CREATE TABLE `berita` (
 
 INSERT INTO `berita` (`id`, `judul`, `slug`, `konten`, `excerpt`, `gambar`, `kategori`, `penulis`, `views`, `status`, `is_featured`, `tags`, `published_at`, `created_at`, `updated_at`) VALUES
 (1, 'Pengenalan Kehidupan Kampus Mahasiswa Baru FKIP UNIMOF 2026', 'pengenalan-kehidupan-kampus-mahasiswa-baru-fkip-unimof-2026', '<p>Mahasiswa baru Universitas Muhammadiyah Maumere Tahun 2026 mendapatkan kesempatan mengenal lebih dekat Fakultas Keguruan dan Ilmu Pendidikan beserta delapan program studinya.</p>', 'Mahasiswa baru UNIMOF mendapatkan pembekalan awal kehidupan akademik di FKIP di lingkungan kampus.', NULL, 'Akademik', 'Humas FKIP', 2, 'Published', 1, '', '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-10-01 06:59:45'),
-(2, 'FKIP UNIMOF Raih Akreditasi Unggul untuk Tiga Program Studi', 'fkip-unimof-raih-akreditasi-unggul-untuk-tiga-program-studi', '<p>Tiga program studi FKIP resmi meraih predikat Unggul dari BAN-PT setelah melalui proses asesmen lapangan yang ketat.</p>', 'Tiga program studi FKIP UNIMOF resmi meraih predikat Unggul dari BAN-PT.', NULL, 'Prestasi', 'Humas FKIP', 0, 'Published', 1, NULL, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-25 01:52:08'),
-(3, 'Seminar Nasional Pendidikan: Guru Merdeka di Era Digital', 'seminar-nasional-pendidikan-guru-merdeka-di-era-digital', '<p>FKIP menyelenggarakan seminar nasional bersama pakar pendidikan dari berbagai universitas di Indonesia Timur.</p>', 'FKIP UNIMOF menyelenggarakan seminar nasional pendidikan era digital.', NULL, 'Kegiatan', 'Humas FKIP', 2, 'Published', 0, NULL, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-27 06:00:09');
+(2, 'FKIP UNIMOF Raih Akreditasi Unggul untuk Tiga Program Studi', 'fkip-unimof-raih-akreditasi-unggul-untuk-tiga-program-studi', '<p>Tiga program studi FKIP resmi meraih predikat Unggul dari BAN-PT setelah melalui proses asesmen lapangan yang ketat.</p>', 'Tiga program studi FKIP UNIMOF resmi meraih predikat Unggul dari BAN-PT.', NULL, 'Prestasi', 'Humas FKIP', 0, 'Published', 1, NULL, '2026-09-25 01:52:08', '2026-09-25 01:52:08', '2026-09-25 01:52:08');
 
 -- --------------------------------------------------------
 
@@ -278,7 +276,7 @@ CREATE TABLE `blog_artikel` (
 --
 
 INSERT INTO `blog_artikel` (`id`, `dosen_id`, `program_studi_id`, `judul`, `slug`, `excerpt`, `konten`, `gambar`, `kategori`, `tags`, `views`, `likes`, `reading_time`, `is_featured`, `status`, `published_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'Peran AI dalam Pendidikan Matematika di Era Digital', 'peran-ai-pendidikan-matematika', 'Bagaimana artificial intelligence mengubah cara kita mengajar matematika di abad 21.', '<p>Artificial Intelligence telah membuka peluang baru dalam pendidikan matematika...</p>', NULL, 'AI & Teknologi', 'AI, pendidikan, matematika', 0, 0, 8, 1, 'Published', '2026-09-27 08:12:38', '2026-09-27 08:12:38', '2026-09-27 08:12:38'),
+(1, NULL, 1, 'Peran AI dalam Pendidikan Matematika di Era Digital', 'peran-ai-pendidikan-matematika', 'Bagaimana artificial intelligence mengubah cara kita mengajar matematika di abad 21.', '<p>Artificial Intelligence telah membuka peluang baru dalam pendidikan matematika...</p>', NULL, 'AI & Teknologi', 'AI, pendidikan, matematika', 0, 0, 8, 1, 'Published', '2026-09-27 08:12:38', '2026-09-27 08:12:38', '2026-09-27 08:12:38'),
 (2, 2, 3, 'Tips Menulis Proposal Riset untuk Mahasiswa S1', 'tips-proposal-riset-s1', 'Panduan praktis menulis proposal riset yang baik untuk mahasiswa semester akhir.', '<p>Menulis proposal riset adalah keterampilan penting bagi mahasiswa...</p>', NULL, 'Tips Riset', 'riset, proposal, skripsi', 1, 0, 6, 1, 'Published', '2026-09-27 08:12:38', '2026-09-27 08:12:38', '2026-09-27 08:29:32'),
 (3, NULL, NULL, 'Pentingnya Kearifan Lokal dalam Pembelajaran Modern', 'kearifan-lokal-pembelajaran', 'Mengintegrasikan budaya lokal NTT dalam kurikulum pendidikan modern.', '<p>Kearifan lokal adalah kekayaan yang harus dilestarikan...</p>', NULL, 'Pendidikan', 'budaya, NTT, kurikulum', 0, 0, 5, 0, 'Published', '2026-09-27 08:12:38', '2026-09-27 08:12:38', '2026-09-27 08:12:38');
 
@@ -316,7 +314,6 @@ CREATE TABLE `dosen` (
   `pendidikan_terakhir` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `telepon` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `foto` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `bidang_keahlian` text COLLATE utf8mb4_unicode_ci,
   `publikasi` text COLLATE utf8mb4_unicode_ci,
@@ -333,10 +330,9 @@ CREATE TABLE `dosen` (
 -- Dumping data for table `dosen`
 --
 
-INSERT INTO `dosen` (`id`, `nidn`, `nama`, `gelar_depan`, `gelar_belakang`, `program_studi_id`, `jabatan_fungsional`, `pendidikan_terakhir`, `email`, `telepon`, `phone`, `foto`, `bidang_keahlian`, `publikasi`, `google_scholar`, `scopus`, `riwayat_pendidikan`, `penelitian`, `bio`, `status`, `created_at`) VALUES
-(1, '0001018501', 'Budi Santoso', 'Dr.', 'M.Pd.', 1, 'Lektor Kepala', 'S3 Pendidikan Matematika', 'budi@unimof.ac.id', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Aktif', '2026-09-25 01:52:08'),
-(2, '0002038702', 'Siti Aminah', 'Dr.', 'M.Si.', 3, 'Lektor', 'S3 Biologi', 'siti@unimof.ac.id', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Aktif', '2026-09-25 01:52:08'),
-(3, '0003059003', 'Andi Pratama', '', 'M.Pd.', 5, 'Asisten Ahli', 'S2 Pendidikan Bahasa Inggris', 'andi@unimof.ac.id', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Aktif', '2026-09-25 01:52:08');
+INSERT INTO `dosen` (`id`, `nidn`, `nama`, `gelar_depan`, `gelar_belakang`, `program_studi_id`, `jabatan_fungsional`, `pendidikan_terakhir`, `email`, `telepon`, `foto`, `bidang_keahlian`, `publikasi`, `google_scholar`, `scopus`, `riwayat_pendidikan`, `penelitian`, `bio`, `status`, `created_at`) VALUES
+(2, '0002038702', 'Siti Aminah', 'Dr.', 'M.Si.', 3, 'Lektor', 'S3 Biologi', 'siti@unimof.ac.id', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Aktif', '2026-09-25 01:52:08'),
+(3, '0003059003', 'Andi Pratama', '', 'M.Pd.', 5, 'Asisten Ahli', 'S2 Pendidikan Bahasa Inggris', 'andi@unimof.ac.id', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Aktif', '2026-09-25 01:52:08');
 
 -- --------------------------------------------------------
 
@@ -382,8 +378,7 @@ INSERT INTO `faq` (`id`, `kategori`, `pertanyaan`, `jawaban`, `urutan`, `status`
 (1, 'PMB', 'Kapan batas waktu pendaftaran Gelombang 1?', 'Pendaftaran Gelombang 1 dibuka 1 Oktober 2025 hingga 31 Januari 2026.', 1, 'Aktif', '2026-09-27 00:40:06'),
 (2, 'PMB', 'Apakah ada tes masuk?', 'Ya, Tes Potensi Akademik (TPA): Verbal, Numerik, Logika. Jalur prestasi bisa diganti wawancara.', 2, 'Aktif', '2026-09-27 00:40:06'),
 (3, 'Akademik', 'Berapa lama masa studi S1?', 'Masa studi normal S1 adalah 8 semester (4 tahun). Maksimal 14 semester.', 3, 'Aktif', '2026-09-27 00:40:06'),
-(4, 'Beasiswa', 'Apa saja jenis beasiswa yang tersedia?', 'Beasiswa Prestasi Akademik, KIP Kuliah, Beasiswa Muhammadiyah, dan Talent Scouting.', 4, 'Aktif', '2026-09-27 00:40:06'),
-(5, 'Umum', 'Dimana lokasi kampus FKIP UNIMOF?', 'Jl. Bhayangkara No.1, Maumere, Kabupaten Sikka, NTT.', 5, 'Aktif', '2026-09-27 00:40:06');
+(4, 'Beasiswa', 'Apa saja jenis beasiswa yang tersedia?', 'Beasiswa Prestasi Akademik, KIP Kuliah, Beasiswa Muhammadiyah, dan Talent Scouting.', 4, 'Aktif', '2026-09-27 00:40:06');
 
 -- --------------------------------------------------------
 
@@ -415,7 +410,6 @@ CREATE TABLE `fasilitas` (
 
 INSERT INTO `fasilitas` (`id`, `nama`, `kategori`, `deskripsi`, `icon`, `gambar`, `kapasitas`, `status`, `created_at`, `lokasi`, `gedung`, `lantai`, `jam_operasional`, `kontak`, `tags`) VALUES
 (1, 'Laboratorium Microteaching', 'Laboratorium', 'Ruang praktik mengajar dengan rekaman video 4K dan one-way mirror.', '🎬', NULL, '30', 'Aktif', '2026-09-25 15:13:56', NULL, NULL, NULL, NULL, NULL, NULL),
-(2, 'Perpustakaan Digital', 'Perpustakaan', 'Akses ke 10.000+ e-book dan jurnal internasional (Scopus/WoS).', '📚', NULL, '200', 'Aktif', '2026-09-25 15:13:56', NULL, NULL, NULL, NULL, NULL, NULL),
 (3, 'Ruang Kelas Smart TV', 'Ruang Kelas', 'Dilengkapi Smart TV 65 inch dan koneksi internet fiber optic.', '🏫', NULL, '40', 'Aktif', '2026-09-25 15:13:56', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
@@ -434,13 +428,6 @@ CREATE TABLE `galeri` (
   `status` enum('Published','Draft') COLLATE utf8mb4_unicode_ci DEFAULT 'Published',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `galeri`
---
-
-INSERT INTO `galeri` (`id`, `judul`, `deskripsi`, `gambar`, `kategori`, `tanggal`, `status`, `created_at`) VALUES
-(2, 'Pelepasan Mahasiswa menuju lokasi KKN', '', 'gal_1790832007_0_bd43d4a28915.jpg', 'Kegiatan', '2026-10-01', 'Draft', '2026-10-01 05:20:07');
 
 -- --------------------------------------------------------
 
@@ -470,7 +457,6 @@ CREATE TABLE `jurnal` (
 --
 
 INSERT INTO `jurnal` (`id`, `nama`, `penerbit`, `issn`, `akreditasi`, `url`, `deskripsi`, `status`, `created_at`, `eissn`, `focus_area`, `frequency`, `language`, `email_kontak`) VALUES
-(1, 'Jurnal Pendidikan FKIP', 'FKIP UNIMOF', '1234-5678', 'Sinta 3', 'https://jurnal.unimof.ac.id', 'Jurnal ilmiah bidang pendidikan dan pengajaran.', 'Aktif', '2026-09-25 15:13:56', NULL, NULL, NULL, 'Indonesia', NULL),
 (2, 'Maumere Science Review', 'FKIP UNIMOF', '8765-4321', 'Sinta 4', 'https://msr.unimof.ac.id', 'Jurnal sains dan teknologi terapan.', 'Aktif', '2026-09-25 15:13:56', NULL, NULL, NULL, 'Indonesia', NULL);
 
 -- --------------------------------------------------------
@@ -497,7 +483,6 @@ CREATE TABLE `kerjasama` (
 --
 
 INSERT INTO `kerjasama` (`id`, `nama_institusi`, `negara`, `jenis`, `bentuk_kerjasama`, `tanggal_mulai`, `tanggal_selesai`, `logo`, `status`, `created_at`) VALUES
-(1, 'Universiti Malaya', 'Malaysia', 'Universitas', 'Pertukaran Mahasiswa & Riset Bersama', NULL, NULL, NULL, 'Aktif', '2026-09-25 16:14:09'),
 (2, 'Sakarya University', 'Turki', 'Universitas', 'Joint Research & Faculty Exchange', NULL, NULL, NULL, 'Aktif', '2026-09-25 16:14:09'),
 (3, 'Dinas Pendidikan Kab. Sikka', 'Indonesia', 'Pemerintah', 'Program Magang & Praktik Mengajar', NULL, NULL, NULL, 'Aktif', '2026-09-25 16:14:09'),
 (4, 'PT. Telkom Indonesia', 'Indonesia', 'Industri', 'Digital Literacy Training & Internship', NULL, NULL, NULL, 'Aktif', '2026-09-25 16:14:09');
@@ -520,13 +505,6 @@ CREATE TABLE `kontak` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `catatan_admin` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `kontak`
---
-
-INSERT INTO `kontak` (`id`, `nama`, `email`, `telepon`, `subjek`, `pesan`, `status`, `created_at`, `updated_at`, `catatan_admin`) VALUES
-(1, 'Yolis Libman', 'libmanozhez57@gmail.com', '082147201903', 'Informasi PMB', 'Kapan pendaftaran di buka?', 'Dibalas', '2026-09-27 02:35:39', '2026-09-27 02:48:44', NULL);
 
 -- --------------------------------------------------------
 
@@ -616,7 +594,6 @@ CREATE TABLE `prestasi` (
 --
 
 INSERT INTO `prestasi` (`id`, `judul`, `mahasiswa`, `program_studi_id`, `tingkat`, `juara`, `lomba`, `tahun`, `deskripsi`, `foto`, `created_at`) VALUES
-(1, 'Juara 1 Olimpiade Matematika Nasional', 'Yohanes Berchmans', 1, 'Nasional', 'Juara 1', 'Olimpiade Matematika Nasional', 2025, NULL, NULL, '2026-09-25 01:52:08'),
 (2, 'Medali Emas Pekan Ilmiah Mahasiswa Nasional', 'Maria Klarissa', 3, 'Nasional', 'Juara 1', 'PIMNAS', 2025, NULL, NULL, '2026-09-25 01:52:08');
 
 -- --------------------------------------------------------
@@ -694,7 +671,6 @@ CREATE TABLE `riset` (
 
 INSERT INTO `riset` (`id`, `judul`, `deskripsi`, `abstrak`, `ketua_id`, `program_studi_id`, `kategori`, `jenis`, `tahun`, `status`, `jurnal`, `doi`, `anggota`, `created_at`, `updated_at`) VALUES
 (1, 'Implementasi Kurikulum Merdeka di Sekolah Dasar NTT', 'Penelitian tentang penerapan kurikulum merdeka di wilayah NTT dengan pendekatan kualitatif.', NULL, NULL, NULL, 'Pendidikan', 'Publikasi', '2025', 'Published', 'Jurnal Pendidikan Indonesia', NULL, NULL, '2026-09-25 12:56:09', '2026-09-25 12:56:09'),
-(2, 'Pengaruh Media Pembelajaran Digital terhadap Motivasi Belajar', 'Studi eksperimental pengaruh media digital terhadap motivasi belajar mahasiswa FKIP.', NULL, NULL, NULL, 'Teknologi Pendidikan', 'Publikasi', '2024', 'Published', 'Jurnal Teknologi Pendidikan', NULL, NULL, '2026-09-25 12:56:09', '2026-09-25 12:56:09'),
 (3, 'Pengembangan Model Pembelajaran Berbasis Kearifan Lokal', 'Riset pengembangan model pembelajaran yang mengintegrasikan kearifan lokal Maumere.', NULL, NULL, NULL, 'Pendidikan', 'Hibah', '2025', 'Published', NULL, NULL, NULL, '2026-09-25 12:56:09', '2026-09-25 12:56:09'),
 (4, 'Pemberdayaan Guru SD melalui Pelatihan Literasi Digital', 'Program pengabdian masyarakat untuk meningkatkan literasi digital guru SD.', NULL, NULL, NULL, 'Pengabdian', 'Pengabdian', '2024', 'Published', NULL, NULL, NULL, '2026-09-25 12:56:09', '2026-09-25 12:56:09');
 
@@ -720,7 +696,7 @@ CREATE TABLE `statistik` (
 --
 
 INSERT INTO `statistik` (`id`, `total_mahasiswa`, `total_dosen`, `total_prodi`, `total_penelitian`, `total_alumni`, `tahun_ajaran`, `updated_at`) VALUES
-(1, 1250, 68, 8, 45, 3200, '2025/2026', '2026-09-25 01:51:54');
+(1, 1250, 25, 8, 450, 3200, '2025/2026', '2026-10-01 12:12:05');
 
 -- --------------------------------------------------------
 
@@ -745,8 +721,7 @@ CREATE TABLE `testimoni` (
 
 INSERT INTO `testimoni` (`id`, `nama`, `jabatan`, `foto`, `pesan`, `rating`, `status`, `created_at`) VALUES
 (1, 'Ahmad Fauzi, S.Pd.', 'Alumni 2020 - Guru SMA Negeri 1 Maumere', NULL, 'FKIP UNIMOF memberikan fondasi kuat untuk karir saya sebagai pendidik. Dosen-dosennya kompeten dan peduli.', 5, 'Published', '2026-09-27 00:40:06'),
-(2, 'Siti Nurhaliza', 'Mahasiswa Pendidikan Matematika 2023', NULL, 'Fasilitas laboratorium sangat memadai dan mendukung proses belajar. Lingkungan kampus nyaman dan Islami.', 5, 'Published', '2026-09-27 00:40:06'),
-(3, 'Dr. Muhammad Yusuf, M.Pd.', 'Kepala Sekolah SMA Muhammadiyah', NULL, 'Lulusan FKIP UNIMOF memiliki karakter baik dan kompetensi mengajar mumpuni. Kami selalu merekrut alumni di sini.', 5, 'Published', '2026-09-27 00:40:06');
+(4, 'Antonius Yulianus', 'Kepala LPM', 'uploads/testimoni/testi_1790855554_b0c21311.png', 'FKIP merupakan rumah kami yang sangat berharga !', 5, 'Published', '2026-10-01 11:52:34');
 
 -- --------------------------------------------------------
 
@@ -863,7 +838,8 @@ ALTER TABLE `beasiswa`
 --
 ALTER TABLE `berita`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `slug` (`slug`);
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `idx_views` (`views`);
 
 --
 -- Indexes for table `blog_artikel`
@@ -875,7 +851,8 @@ ALTER TABLE `blog_artikel`
   ADD KEY `idx_prodi` (`program_studi_id`),
   ADD KEY `idx_status` (`status`),
   ADD KEY `idx_published` (`published_at`),
-  ADD KEY `idx_kategori` (`kategori`);
+  ADD KEY `idx_kategori` (`kategori`),
+  ADD KEY `idx_views_likes` (`views`,`likes`);
 
 --
 -- Indexes for table `blog_komentar`
@@ -951,7 +928,8 @@ ALTER TABLE `pengaturan`
 ALTER TABLE `pengunjung`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_visited_at` (`visited_at`),
-  ADD KEY `idx_halaman` (`halaman`);
+  ADD KEY `idx_halaman` (`halaman`),
+  ADD KEY `idx_ip_date` (`ip_address`,`visited_at`);
 
 --
 -- Indexes for table `prestasi`
@@ -972,7 +950,8 @@ ALTER TABLE `program_studi`
 --
 ALTER TABLE `riset`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `program_studi_id` (`program_studi_id`);
+  ADD KEY `program_studi_id` (`program_studi_id`),
+  ADD KEY `fk_riset_ketua` (`ketua_id`);
 
 --
 -- Indexes for table `statistik`
@@ -1018,7 +997,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `admin_login_logs`
 --
 ALTER TABLE `admin_login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `agenda`
@@ -1150,7 +1129,7 @@ ALTER TABLE `statistik`
 -- AUTO_INCREMENT for table `testimoni`
 --
 ALTER TABLE `testimoni`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `video`
@@ -1175,6 +1154,13 @@ ALTER TABLE `alumni`
   ADD CONSTRAINT `alumni_ibfk_1` FOREIGN KEY (`program_studi_id`) REFERENCES `program_studi` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `blog_artikel`
+--
+ALTER TABLE `blog_artikel`
+  ADD CONSTRAINT `fk_blog_dosen` FOREIGN KEY (`dosen_id`) REFERENCES `dosen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_blog_prodi` FOREIGN KEY (`program_studi_id`) REFERENCES `program_studi` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
 -- Constraints for table `blog_komentar`
 --
 ALTER TABLE `blog_komentar`
@@ -1196,6 +1182,7 @@ ALTER TABLE `prestasi`
 -- Constraints for table `riset`
 --
 ALTER TABLE `riset`
+  ADD CONSTRAINT `fk_riset_ketua` FOREIGN KEY (`ketua_id`) REFERENCES `dosen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `riset_ibfk_1` FOREIGN KEY (`program_studi_id`) REFERENCES `program_studi` (`id`) ON DELETE SET NULL;
 
 --
