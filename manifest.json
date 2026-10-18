@@ -1,0 +1,47 @@
+{
+  "name": "FKIP UNIMOF - Fakultas Keguruan dan Ilmu Pendidikan",
+  "short_name": "FKIP UNIMOF",
+  "description": "Portal resmi Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere. Informasi PMB, program studi, berita, agenda, dan layanan akademik.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0a6847",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["education", "news"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='112'%20fill='%230a6847'/%3E%3Ctext%20x='256'%20y='336'%20font-family='Georgia,serif'%20font-size='230'%20font-weight='bold'%20fill='%23ffffff'%20text-anchor='middle'%3EFU%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%230a6847'/%3E%3Ctext%20x='256'%20y='320'%20font-family='Georgia,serif'%20font-size='180'%20font-weight='bold'%20fill='%23ffffff'%20text-anchor='middle'%3EFU%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Program Studi",
+      "description": "Lihat daftar program studi FKIP",
+      "url": "./program.php"
+    },
+    {
+      "name": "Pendaftaran (PMB)",
+      "description": "Informasi penerimaan mahasiswa baru",
+      "url": "./pmb.php"
+    },
+    {
+      "name": "Berita Terkini",
+      "description": "Kabar terbaru FKIP UNIMOF",
+      "url": "./berita.php"
+    }
+  ]
+}
