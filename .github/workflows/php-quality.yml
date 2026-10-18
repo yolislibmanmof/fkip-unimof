@@ -1,0 +1,57 @@
+name: PHP quality checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP 8.2 syntax and smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, dom
+          tools: none
+          coverage: none
+
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' php_files < <(
+            find . \
+              -type d \( -name .git -o -name vendor \) -prune -o \
+              -type f -name '*.php' -print0
+          )
+
+          if ((${#php_files[@]} == 0)); then
+            echo "No PHP files found."
+            exit 1
+          fi
+
+          for file in "${php_files[@]}"; do
+            php -l "$file"
+          done
+
+      - name: Run helper smoke tests
+        run: php tests/smoke.php
