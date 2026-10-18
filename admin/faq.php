@@ -1,71 +1,249 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../includes/config.php';
 require_login();
 
-// ===== PROSES POST (SAVE / DELETE / TOGGLE) =====
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_token'] ?? '')) {
-    $action = $_POST['action'] ?? '';
-    $id = (int)($_POST['id'] ?? 0);
+function faq_request_string(array $source, string $key, string $default = ''): string
+{
+    $value = $source[$key] ?? $default;
 
-    if ($action === 'save_faq') {
-        $pertanyaan = trim($_POST['pertanyaan'] ?? '');
-        $jawaban    = trim($_POST['jawaban'] ?? '');
-        $kategori   = trim($_POST['kategori'] ?? 'Umum') ?: 'Umum';
-        $urutan     = (int)($_POST['urutan'] ?? 0);
-        $status     = ($_POST['status'] ?? 'Aktif') === 'Nonaktif' ? 'Nonaktif' : 'Aktif';
+    return is_string($value) ? trim($value) : $default;
+}
 
-        if ($pertanyaan === '' || $jawaban === '') {
-            flash_message('error', '❌ Pertanyaan dan jawaban wajib diisi.');
-        } else {
-            try {
-                if ($id > 0) {
-                    $pdo->prepare("UPDATE faq SET kategori=?, pertanyaan=?, jawaban=?, urutan=?, status=? WHERE id=?")
-                        ->execute([$kategori, $pertanyaan, $jawaban, $urutan, $status, $id]);
-                    flash_message('success', '✅ FAQ berhasil diperbarui.');
-                } else {
-                    $pdo->prepare("INSERT INTO faq (kategori, pertanyaan, jawaban, urutan, status) VALUES (?,?,?,?,?)")
-                        ->execute([$kategori, $pertanyaan, $jawaban, $urutan, $status]);
-                    flash_message('success', '✅ FAQ baru berhasil ditambahkan.');
-                }
-            } catch (PDOException $e) {
-                flash_message('error', '❌ Gagal menyimpan: ' . $e->getMessage());
-            }
+function faq_text_length(string $value): int
+{
+    return function_exists('mb_strlen')
+        ? mb_strlen($value, 'UTF-8')
+        : strlen($value);
+}
+
+function faq_redirect_filters(): array
+{
+    $filters = [];
+
+    foreach (['q' => 100, 'kategori' => 50] as $key => $maxLength) {
+        $value = faq_request_string($_GET, $key);
+
+        if ($value !== '') {
+            $filters[$key] = function_exists('mb_substr')
+                ? mb_substr($value, 0, $maxLength, 'UTF-8')
+                : substr($value, 0, $maxLength);
         }
     }
-    elseif ($action === 'delete_faq' && $id) {
-        $pdo->prepare("DELETE FROM faq WHERE id=?")->execute([$id]);
-        flash_message('success', '🗑️ FAQ dihapus.');
-    }
-    elseif ($action === 'toggle_faq' && $id) {
-        $pdo->prepare("UPDATE faq SET status=IF(status='Aktif','Nonaktif','Aktif') WHERE id=?")->execute([$id]);
-        flash_message('success', '✅ Status FAQ diubah.');
+
+    return $filters;
+}
+
+// Semua aksi yang mengubah data hanya boleh diproses melalui POST dengan CSRF valid.
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        exit('Permintaan tidak valid. Muat ulang halaman dan coba kembali.');
     }
 
-    header('Location: faq.php?' . http_build_query($_GET));
+    $action = faq_request_string($_POST, 'action');
+    $id = filter_var(
+        $_POST['id'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    try {
+        if ($action === 'save_faq') {
+            $pertanyaan = faq_request_string($_POST, 'pertanyaan');
+            $jawaban = faq_request_string($_POST, 'jawaban');
+            $kategori = faq_request_string($_POST, 'kategori', 'Umum');
+            $urutanRaw = faq_request_string($_POST, 'urutan', '0');
+            $status = faq_request_string($_POST, 'status', 'Aktif');
+
+            if ($kategori === '') {
+                $kategori = 'Umum';
+            }
+
+            $urutan = filter_var(
+                $urutanRaw,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 0, 'max_range' => 999]]
+            );
+
+            $errors = [];
+
+            if ($pertanyaan === '') {
+                $errors[] = 'Pertanyaan wajib diisi.';
+            } elseif (faq_text_length($pertanyaan) > 65535) {
+                $errors[] = 'Pertanyaan terlalu panjang.';
+            }
+
+            if ($jawaban === '') {
+                $errors[] = 'Jawaban wajib diisi.';
+            } elseif (faq_text_length($jawaban) > 65535) {
+                $errors[] = 'Jawaban terlalu panjang.';
+            }
+
+            if (faq_text_length($kategori) > 50) {
+                $errors[] = 'Kategori maksimal 50 karakter.';
+            }
+
+            if ($urutan === false) {
+                $errors[] = 'Urutan harus berupa angka antara 0 dan 999.';
+            }
+
+            if (!in_array($status, ['Aktif', 'Nonaktif'], true)) {
+                $errors[] = 'Status FAQ tidak valid.';
+            }
+
+            if ($errors !== []) {
+                flash_message('error', implode(' ', $errors));
+            } elseif ($id !== false && $id !== null) {
+                $stmt = $pdo->prepare(
+                    'UPDATE faq
+                     SET kategori = ?, pertanyaan = ?, jawaban = ?, urutan = ?, status = ?
+                     WHERE id = ?'
+                );
+                $stmt->execute([
+                    $kategori,
+                    $pertanyaan,
+                    $jawaban,
+                    $urutan,
+                    $status,
+                    $id,
+                ]);
+
+                flash_message('success', 'FAQ berhasil diperbarui.');
+            } elseif (
+                !isset($_POST['id'])
+                || $_POST['id'] === ''
+                || $_POST['id'] === '0'
+            ) {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO faq (kategori, pertanyaan, jawaban, urutan, status)
+                     VALUES (?, ?, ?, ?, ?)'
+                );
+                $stmt->execute([
+                    $kategori,
+                    $pertanyaan,
+                    $jawaban,
+                    $urutan,
+                    $status,
+                ]);
+
+                flash_message('success', 'FAQ baru berhasil ditambahkan.');
+            } else {
+                flash_message('error', 'ID FAQ tidak valid.');
+            }
+        } elseif (in_array($action, ['delete_faq', 'toggle_faq'], true)) {
+            if ($id === false || $id === null) {
+                flash_message('error', 'ID FAQ tidak valid.');
+            } elseif ($action === 'delete_faq') {
+                $stmt = $pdo->prepare('DELETE FROM faq WHERE id = ?');
+                $stmt->execute([$id]);
+
+                flash_message(
+                    'success',
+                    $stmt->rowCount() === 1
+                        ? 'FAQ berhasil dihapus.'
+                        : 'FAQ tidak ditemukan.'
+                );
+            } else {
+                $stmt = $pdo->prepare(
+                    "UPDATE faq
+                     SET status = IF(status = 'Aktif', 'Nonaktif', 'Aktif')
+                     WHERE id = ?"
+                );
+                $stmt->execute([$id]);
+
+                flash_message(
+                    'success',
+                    $stmt->rowCount() === 1
+                        ? 'Status FAQ berhasil diubah.'
+                        : 'FAQ tidak ditemukan.'
+                );
+            }
+        } else {
+            http_response_code(400);
+            exit('Aksi FAQ tidak valid.');
+        }
+    } catch (PDOException $exception) {
+        error_log('FAQ admin operation failed: ' . $exception->getMessage());
+        flash_message('error', 'Operasi FAQ gagal. Silakan coba kembali.');
+    }
+
+    $filters = faq_redirect_filters();
+    $query = http_build_query($filters, '', '&', PHP_QUERY_RFC3986);
+
+    header('Location: faq.php' . ($query !== '' ? '?' . $query : ''));
     exit;
 }
 
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+    header('Allow: GET, POST');
+    http_response_code(405);
+    exit('Metode request tidak diizinkan.');
+}
+
 // ===== FILTER & DATA =====
-$q = trim($_GET['q'] ?? '');
-$kat_filter = trim($_GET['kategori'] ?? '');
+$q = faq_request_string($_GET, 'q');
+if (faq_text_length($q) > 100) {
+    $q = function_exists('mb_substr')
+        ? mb_substr($q, 0, 100, 'UTF-8')
+        : substr($q, 0, 100);
+}
 
-$where = "WHERE 1=1"; $params = [];
-if ($q !== '') { $where .= " AND (pertanyaan LIKE ? OR jawaban LIKE ?)"; $params[] = "%$q%"; $params[] = "%$q%"; }
-if ($kat_filter !== '') { $where .= " AND kategori = ?"; $params[] = $kat_filter; }
+$kat_filter = faq_request_string($_GET, 'kategori');
+if (faq_text_length($kat_filter) > 50) {
+    $kat_filter = function_exists('mb_substr')
+        ? mb_substr($kat_filter, 0, 50, 'UTF-8')
+        : substr($kat_filter, 0, 50);
+}
 
-$stmt = $pdo->prepare("SELECT * FROM faq $where ORDER BY urutan ASC, id ASC");
-$stmt->execute($params);
-$list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$where = [];
+$params = [];
 
-$stat_total   = (int)$pdo->query("SELECT COUNT(*) FROM faq")->fetchColumn();
-$stat_aktif   = (int)$pdo->query("SELECT COUNT(*) FROM faq WHERE status='Aktif'")->fetchColumn();
-$stat_nonaktif= $stat_total - $stat_aktif;
-$kat_list     = $pdo->query("SELECT DISTINCT kategori FROM faq ORDER BY kategori")->fetchAll(PDO::FETCH_COLUMN);
+if ($q !== '') {
+    $where[] = '(pertanyaan LIKE ? OR jawaban LIKE ?)';
+    $searchTerm = '%' . $q . '%';
+    $params[] = $searchTerm;
+    $params[] = $searchTerm;
+}
+
+if ($kat_filter !== '') {
+    $where[] = 'kategori = ?';
+    $params[] = $kat_filter;
+}
+
+$sql = 'SELECT id, kategori, pertanyaan, jawaban, urutan, status FROM faq';
+
+if ($where !== []) {
+    $sql .= ' WHERE ' . implode(' AND ', $where);
+}
+
+$sql .= ' ORDER BY urutan ASC, id ASC';
+
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stat_total = (int) $pdo->query('SELECT COUNT(*) FROM faq')->fetchColumn();
+    $stat_aktif = (int) $pdo->query(
+        "SELECT COUNT(*) FROM faq WHERE status = 'Aktif'"
+    )->fetchColumn();
+    $stat_nonaktif = max(0, $stat_total - $stat_aktif);
+    $kat_list = $pdo->query(
+        'SELECT DISTINCT kategori FROM faq ORDER BY kategori'
+    )->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $exception) {
+    error_log('FAQ admin data query failed: ' . $exception->getMessage());
+    http_response_code(503);
+    exit('Data FAQ sementara tidak tersedia. Silakan coba kembali.');
+}
 
 $csrf = generate_csrf_token();
 $active_menu = 'faq';
 $page_heading = 'Kelola FAQ';
-$breadcrumbs = [['Dashboard','dashboard.php'], ['FAQ', null]];
+$breadcrumbs = [['Dashboard', 'dashboard.php'], ['FAQ', null]];
+
 require __DIR__ . '/includes/header.php';
 ?>
 
@@ -96,10 +274,12 @@ require __DIR__ . '/includes/header.php';
 .badge-st.nonaktif { background:#fee2e2; color:#991b1b; }
 .fq-actions { display:flex; gap:.35rem; justify-content:flex-end; }
 .fq-btn { width:34px; height:34px; border-radius:9px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.95rem; transition:all .2s; }
-.fq-btn.edit { background:#dbeafe; color:#2563eb; } .fq-btn.edit:hover { background:#2563eb; color:#fff; }
-.fq-btn.tog { background:#fef3c7; color:#d97706; } .fq-btn.tog:hover { background:#d97706; color:#fff; }
-.fq-btn.del { background:#fee2e2; color:#dc2626; } .fq-btn.del:hover { background:#dc2626; color:#fff; }
-/* Modal */
+.fq-btn.edit { background:#dbeafe; color:#2563eb; }
+.fq-btn.edit:hover { background:#2563eb; color:#fff; }
+.fq-btn.tog { background:#fef3c7; color:#d97706; }
+.fq-btn.tog:hover { background:#d97706; color:#fff; }
+.fq-btn.del { background:#fee2e2; color:#dc2626; }
+.fq-btn.del:hover { background:#dc2626; color:#fff; }
 .fq-modal { position:fixed; inset:0; background:rgba(15,23,42,.7); backdrop-filter:blur(6px); z-index:9000; display:none; align-items:center; justify-content:center; padding:1.5rem; }
 .fq-modal.show { display:flex; }
 .fq-modal-box { background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-xl); width:100%; max-width:640px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-xl); }
@@ -114,10 +294,13 @@ require __DIR__ . '/includes/header.php';
 .fq-modal-foot { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:.6rem; }
 .btn-p { padding:.7rem 1.4rem; border:none; border-radius:var(--radius-md); background:linear-gradient(135deg,var(--primary),var(--primary-light,#16a34a)); color:#fff; font-weight:700; cursor:pointer; font-family:inherit; }
 .btn-s { padding:.7rem 1.4rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-secondary); color:var(--text-primary); font-weight:600; cursor:pointer; font-family:inherit; }
-@media (max-width:640px){ .fq-row2 { grid-template-columns:1fr; } }
+@media (max-width:640px) {
+    .fq-row2 { grid-template-columns:1fr; }
+    .faq-table-wrap { overflow-x:auto; }
+    .faq-table { min-width:720px; }
+}
 </style>
 
-<!-- Stats -->
 <div class="faq-stats">
     <div class="fq-card" style="--sc:#3b82f6"><div class="i">❓</div><div class="n"><?= $stat_total ?></div><div class="l">Total FAQ</div></div>
     <div class="fq-card" style="--sc:#10b981"><div class="i">✅</div><div class="n"><?= $stat_aktif ?></div><div class="l">Aktif</div></div>
@@ -125,140 +308,260 @@ require __DIR__ . '/includes/header.php';
     <div class="fq-card" style="--sc:#8b5cf6"><div class="i">📂</div><div class="n"><?= count($kat_list) ?></div><div class="l">Kategori</div></div>
 </div>
 
-<!-- Toolbar -->
 <div class="faq-toolbar">
     <div class="search">
-        <span class="si">🔍</span>
-        <input type="text" id="fqSearch" placeholder="Cari pertanyaan / jawaban…" value="<?= sanitize($q) ?>">
+        <span class="si" aria-hidden="true">🔍</span>
+        <input
+            type="search"
+            id="fqSearch"
+            maxlength="100"
+            placeholder="Cari pertanyaan / jawaban…"
+            value="<?= sanitize($q) ?>"
+            aria-label="Cari FAQ"
+        >
     </div>
-    <select id="fqKat" onchange="filterKat(this.value)">
+
+    <select id="fqKat" aria-label="Filter kategori">
         <option value="">📂 Semua Kategori</option>
-        <?php foreach ($kat_list as $k): ?>
-        <option value="<?= sanitize($k) ?>" <?= $kat_filter === $k ? 'selected' : '' ?>><?= sanitize($k) ?></option>
+        <?php foreach ($kat_list as $kategori): ?>
+            <option
+                value="<?= sanitize((string) $kategori) ?>"
+                <?= $kat_filter === (string) $kategori ? 'selected' : '' ?>
+            ><?= sanitize((string) $kategori) ?></option>
         <?php endforeach; ?>
     </select>
-    <button class="btn-p" onclick="openFaqModal(0)">➕ Tambah FAQ</button>
+
+    <button class="btn-p" type="button" id="addFaqButton">➕ Tambah FAQ</button>
 </div>
 
-<!-- Table -->
 <div class="faq-table-wrap">
     <table class="faq-table">
-        <thead><tr>
-            <th style="width:60px">Urut</th><th>Pertanyaan &amp; Jawaban</th>
-            <th style="width:130px">Kategori</th><th style="width:100px">Status</th>
-            <th style="width:130px; text-align:right">Aksi</th>
-        </tr></thead>
+        <thead>
+            <tr>
+                <th style="width:60px">Urut</th>
+                <th>Pertanyaan &amp; Jawaban</th>
+                <th style="width:130px">Kategori</th>
+                <th style="width:100px">Status</th>
+                <th style="width:130px; text-align:right">Aksi</th>
+            </tr>
+        </thead>
         <tbody id="fqBody">
-        <?php if (empty($list)): ?>
-            <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)">
-                📭 Tidak ada FAQ. Klik <b>➕ Tambah FAQ</b> untuk membuat yang pertama.
-            </td></tr>
-        <?php else: foreach ($list as $f): ?>
-            <tr data-search="<?= sanitize(strtolower($f['pertanyaan'] . ' ' . $f['jawaban'])) ?>">
-                <td class="fq-urutan">#<?= (int)$f['urutan'] ?></td>
-                <td>
-                    <div class="fq-q"><?= sanitize($f['pertanyaan']) ?></div>
-                    <div class="fq-a"><?= sanitize($f['jawaban']) ?></div>
-                </td>
-                <td><span class="badge-st" style="background:var(--bg-tertiary); color:var(--text-secondary)"><?= sanitize($f['kategori']) ?></span></td>
-                <td><span class="badge-st <?= strtolower($f['status']) === 'aktif' ? 'aktif' : 'nonaktif' ?>"><?= sanitize($f['status']) ?></span></td>
-                <td>
-                    <div class="fq-actions">
-                        <button class="fq-btn edit" title="Edit" onclick='openFaqModal(<?= (int)$f['id'] ?>, <?= htmlspecialchars(json_encode($f, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?>)'>✏️</button>
-                        <form method="POST" style="display:inline" onsubmit="return confirm('Ubah status FAQ ini?')">
-                            <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
-                            <input type="hidden" name="action" value="toggle_faq">
-                            <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
-                            <button class="fq-btn tog" title="Toggle status" type="submit">🔄</button>
-                        </form>
-                        <form method="POST" style="display:inline" onsubmit="return confirm('Hapus FAQ ini?')">
-                            <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
-                            <input type="hidden" name="action" value="delete_faq">
-                            <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
-                            <button class="fq-btn del" title="Hapus" type="submit">🗑️</button>
-                        </form>
-                    </div>
+        <?php if ($list === []): ?>
+            <tr>
+                <td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)">
+                    📭 Tidak ada FAQ. Klik <b>➕ Tambah FAQ</b> untuk membuat yang pertama.
                 </td>
             </tr>
-        <?php endforeach; endif; ?>
+        <?php else: ?>
+            <?php foreach ($list as $faq): ?>
+                <?php
+                $faqJson = json_encode(
+                    $faq,
+                    JSON_THROW_ON_ERROR
+                        | JSON_UNESCAPED_UNICODE
+                        | JSON_HEX_TAG
+                        | JSON_HEX_AMP
+                        | JSON_HEX_APOS
+                        | JSON_HEX_QUOT
+                        | JSON_INVALID_UTF8_SUBSTITUTE
+                );
+                ?>
+                <tr data-search="<?= sanitize(strtolower($faq['pertanyaan'] . ' ' . $faq['jawaban'])) ?>">
+                    <td class="fq-urutan">#<?= (int) $faq['urutan'] ?></td>
+                    <td>
+                        <div class="fq-q"><?= sanitize($faq['pertanyaan']) ?></div>
+                        <div class="fq-a"><?= sanitize($faq['jawaban']) ?></div>
+                    </td>
+                    <td>
+                        <span class="badge-st" style="background:var(--bg-tertiary); color:var(--text-secondary)">
+                            <?= sanitize($faq['kategori']) ?>
+                        </span>
+                    </td>
+                    <td>
+                        <?php $isActive = strtolower((string) $faq['status']) === 'aktif'; ?>
+                        <span class="badge-st <?= $isActive ? 'aktif' : 'nonaktif' ?>">
+                            <?= sanitize($faq['status']) ?>
+                        </span>
+                    </td>
+                    <td>
+                        <div class="fq-actions">
+                            <button
+                                class="fq-btn edit"
+                                type="button"
+                                title="Edit FAQ"
+                                aria-label="Edit FAQ"
+                                data-faq="<?= sanitize($faqJson) ?>"
+                            >✏️</button>
+
+                            <form method="post" class="faq-action-form" data-confirm="Ubah status FAQ ini?">
+                                <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
+                                <input type="hidden" name="action" value="toggle_faq">
+                                <input type="hidden" name="id" value="<?= (int) $faq['id'] ?>">
+                                <button class="fq-btn tog" type="submit" title="Ubah status" aria-label="Ubah status FAQ">🔄</button>
+                            </form>
+
+                            <form method="post" class="faq-action-form" data-confirm="Hapus FAQ ini? Tindakan ini tidak dapat dibatalkan.">
+                                <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
+                                <input type="hidden" name="action" value="delete_faq">
+                                <input type="hidden" name="id" value="<?= (int) $faq['id'] ?>">
+                                <button class="fq-btn del" type="submit" title="Hapus FAQ" aria-label="Hapus FAQ">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
         </tbody>
     </table>
 </div>
 
-<!-- Modal Form -->
-<div class="fq-modal" id="fqModal" onclick="if(event.target===this)closeFaqModal()">
-    <form method="POST" class="fq-modal-box">
+<div class="fq-modal" id="fqModal" aria-hidden="true">
+    <form method="post" class="fq-modal-box" id="faqForm">
         <input type="hidden" name="csrf_token" value="<?= sanitize($csrf) ?>">
         <input type="hidden" name="action" value="save_faq">
         <input type="hidden" name="id" id="fqId" value="0">
+
         <div class="fq-modal-head">
             <h3 id="fqModalTitle">➕ Tambah FAQ</h3>
-            <button type="button" class="fq-btn del" onclick="closeFaqModal()">✕</button>
+            <button type="button" class="fq-btn del" id="closeFaqButton" aria-label="Tutup">✕</button>
         </div>
+
         <div class="fq-modal-body">
             <div class="fq-field">
-                <label>Pertanyaan *</label>
-                <textarea name="pertanyaan" id="fqQ" required placeholder="Contoh: Kapan pendaftaran PMB dibuka?"></textarea>
+                <label for="fqQ">Pertanyaan *</label>
+                <textarea name="pertanyaan" id="fqQ" required maxlength="65535" placeholder="Contoh: Kapan pendaftaran PMB dibuka?"></textarea>
             </div>
+
             <div class="fq-field">
-                <label>Jawaban *</label>
-                <textarea name="jawaban" id="fqA" required placeholder="Tulis jawaban lengkap dan ramah…"></textarea>
+                <label for="fqA">Jawaban *</label>
+                <textarea name="jawaban" id="fqA" required maxlength="65535" placeholder="Tulis jawaban lengkap dan ramah…"></textarea>
             </div>
+
             <div class="fq-row2">
                 <div class="fq-field">
-                    <label>Kategori</label>
-                    <input type="text" name="kategori" id="fqKatInput" list="katList" value="Umum">
+                    <label for="fqKatInput">Kategori</label>
+                    <input type="text" name="kategori" id="fqKatInput" list="katList" maxlength="50" value="Umum">
                     <datalist id="katList">
-                        <?php foreach ($kat_list as $k): ?><option value="<?= sanitize($k) ?>"><?php endforeach; ?>
-                        <option value="PMB"><option value="Akademik"><option value="Beasiswa"><option value="Umum">
+                        <?php foreach ($kat_list as $kategori): ?>
+                            <option value="<?= sanitize((string) $kategori) ?>"></option>
+                        <?php endforeach; ?>
+                        <option value="PMB"></option>
+                        <option value="Akademik"></option>
+                        <option value="Beasiswa"></option>
+                        <option value="Umum"></option>
                     </datalist>
                 </div>
+
                 <div class="fq-field">
-                    <label>Urutan (kecil = di atas)</label>
-                    <input type="number" name="urutan" id="fqUrutan" value="0" min="0" max="999">
+                    <label for="fqUrutan">Urutan (kecil = di atas)</label>
+                    <input type="number" name="urutan" id="fqUrutan" value="0" min="0" max="999" required>
                 </div>
             </div>
+
             <div class="fq-field">
-                <label>Status</label>
+                <label for="fqStatus">Status</label>
                 <select name="status" id="fqStatus">
                     <option value="Aktif">✅ Aktif (tampil di publik)</option>
                     <option value="Nonaktif">🚫 Nonaktif (disembunyikan)</option>
                 </select>
             </div>
         </div>
+
         <div class="fq-modal-foot">
-            <button type="button" class="btn-s" onclick="closeFaqModal()">Batal</button>
+            <button type="button" class="btn-s" id="cancelFaqButton">Batal</button>
             <button type="submit" class="btn-p">💾 Simpan FAQ</button>
         </div>
     </form>
 </div>
 
 <script>
-function openFaqModal(id, data) {
-    document.getElementById('fqId').value = id || 0;
-    document.getElementById('fqModalTitle').textContent = id ? '✏️ Edit FAQ' : '➕ Tambah FAQ';
-    document.getElementById('fqQ').value = data ? data.pertanyaan : '';
-    document.getElementById('fqA').value = data ? data.jawaban : '';
-    document.getElementById('fqKatInput').value = data ? data.kategori : 'Umum';
-    document.getElementById('fqUrutan').value = data ? data.urutan : 0;
-    document.getElementById('fqStatus').value = data ? data.status : 'Aktif';
-    document.getElementById('fqModal').classList.add('show');
-}
-function closeFaqModal(){ document.getElementById('fqModal').classList.remove('show'); }
+(() => {
+    const modal = document.getElementById('fqModal');
+    const searchInput = document.getElementById('fqSearch');
+    const categorySelect = document.getElementById('fqKat');
 
-// Search client-side
-document.getElementById('fqSearch').addEventListener('input', function(){
-    const q = this.value.toLowerCase().trim();
-    document.querySelectorAll('#fqBody tr[data-search]').forEach(tr=>{
-        tr.style.display = (!q || tr.dataset.search.includes(q)) ? '' : 'none';
+    function openFaqModal(faq) {
+        const data = faq || {};
+
+        document.getElementById('fqId').value = data.id ? String(data.id) : '0';
+        document.getElementById('fqModalTitle').textContent =
+            data.id ? '✏️ Edit FAQ' : '➕ Tambah FAQ';
+        document.getElementById('fqQ').value = data.pertanyaan || '';
+        document.getElementById('fqA').value = data.jawaban || '';
+        document.getElementById('fqKatInput').value = data.kategori || 'Umum';
+        document.getElementById('fqUrutan').value =
+            data.urutan !== undefined ? String(data.urutan) : '0';
+        document.getElementById('fqStatus').value = data.status || 'Aktif';
+
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        document.getElementById('fqQ').focus();
+    }
+
+    function closeFaqModal() {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('addFaqButton').addEventListener('click', () => {
+        openFaqModal(null);
     });
-});
-function filterKat(k){
-    const u = new URL(window.location);
-    if (k) u.searchParams.set('kategori', k); else u.searchParams.delete('kategori');
-    window.location = u;
-}
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeFaqModal(); });
+
+    document.getElementById('closeFaqButton').addEventListener('click', closeFaqModal);
+    document.getElementById('cancelFaqButton').addEventListener('click', closeFaqModal);
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeFaqModal();
+        }
+    });
+
+    document.querySelectorAll('button[data-faq]').forEach((button) => {
+        button.addEventListener('click', () => {
+            try {
+                openFaqModal(JSON.parse(button.dataset.faq || '{}'));
+            } catch (error) {
+                console.error('Data FAQ tidak dapat dibaca.', error);
+                window.alert('Data FAQ tidak dapat dibuka. Muat ulang halaman lalu coba kembali.');
+            }
+        });
+    });
+
+    document.querySelectorAll('.faq-action-form[data-confirm]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(form.dataset.confirm || 'Lanjutkan tindakan ini?')) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase().trim();
+
+        document.querySelectorAll('#fqBody tr[data-search]').forEach((row) => {
+            row.style.display = !query || row.dataset.search.includes(query) ? '' : 'none';
+        });
+    });
+
+    categorySelect.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        const category = categorySelect.value;
+
+        if (category) {
+            url.searchParams.set('kategori', category);
+        } else {
+            url.searchParams.delete('kategori');
+        }
+
+        window.location.assign(url.toString());
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.classList.contains('show')) {
+            closeFaqModal();
+        }
+    });
+})();
 </script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
