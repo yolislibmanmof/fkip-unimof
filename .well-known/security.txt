@@ -1,0 +1,5 @@
+Contact: https://www.fkip-unimof.ac.id/kontak.php
+Expires: 2027-10-18T00:00:00.000Z
+Preferred-Languages: id, en
+Canonical: https://www.fkip-unimof.ac.id/.well-known/security.txt
+Policy: https://github.com/yolislibmanmof/fkip-unimof/blob/main/docs/SECURITY.md
