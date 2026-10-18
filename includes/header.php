@@ -201,9 +201,57 @@ try {
     }
 } catch (Exception $e) {}
 
-// Canonical URL
-$canonical_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-    . '://' . ($_SERVER['HTTP_HOST'] ?? 'fkip-unimof.test') . $_SERVER['REQUEST_URI'];
+// Canonical URL: gunakan domain dari konfigurasi, bukan HTTP_HOST dari request.
+$appPath = parse_url(APP_URL, PHP_URL_PATH);
+$appPath = is_string($appPath) ? rtrim($appPath, '/') : '';
+
+$scriptPath = parse_url((string) ($_SERVER['SCRIPT_NAME'] ?? '/'), PHP_URL_PATH);
+$scriptPath = is_string($scriptPath) && $scriptPath !== '' ? $scriptPath : '/';
+
+if (
+    $appPath !== ''
+    && ($scriptPath === $appPath || str_starts_with($scriptPath, $appPath . '/'))
+) {
+    $scriptPath = substr($scriptPath, strlen($appPath));
+}
+
+$scriptPath = '/' . ltrim($scriptPath, '/');
+if ($scriptPath === '/index.php') {
+    $scriptPath = '/';
+}
+
+$canonical_url = rtrim(APP_URL, '/') . ($scriptPath === '/' ? '/' : $scriptPath);
+$canonicalParams = [];
+
+if (in_array($current_page, ['berita-detail.php', 'blog-detail.php'], true)) {
+    $slug = $_GET['slug'] ?? null;
+
+    if (
+        is_string($slug)
+        && preg_match('/^[\pL\pN][\pL\pN_-]{0,199}$/u', $slug) === 1
+    ) {
+        $canonicalParams['slug'] = $slug;
+    }
+} elseif ($current_page === 'program-detail.php') {
+    $id = filter_var(
+        $_GET['id'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($id !== false) {
+        $canonicalParams['id'] = $id;
+    }
+}
+
+if ($canonicalParams !== []) {
+    $canonical_url .= '?' . http_build_query(
+        $canonicalParams,
+        '',
+        '&',
+        PHP_QUERY_RFC3986
+    );
+}
 
 // Theme detection
 $default_theme = 'light';
@@ -271,50 +319,103 @@ $default_theme = 'light';
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>?v=<?= time() ?>">
 
-    <!-- Schema.org JSON-LD (Organization + BreadcrumbList) -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
-        "name": "FKIP UNIMOF",
-        "alternateName": "Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere",
-        "url": "<?= base_url() ?>",
-        "logo": "<?= $active_logo_url ?? asset('images/logo.png') ?>",
-        "description": <?= json_encode($page_description) ?>,
-        "address": {
-            "@type": "PostalAddress",
-            "streetAddress": <?= json_encode(get_setting('alamat', 'Jl. Bhayangkara No.1')) ?>,
-            "addressLocality": "Maumere",
-            "addressRegion": "Nusa Tenggara Timur",
-            "addressCountry": "ID"
-        },
-        "contactPoint": {
-            "@type": "ContactPoint",
-            "telephone": <?= json_encode(get_setting('telepon', '(0382) 21234')) ?>,
-            "email": <?= json_encode(get_setting('email', 'fkip@unimof.ac.id')) ?>,
-            "contactType": "Admissions"
-        },
-        "sameAs": [
-            "<?= get_setting('facebook_url', get_setting('facebook', '')) ?>",
-            "<?= get_setting('instagram_url', get_setting('instagram', '')) ?>",
-            "<?= get_setting('youtube_url', get_setting('youtube', '')) ?>"
-        ]
+<?php
+$headerSocialUrls = [];
+
+foreach ([
+    get_setting('facebook_url', get_setting('facebook', '')),
+    get_setting('instagram_url', get_setting('instagram', '')),
+    get_setting('youtube_url', get_setting('youtube', '')),
+] as $socialUrl) {
+    $socialUrl = trim((string) $socialUrl);
+    $scheme = strtolower((string) parse_url($socialUrl, PHP_URL_SCHEME));
+
+    if (
+        $socialUrl !== ''
+        && filter_var($socialUrl, FILTER_VALIDATE_URL) !== false
+        && in_array($scheme, ['http', 'https'], true)
+    ) {
+        $headerSocialUrls[] = $socialUrl;
     }
-    </script>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": <?= json_encode(array_map(function($i, $c) {
-            return [
-                '@type' => 'ListItem',
-                'position' => $i + 1,
-                'name' => $c['name'],
-                'item' => $c['url'] ?: null,
-            ];
-        }, array_keys($breadcrumb_trail), $breadcrumb_trail)) ?>
+}
+
+$headerOrganizationSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'EducationalOrganization',
+    'name' => 'FKIP UNIMOF',
+    'alternateName' => 'Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere',
+    'url' => base_url(),
+    'logo' => $active_logo_url ?? asset('images/logo.png'),
+    'description' => $page_description,
+    'address' => [
+        '@type' => 'PostalAddress',
+        'streetAddress' => get_setting('alamat', 'Jl. Bhayangkara No.1'),
+        'addressLocality' => 'Maumere',
+        'addressRegion' => 'Nusa Tenggara Timur',
+        'addressCountry' => 'ID',
+    ],
+    'contactPoint' => [
+        '@type' => 'ContactPoint',
+        'telephone' => get_setting('telepon', '(0382) 21234'),
+        'email' => get_setting('email', 'fkip@unimof.ac.id'),
+        'contactType' => 'Admissions',
+    ],
+    'sameAs' => array_values(array_unique($headerSocialUrls)),
+];
+
+$headerBreadcrumbItems = [];
+
+foreach ($breadcrumb_trail as $crumb) {
+    if (!is_array($crumb)) {
+        continue;
     }
-    </script>
+
+    $name = trim((string) ($crumb['name'] ?? ''));
+    if ($name === '') {
+        continue;
+    }
+
+    $item = [
+        '@type' => 'ListItem',
+        'position' => count($headerBreadcrumbItems) + 1,
+        'name' => $name,
+    ];
+
+    $url = trim((string) ($crumb['url'] ?? ''));
+    if ($url !== '') {
+        $item['item'] = $url;
+    }
+
+    $headerBreadcrumbItems[] = $item;
+}
+
+$headerBreadcrumbSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'BreadcrumbList',
+    'itemListElement' => $headerBreadcrumbItems,
+];
+
+$headerEncodeSchema = static function (array $schema): string {
+    try {
+        return json_encode(
+            $schema,
+            JSON_THROW_ON_ERROR
+                | JSON_HEX_TAG
+                | JSON_HEX_AMP
+                | JSON_HEX_APOS
+                | JSON_HEX_QUOT
+                | JSON_UNESCAPED_UNICODE
+                | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+    } catch (JsonException $exception) {
+        error_log('Structured data encoding failed: ' . $exception->getMessage());
+        return '{}';
+    }
+};
+?>
+
+<script type="application/ld+json"><?= $headerEncodeSchema($headerOrganizationSchema) ?></script>
+<script type="application/ld+json"><?= $headerEncodeSchema($headerBreadcrumbSchema) ?></script>
 
     <!-- Critical Inline CSS (EXTREME MULTIMATE) -->
 <style>
