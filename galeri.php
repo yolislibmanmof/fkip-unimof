@@ -1,22 +1,93 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/includes/config.php';
 
 $page_title = 'Galeri Kegiatan FKIP UNIMOF';
 $page_description = 'Dokumentasi foto kegiatan akademik, kemahasiswaan, dan event FKIP UNIMOF.';
 
-// ===== AMBIL DATA GALERI =====
-$galeri = [];
-$kat_list = [];
 try {
-    $galeri = $pdo->query("SELECT * FROM galeri WHERE status='Published' ORDER BY tanggal DESC, id DESC")->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($galeri as $g) {
-        $k = trim($g['kategori'] ?? '') ?: 'Umum';
-        if (!isset($kat_list[$k])) $kat_list[$k] = 0;
-        $kat_list[$k]++;
-    }
-} catch (Exception $e) { $galeri = []; }
+    $stmt = $pdo->query(
+        "SELECT id, judul, gambar, kategori, tanggal
+         FROM galeri
+         WHERE status = 'Published'
+         ORDER BY tanggal DESC, id DESC"
+    );
+    $galeri = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $exception) {
+    error_log('Public gallery query failed: ' . $exception->getMessage());
 
-$kat_icons = ['Akademik'=>'','Kegiatan'=>'🎉','Prestasi'=>'🏆','Wisuda'=>'','Riset'=>'🔬','Kerjasama'=>'🤝','Umum'=>''];
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    exit('Galeri sementara tidak tersedia. Silakan coba kembali.');
+}
+
+$kat_icons = [
+    'Akademik' => '🎓',
+    'Kegiatan' => '🎉',
+    'Prestasi' => '🏆',
+    'Wisuda' => '🎓',
+    'Riset' => '🔬',
+    'Kerjasama' => '🤝',
+    'Umum' => '📁',
+];
+
+$kat_list = [];
+
+foreach ($galeri as &$foto) {
+    $kategori = trim((string) ($foto['kategori'] ?? ''));
+
+    if ($kategori === '') {
+        $kategori = 'Umum';
+    }
+
+    $foto['kategori'] = $kategori;
+    $kat_list[$kategori] = ($kat_list[$kategori] ?? 0) + 1;
+}
+unset($foto);
+
+$galleryData = [];
+
+foreach ($galeri as $index => $foto) {
+    $filename = basename((string) ($foto['gambar'] ?? ''));
+    $imageUrl = $filename !== ''
+        ? asset('uploads/galeri/' . rawurlencode($filename))
+        : '';
+
+    $rawDate = trim((string) ($foto['tanggal'] ?? ''));
+    $timestamp = $rawDate !== '' ? strtotime($rawDate) : false;
+    $displayDate = $timestamp !== false ? date('d M Y', $timestamp) : '';
+
+    $galleryData[] = [
+        'index' => $index,
+        'img' => $imageUrl,
+        'title' => (string) ($foto['judul'] ?? ''),
+        'category' => (string) $foto['kategori'],
+        'date' => $displayDate,
+    ];
+}
+
+try {
+    $galleryJson = json_encode(
+        $galleryData,
+        JSON_THROW_ON_ERROR
+            | JSON_UNESCAPED_UNICODE
+            | JSON_UNESCAPED_SLASHES
+            | JSON_HEX_TAG
+            | JSON_HEX_AMP
+            | JSON_HEX_APOS
+            | JSON_HEX_QUOT
+            | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+} catch (JsonException $exception) {
+    error_log('Gallery data encoding failed: ' . $exception->getMessage());
+
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    exit('Galeri tidak dapat ditampilkan saat ini.');
+}
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -50,27 +121,34 @@ require_once __DIR__ . '/includes/header.php';
 .gal-pill .n { background: rgba(0,0,0,.12); padding: .05rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 800; }
 .gal-pill.active .n { background: rgba(255,255,255,.25); }
 
-/* Grid masonry */
+/* Grid */
 .gal-section { padding: 1rem 0 5rem; }
 .gal-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
 }
 .gal-item {
-    position: relative; border-radius: var(--radius-lg); overflow: hidden;
-    cursor: pointer; background: var(--bg-secondary); aspect-ratio: 4/3;
-    transition: all .3s; box-shadow: var(--shadow-sm);
+    position: relative; display: block; width: 100%; padding: 0;
+    border: 0; border-radius: var(--radius-lg); overflow: hidden;
+    cursor: pointer; color: inherit; text-align: left; font: inherit;
+    background: var(--bg-secondary); aspect-ratio: 4/3;
+    transition: transform .3s, box-shadow .3s; box-shadow: var(--shadow-sm);
 }
 .gal-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); }
+.gal-item:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
 .gal-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
 .gal-item:hover img { transform: scale(1.08); }
+.gal-placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center;
+    justify-content: center; font-size: 3rem; background: var(--bg-tertiary);
+}
 .gal-overlay {
     position: absolute; inset: 0;
     background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,0) 55%);
     display: flex; flex-direction: column; justify-content: flex-end; padding: 1rem;
     opacity: 0; transition: opacity .3s;
 }
-.gal-item:hover .gal-overlay { opacity: 1; }
+.gal-item:hover .gal-overlay, .gal-item:focus-visible .gal-overlay { opacity: 1; }
 .gal-cat {
     display: inline-flex; align-items: center; gap: .3rem;
     padding: .25rem .6rem; background: rgba(255,255,255,.2); backdrop-filter: blur(6px);
@@ -86,7 +164,7 @@ require_once __DIR__ . '/includes/header.php';
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem; opacity: 0; transform: scale(.8); transition: all .25s;
 }
-.gal-item:hover .gal-zoom { opacity: 1; transform: scale(1); }
+.gal-item:hover .gal-zoom, .gal-item:focus-visible .gal-zoom { opacity: 1; transform: scale(1); }
 
 .gal-empty { text-align: center; padding: 4rem 2rem; background: var(--bg-secondary); border-radius: var(--radius-xl); border: 2px dashed var(--border); }
 .gal-empty .ei { font-size: 4rem; margin-bottom: .75rem; opacity: .5; }
@@ -133,9 +211,14 @@ require_once __DIR__ . '/includes/header.php';
     .gal-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .6rem; }
     .gal-lb-nav { display: none; }
 }
+@media (prefers-reduced-motion: reduce) {
+    .gal-item, .gal-item img, .gal-overlay, .gal-zoom, .gal-lb-close, .gal-lb-nav {
+        transition: none;
+    }
+    .gal-lightbox { animation: none; }
+}
 </style>
 
-<!-- ===== HERO ===== -->
 <section class="gal-hero">
     <div class="container">
         <h1>Galeri Kegiatan</h1>
@@ -143,111 +226,235 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- ===== PILLS ===== -->
 <div class="container">
-    <div class="gal-pills" id="galPills">
-        <button class="gal-pill active" data-cat="">📸 Semua <span class="n"><?= count($galeri) ?></span></button>
-        <?php foreach ($kat_list as $k => $n): ?>
-        <button class="gal-pill" data-cat="<?= sanitize($k) ?>"><?= $kat_icons[$k] ?? '📁' ?> <?= sanitize($k) ?> <span class="n"><?= $n ?></span></button>
+    <div class="gal-pills" id="galPills" role="group" aria-label="Filter kategori galeri">
+        <button class="gal-pill active" type="button" data-cat="" aria-pressed="true">
+            📸 Semua <span class="n"><?= count($galeri) ?></span>
+        </button>
+        <?php foreach ($kat_list as $kategori => $count): ?>
+            <button
+                class="gal-pill"
+                type="button"
+                data-cat="<?= sanitize((string) $kategori) ?>"
+                aria-pressed="false"
+            >
+                <?= $kat_icons[$kategori] ?? '📁' ?>
+                <?= sanitize((string) $kategori) ?>
+                <span class="n"><?= (int) $count ?></span>
+            </button>
         <?php endforeach; ?>
     </div>
 </div>
 
-<!-- ===== GRID ===== -->
 <section class="gal-section">
     <div class="container">
-        <?php if (empty($galeri)): ?>
-        <div class="gal-empty">
-            <div class="ei">📭</div>
-            <h3 style="font-family:var(--font-display); margin-bottom:.5rem;">Belum ada foto</h3>
-            <p style="color:var(--text-muted)">Dokumentasi kegiatan akan tampil di sini setelah diunggah admin.</p>
-        </div>
-        <?php else: ?>
-        <div class="gal-grid" id="galGrid">
-            <?php foreach ($galeri as $i => $g):
-                $img = !empty($g['gambar']) ? asset('uploads/galeri/' . basename($g['gambar'])) : '';
-                $kat = trim($g['kategori'] ?? '') ?: 'Umum';
-            ?>
-            <div class="gal-item" data-cat="<?= sanitize($kat) ?>" data-idx="<?= $i ?>"
-                 onclick="openLightbox(<?= $i ?>)">
-                <?php if ($img): ?>
-                    <img src="<?= $img ?>" alt="<?= sanitize($g['judul'] ?? '') ?>" loading="lazy">
-                <?php else: ?>
-                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-tertiary);">📷</div>
-                <?php endif; ?>
-                <div class="gal-overlay">
-                    <span class="gal-cat"><?= $kat_icons[$kat] ?? '' ?> <?= sanitize($kat) ?></span>
-                    <div class="gal-title"><?= sanitize($g['judul'] ?? 'Kegiatan FKIP') ?></div>
-                    <?php if (!empty($g['tanggal'])): ?>
-                    <div class="gal-date">📅 <?= date('d M Y', strtotime($g['tanggal'])) ?></div>
-                    <?php endif; ?>
-                </div>
-                <div class="gal-zoom">🔍</div>
+        <?php if ($galeri === []): ?>
+            <div class="gal-empty">
+                <div class="ei">📭</div>
+                <h3 style="font-family:var(--font-display); margin-bottom:.5rem;">Belum ada foto</h3>
+                <p style="color:var(--text-muted)">Dokumentasi kegiatan akan tampil di sini setelah diunggah admin.</p>
             </div>
-            <?php endforeach; ?>
-        </div>
+        <?php else: ?>
+            <div class="gal-grid" id="galGrid">
+                <?php foreach ($galleryData as $foto): ?>
+                    <?php
+                    $imageExists = $foto['img'] !== '';
+                    $categoryIcon = $kat_icons[$foto['category']] ?? '📁';
+                    ?>
+                    <button
+                        class="gal-item"
+                        type="button"
+                        data-index="<?= (int) $foto['index'] ?>"
+                        data-cat="<?= sanitize($foto['category']) ?>"
+                        aria-label="<?= sanitize('Lihat foto: ' . ($foto['title'] !== '' ? $foto['title'] : 'Kegiatan FKIP')) ?>"
+                        <?= !$imageExists ? 'disabled aria-disabled="true"' : '' ?>
+                    >
+                        <?php if ($imageExists): ?>
+                            <img
+                                src="<?= sanitize($foto['img']) ?>"
+                                alt="<?= sanitize($foto['title']) ?>"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        <?php else: ?>
+                            <div class="gal-placeholder" aria-hidden="true">📷</div>
+                        <?php endif; ?>
+
+                        <span class="gal-overlay" aria-hidden="true">
+                            <span class="gal-cat">
+                                <?= $categoryIcon ?> <?= sanitize($foto['category']) ?>
+                            </span>
+                            <span class="gal-title">
+                                <?= sanitize($foto['title'] !== '' ? $foto['title'] : 'Kegiatan FKIP') ?>
+                            </span>
+                            <?php if ($foto['date'] !== ''): ?>
+                                <span class="gal-date">📅 <?= sanitize($foto['date']) ?></span>
+                            <?php endif; ?>
+                        </span>
+
+                        <?php if ($imageExists): ?>
+                            <span class="gal-zoom" aria-hidden="true">🔍</span>
+                        <?php endif; ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </div>
 </section>
 
-<!-- ===== LIGHTBOX ===== -->
-<div class="gal-lightbox" id="galLightbox" onclick="if(event.target===this)closeLightbox()">
-    <button class="gal-lb-close" onclick="closeLightbox()">✕</button>
-    <button class="gal-lb-nav gal-lb-prev" onclick="navLightbox(-1)">‹</button>
+<div
+    class="gal-lightbox"
+    id="galLightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Tampilan foto galeri"
+    aria-hidden="true"
+>
+    <button class="gal-lb-close" id="galLbClose" type="button" aria-label="Tutup foto">✕</button>
+    <button class="gal-lb-nav gal-lb-prev" id="galLbPrev" type="button" aria-label="Foto sebelumnya">‹</button>
     <img id="galLbImg" src="" alt="">
-    <button class="gal-lb-nav gal-lb-next" onclick="navLightbox(1)">›</button>
-    <div class="gal-lb-info" id="galLbInfo">-</div>
+    <button class="gal-lb-nav gal-lb-next" id="galLbNext" type="button" aria-label="Foto berikutnya">›</button>
+    <div class="gal-lb-info" id="galLbInfo" aria-live="polite"></div>
 </div>
 
 <script>
-const galData = <?= json_encode(array_map(function($g){
-    return [
-        'img' => !empty($g['gambar']) ? asset('uploads/galeri/' . basename($g['gambar'])) : '',
-        'title' => $g['judul'] ?? '',
-        'kat' => trim($g['kategori'] ?? '') ?: 'Umum',
-        'date' => $g['tanggal'] ?? '',
-    ];
-}, $galeri), JSON_UNESCAPED_UNICODE) ?>;
+(() => {
+    const galData = <?= $galleryJson ?>;
+    const lightbox = document.getElementById('galLightbox');
+    const lightboxImage = document.getElementById('galLbImg');
+    const lightboxInfo = document.getElementById('galLbInfo');
+    const galleryButtons = Array.from(document.querySelectorAll('.gal-item:not(:disabled)'));
+    const pills = Array.from(document.querySelectorAll('.gal-pill'));
 
-let curIdx = 0;
-function openLightbox(i){
-    curIdx = i; renderLightbox();
-    document.getElementById('galLightbox').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-function closeLightbox(){
-    document.getElementById('galLightbox').classList.remove('show');
-    document.body.style.overflow = '';
-}
-function navLightbox(d){
-    curIdx = (curIdx + d + galData.length) % galData.length;
-    renderLightbox();
-}
-function renderLightbox(){
-    const g = galData[curIdx];
-    document.getElementById('galLbImg').src = g.img;
-    document.getElementById('galLbInfo').textContent = (g.title || 'Foto') + (g.date ? ' • ' + g.date : '');
-}
+    let visibleIndices = [];
+    let currentPosition = 0;
+    let previouslyFocused = null;
 
-// Filter kategori
-document.querySelectorAll('.gal-pill').forEach(p=>{
-    p.addEventListener('click', ()=>{
-        document.querySelectorAll('.gal-pill').forEach(x=>x.classList.remove('active'));
-        p.classList.add('active');
-        const cat = p.dataset.cat;
-        document.querySelectorAll('.gal-item').forEach(it=>{
-            it.style.display = (!cat || it.dataset.cat === cat) ? '' : 'none';
+    function renderLightbox() {
+        if (visibleIndices.length === 0) {
+            return;
+        }
+
+        const foto = galData[visibleIndices[currentPosition]];
+
+        if (!foto) {
+            return;
+        }
+
+        lightboxImage.src = foto.img;
+        lightboxImage.alt = foto.title || 'Foto kegiatan FKIP UNIMOF';
+        lightboxInfo.textContent = (foto.title || 'Foto kegiatan FKIP')
+            + (foto.date ? ' • ' + foto.date : '');
+    }
+
+    function openLightbox(index, trigger) {
+        const position = visibleIndices.indexOf(index);
+
+        if (position < 0) {
+            return;
+        }
+
+        currentPosition = position;
+        previouslyFocused = trigger;
+        renderLightbox();
+
+        lightbox.classList.add('show');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('galLbClose').focus();
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('show');
+        lightbox.setAttribute('aria-hidden', 'true');
+        lightboxImage.removeAttribute('src');
+        lightboxImage.alt = '';
+        document.body.style.overflow = '';
+
+        if (previouslyFocused && document.contains(previouslyFocused)) {
+            previouslyFocused.focus();
+        }
+
+        previouslyFocused = null;
+    }
+
+    function navigateLightbox(direction) {
+        if (visibleIndices.length < 2) {
+            return;
+        }
+
+        currentPosition = (
+            currentPosition + direction + visibleIndices.length
+        ) % visibleIndices.length;
+
+        renderLightbox();
+    }
+
+    function applyCategoryFilter(category) {
+        visibleIndices = [];
+
+        galleryButtons.forEach((button) => {
+            const matches = !category || button.dataset.cat === category;
+            button.hidden = !matches;
+
+            if (matches) {
+                visibleIndices.push(Number.parseInt(button.dataset.index, 10));
+            }
+        });
+
+        if (
+            lightbox.classList.contains('show')
+            && !visibleIndices.includes(galData[visibleIndices[currentPosition]]?.index)
+        ) {
+            closeLightbox();
+        }
+    }
+
+    galleryButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const index = Number.parseInt(button.dataset.index, 10);
+            openLightbox(index, button);
         });
     });
-});
 
-// Keyboard nav
-document.addEventListener('keydown', e=>{
-    if (!document.getElementById('galLightbox').classList.contains('show')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') navLightbox(-1);
-    if (e.key === 'ArrowRight') navLightbox(1);
-});
+    pills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+            pills.forEach((item) => {
+                const active = item === pill;
+                item.classList.toggle('active', active);
+                item.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
+            applyCategoryFilter(pill.dataset.cat || '');
+        });
+    });
+
+    document.getElementById('galLbClose').addEventListener('click', closeLightbox);
+    document.getElementById('galLbPrev').addEventListener('click', () => navigateLightbox(-1));
+    document.getElementById('galLbNext').addEventListener('click', () => navigateLightbox(1));
+
+    lightbox.addEventListener('click', (event) => {
+        if (event.target === lightbox) {
+            closeLightbox();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!lightbox.classList.contains('show')) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            closeLightbox();
+        } else if (event.key === 'ArrowLeft') {
+            navigateLightbox(-1);
+        } else if (event.key === 'ArrowRight') {
+            navigateLightbox(1);
+        }
+    });
+
+    applyCategoryFilter('');
+})();
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
