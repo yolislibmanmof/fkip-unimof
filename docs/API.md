@@ -1,26 +1,29 @@
-# 📊 Dokumentasi API - FKIP UNIMOF
+# Dokumentasi API FKIP UNIMOF
 
-Dokumen ini berisi dokumentasi lengkap untuk semua endpoint API yang tersedia pada Website FKIP UNIMOF.
+Dokumen ini menjelaskan endpoint API yang tersedia pada situs FKIP UNIMOF. Ganti `https://fkip.unimof.ac.id` dengan alamat situs yang digunakan jika berbeda.
 
-## Informasi Umum
+## Informasi umum
 
-| Parameter     | Nilai                              |
-|---------------|------------------------------------|
-| Base URL      | `https://fkip.unimof.ac.id/api/`   |
-| Format        | JSON                               |
-| Method        | POST                               |
-| Content-Type  | `application/json`                 |
+| Parameter | Nilai |
+|---|---|
+| Base URL | `https://fkip.unimof.ac.id/api/` |
+| Format respons | JSON |
+| Autentikasi | Hanya endpoint readiness yang memerlukan token |
 
-## Endpoint yang Tersedia
+## Pemeriksaan layanan
 
-### 1. Download Counter
+### Health check
 
-Meningkatkan jumlah unduhan untuk file tertentu di Download Center.
+**Endpoint:** `GET /api/health.php`  
+**Metode yang didukung:** `GET`, `HEAD`
 
-**URL:** `POST /api/download-counter.php`
+Memastikan PHP dapat merespons. Endpoint ini **tidak memeriksa koneksi database**.
 
-**Request Body:**
+Contoh respons `200 OK`:
+
 ```json
 {
-  "id": 123
+  "status": "ok",
+  "service": "fkip-unimof",
+  "timestamp": "2026-10-18T10:00:00Z"
 }
