@@ -353,16 +353,34 @@ if (!empty($seo_course) && is_array($seo_course)) {
     ];
 }
 
-        // ---------- RENDER ----------
-        $out = '';
-        foreach ($scripts as $script) {
-            $json = json_encode(
-                $script,
-                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-            );
-            $out .= '<script type="application/ld+json">' . $json . '</script>' . "\n    ";
-        }
-        return $out;
+// ---------- RENDER ----------
+$out = '';
+
+foreach ($scripts as $script) {
+    try {
+        $json = json_encode(
+            $script,
+            JSON_THROW_ON_ERROR
+                | JSON_UNESCAPED_SLASHES
+                | JSON_UNESCAPED_UNICODE
+                | JSON_HEX_TAG
+                | JSON_HEX_AMP
+                | JSON_HEX_APOS
+                | JSON_HEX_QUOT
+                | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+    } catch (JsonException $exception) {
+        error_log('SEO structured data encoding failed: ' . $exception->getMessage());
+        continue;
+    }
+
+    $out .= '<script type="application/ld+json">'
+        . $json
+        . '</script>'
+        . "\n    ";
+}
+
+return $out;
     }
 }
 
