@@ -1,23 +1,24 @@
-# robots.txt - Website FKIP UNIMOF
-# Catatan: robots.txt bukan mekanisme kontrol akses.
-# Lindungi halaman admin, file, dan data menggunakan konfigurasi server.
+# robots.txt untuk website FKIP UNIMOF
+# Aturan crawler bukan mekanisme autentikasi atau kontrol akses.
 
 User-agent: *
 Allow: /
 
+# Area operasional dan internal tidak perlu di-crawl.
 Disallow: /admin/
-Disallow: /includes/
 Disallow: /api/
+Disallow: /includes/
 Disallow: /database/
 Disallow: /logs/
 Disallow: /storage/
 
-# Jangan tampilkan skrip di folder upload sebagai halaman hasil pencarian.
-Disallow: /uploads/*.php
-Disallow: /assets/uploads/*.php
-Disallow: /assets/downloads/*.php
+# Hindari URL hasil pencarian dan filter yang menghasilkan duplikasi.
+Disallow: /*?q=
+Disallow: /*&q=
+Disallow: /*?page=
+Disallow: /*&page=
+Disallow: /*?sort=
+Disallow: /*&sort=
 
-# Endpoint teknis tidak perlu diindeks.
-Disallow: /api/
-
+# Sitemap publik
 Sitemap: https://www.fkip-unimof.ac.id/sitemap.php
