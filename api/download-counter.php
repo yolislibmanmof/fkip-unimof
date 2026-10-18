@@ -18,19 +18,19 @@ function download_counter_respond(int $statusCode, array $payload): never
     exit;
 }
 
-function download_counter_normalize_origin(string $url): ?string
+function download_counter_origin(string $url, bool $allowPath): ?string
 {
     $parts = parse_url($url);
 
     if (
         $parts === false
         || !isset($parts['scheme'], $parts['host'])
-        || isset($parts['user'])
-        || isset($parts['pass'])
-        || isset($parts['path'])
-        || isset($parts['query'])
-        || isset($parts['fragment'])
+        || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])
     ) {
+        return null;
+    }
+
+    if (!$allowPath && isset($parts['path']) && $parts['path'] !== '/') {
         return null;
     }
 
@@ -63,8 +63,8 @@ if ($fetchSite === 'cross-site') {
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
 if (is_string($origin) && $origin !== '') {
-    $requestOrigin = download_counter_normalize_origin($origin);
-    $applicationOrigin = download_counter_normalize_origin((string) APP_URL);
+    $requestOrigin = download_counter_origin($origin, false);
+    $applicationOrigin = download_counter_origin((string) APP_URL, true);
 
     if (
         $requestOrigin === null
@@ -89,15 +89,14 @@ if ($contentType !== 'application/json') {
     ]);
 }
 
-$contentLength = filter_var(
-    $_SERVER['CONTENT_LENGTH'] ?? null,
-    FILTER_VALIDATE_INT
-);
-
-if ($contentLength !== false && $contentLength !== null && $contentLength > 1024) {
+$contentLength = $_SERVER['CONTENT_LENGTH'] ?? null;
+if (
+    $contentLength !== null
+    && (!ctype_digit((string) $contentLength) || (int) $contentLength > 1024)
+) {
     download_counter_respond(413, [
         'ok' => false,
-        'message' => 'Ukuran request terlalu besar.',
+        'message' => 'Ukuran request terlalu besar atau tidak valid.',
     ]);
 }
 
@@ -118,7 +117,12 @@ try {
     ]);
 }
 
-if (!is_array($data) || !isset($data['id']) || !is_int($data['id']) || $data['id'] < 1) {
+if (
+    !is_array($data)
+    || !isset($data['id'])
+    || !is_int($data['id'])
+    || $data['id'] < 1
+) {
     download_counter_respond(400, [
         'ok' => false,
         'message' => 'ID dokumen tidak valid.',
