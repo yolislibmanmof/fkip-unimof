@@ -1,27 +1,24 @@
-# =====================================
-# FKIP UNIMOF - Security Hardening
-# =====================================
+# FKIP UNIMOF - Apache security rules
 
-# 1. Matikan directory listing (folder tidak bisa diintip)
+# Disable directory listings
 Options -Indexes
 
-# 2. Blokir akses web ke folder sensitif
 RewriteEngine On
-RewriteRule ^(includes|logs)(/|$) - [F,L]
 
-# 3. Blokir file sensitif agar tidak bisa di-download
-<FilesMatch "\.(sql|log|env|ini|sh|bak|config)$">
+# Block internal application and data directories from direct web access
+RewriteRule ^(includes|logs|database|storage)(/|$) - [F,L,NC]
+
+# Block version-control metadata directories
+RewriteRule (^|/)\.(git|svn|hg)(/|$) - [F,L,NC]
+
+# Deny access to hidden files and sensitive backup/config/database files
+<FilesMatch "(?i)(^\.|.*\.(?:sql(?:\.(?:gz|zip))?|log|ini|sh|bak|backup|old|orig|conf|config|dist|swp|tmp|sqlite3?|db))$">
     Require all denied
 </FilesMatch>
 
-# 4. Blokir dotfiles
-<FilesMatch "^\.">
-    Require all denied
-</FilesMatch>
-
-# 5. Header keamanan ekstra
+# Security headers
 <IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
