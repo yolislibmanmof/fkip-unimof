@@ -1,26 +1,23 @@
 # robots.txt - Website FKIP UNIMOF
-# Universitas Muhammadiyah Maumere
+# Catatan: robots.txt bukan mekanisme kontrol akses.
+# Lindungi halaman admin, file, dan data menggunakan konfigurasi server.
 
 User-agent: *
 Allow: /
 
-# ===== AREA TERLARANG =====
 Disallow: /admin/
 Disallow: /includes/
 Disallow: /api/
-Disallow: /logs/
 Disallow: /database/
+Disallow: /logs/
+Disallow: /storage/
 
-# ===== FILE SENSITIF =====
-Disallow: /*.sql$
-Disallow: /*.log$
+# Jangan tampilkan skrip di folder upload sebagai halaman hasil pencarian.
 Disallow: /uploads/*.php
 Disallow: /assets/uploads/*.php
+Disallow: /assets/downloads/*.php
 
-# ===== PARAMETER YANG TIDAK PERLU DI-CRAWL =====
-Disallow: /*?page=
-Disallow: /*&page=
+# Endpoint teknis tidak perlu diindeks.
+Disallow: /api/
 
-# ===== SITEMAP =====
-# GANTI dengan domain production Komandan:
-Sitemap: https://www.fkip-unimof.ac.id/sitemap.xml
+Sitemap: https://www.fkip-unimof.ac.id/sitemap.php
