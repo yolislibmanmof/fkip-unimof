@@ -1,5 +1,4 @@
 <?php
-// api/download-counter.php - Endpoint penghitung unduhan
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/config.php';
@@ -10,6 +9,7 @@ function download_counter_respond(int $statusCode, array $payload): never
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store, private');
     header('X-Content-Type-Options: nosniff');
+    header('X-Robots-Tag: noindex, nofollow');
 
     echo json_encode(
         $payload,
@@ -25,7 +25,10 @@ function download_counter_origin(string $url, bool $allowPath): ?string
     if (
         $parts === false
         || !isset($parts['scheme'], $parts['host'])
-        || isset($parts['user'], $parts['pass'], $parts['query'], $parts['fragment'])
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || isset($parts['query'])
+        || isset($parts['fragment'])
     ) {
         return null;
     }
@@ -54,6 +57,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 $fetchSite = strtolower((string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+
 if ($fetchSite === 'cross-site') {
     download_counter_respond(403, [
         'ok' => false,
@@ -62,6 +66,7 @@ if ($fetchSite === 'cross-site') {
 }
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+
 if (is_string($origin) && $origin !== '') {
     $requestOrigin = download_counter_origin($origin, false);
     $applicationOrigin = download_counter_origin((string) APP_URL, true);
@@ -90,9 +95,13 @@ if ($contentType !== 'application/json') {
 }
 
 $contentLength = $_SERVER['CONTENT_LENGTH'] ?? null;
+
 if (
     $contentLength !== null
-    && (!ctype_digit((string) $contentLength) || (int) $contentLength > 1024)
+    && (
+        !ctype_digit((string) $contentLength)
+        || (int) $contentLength > 1024
+    )
 ) {
     download_counter_respond(413, [
         'ok' => false,
@@ -101,6 +110,7 @@ if (
 }
 
 $rawBody = file_get_contents('php://input', false, null, 0, 1025);
+
 if ($rawBody === false || strlen($rawBody) > 1024) {
     download_counter_respond(400, [
         'ok' => false,
