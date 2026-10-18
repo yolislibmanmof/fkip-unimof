@@ -1,5 +1,16 @@
-Options -Indexes
-RemoveHandler .php .phtml .phar
-<FilesMatch "\.(?i:php|phtml|phar|php[0-9])$">
+# Lindungi file upload publik dari eksekusi skrip di Apache
+Options -Indexes -ExecCGI -MultiViews
+
+# Lepas handler skrip yang umum
+RemoveHandler .php .php2 .php3 .php4 .php5 .php7 .php8 .phtml .phar
+RemoveHandler .cgi .pl .py .sh
+
+# Tolak akses langsung ke file skrip, termasuk ekstensi PHP bernomor
+<FilesMatch "(?i)\.(php[0-9]*|phtml|phar|cgi|pl|py|sh)$">
     Require all denied
 </FilesMatch>
+
+# Jangan izinkan browser menebak tipe file
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
