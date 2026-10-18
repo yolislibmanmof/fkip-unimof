@@ -97,6 +97,7 @@ $dynamicQueries = [
          ORDER BY urutan ASC",
         static function (array &$urls, string $base, array $row): void {
             $id = filter_var($row['id'] ?? null, FILTER_VALIDATE_INT);
+
             if ($id === false || $id === null || $id < 1) {
                 return;
             }
@@ -120,7 +121,20 @@ foreach ($dynamicQueries as [$sql, $addRow]) {
         }
     } catch (PDOException $exception) {
         error_log('Sitemap query failed: ' . $exception->getMessage());
+
+        http_response_code(503);
+        header('Content-Type: text/plain; charset=UTF-8');
+        header('Cache-Control: no-store');
+        exit('Sitemap sementara tidak tersedia.');
     }
+}
+
+if (!class_exists(XMLWriter::class)) {
+    error_log('Sitemap generation failed: XMLWriter extension is unavailable.');
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    exit('Sitemap tidak dapat dibuat.');
 }
 
 $xml = new XMLWriter();
@@ -153,6 +167,7 @@ header('ETag: ' . $etag);
 header('X-Content-Type-Options: nosniff');
 
 $ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+
 if (is_string($ifNoneMatch)) {
     $providedEtags = array_map('trim', explode(',', $ifNoneMatch));
 
