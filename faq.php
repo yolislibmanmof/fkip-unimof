@@ -1,22 +1,103 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/includes/config.php';
 
 $page_title = 'FAQ — Pertanyaan yang Sering Diajukan';
 $page_description = 'Temukan jawaban cepat seputar PMB, akademik, beasiswa, dan kehidupan kampus FKIP UNIMOF.';
 
-// ===== AMBIL DATA FAQ (hanya yang Aktif) =====
-$faqs = [];
-$kat_counts = [];
 try {
-    $faqs = $pdo->query("SELECT * FROM faq WHERE status='Aktif' ORDER BY urutan ASC, id ASC")->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($faqs as $f) {
-        $k = trim($f['kategori'] ?? '') ?: 'Umum';
-        $kat_counts[$k] = ($kat_counts[$k] ?? 0) + 1;
-    }
-} catch (Exception $e) { $faqs = []; }
+    $stmt = $pdo->query(
+        "SELECT id, kategori, pertanyaan, jawaban
+         FROM faq
+         WHERE status = 'Aktif'
+         ORDER BY urutan ASC, id ASC"
+    );
+    $faqs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $exception) {
+    error_log('Public FAQ query failed: ' . $exception->getMessage());
 
-$cat_icons = ['PMB'=>'📝','Akademik'=>'🎓','Beasiswa'=>'💰','Umum'=>'💬','Kemahasiswaan'=>'🎉','Fasilitas'=>'🏢','Alumni'=>'🎓'];
-$wa_number = preg_replace('/[^0-9]/', '', get_setting('whatsapp_number', get_setting('whatsapp', '6281234567890')));
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    exit('Informasi FAQ sementara tidak tersedia. Silakan coba kembali.');
+}
+
+$cat_icons = [
+    'PMB' => '📝',
+    'Akademik' => '🎓',
+    'Beasiswa' => '💰',
+    'Umum' => '💬',
+    'Kemahasiswaan' => '🎉',
+    'Fasilitas' => '🏢',
+    'Alumni' => '🎓',
+];
+
+$kat_counts = [];
+
+foreach ($faqs as &$faq) {
+    $category = trim((string) ($faq['kategori'] ?? ''));
+
+    if ($category === '') {
+        $category = 'Umum';
+    }
+
+    $faq['kategori'] = $category;
+    $kat_counts[$category] = ($kat_counts[$category] ?? 0) + 1;
+}
+unset($faq);
+
+$wa_number = preg_replace(
+    '/[^0-9]/',
+    '',
+    (string) get_setting(
+        'whatsapp_number',
+        get_setting('whatsapp', '6281234567890')
+    )
+);
+
+if (!is_string($wa_number) || $wa_number === '') {
+    $wa_number = '6281234567890';
+}
+
+$faqSchemaJson = null;
+
+if ($faqs !== []) {
+    $faqSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => array_map(
+            static function (array $faq): array {
+                return [
+                    '@type' => 'Question',
+                    'name' => (string) $faq['pertanyaan'],
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => (string) $faq['jawaban'],
+                    ],
+                ];
+            },
+            $faqs
+        ),
+    ];
+
+    try {
+        $faqSchemaJson = json_encode(
+            $faqSchema,
+            JSON_THROW_ON_ERROR
+                | JSON_UNESCAPED_UNICODE
+                | JSON_UNESCAPED_SLASHES
+                | JSON_PRETTY_PRINT
+                | JSON_HEX_TAG
+                | JSON_HEX_AMP
+                | JSON_HEX_APOS
+                | JSON_HEX_QUOT
+                | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+    } catch (JsonException $exception) {
+        error_log('Public FAQ structured data encoding failed: ' . $exception->getMessage());
+    }
+}
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -103,9 +184,7 @@ require_once __DIR__ . '/includes/header.php';
     padding: 0 1.35rem 1.35rem 3.5rem; color: var(--text-secondary);
     font-size: .95rem; line-height: 1.8; white-space: pre-line;
 }
-.faq-a-inner::before {
-    content: '💡'; margin-right: .5rem;
-}
+.faq-a-inner::before { content: '💡'; margin-right: .5rem; }
 
 /* Empty & CTA */
 .faq-empty { text-align: center; padding: 3.5rem 1.5rem; background: var(--bg-secondary); border: 2px dashed var(--border); border-radius: var(--radius-xl); display: none; }
@@ -127,16 +206,24 @@ require_once __DIR__ . '/includes/header.php';
 .faq-cta a.ghost { border: 2px solid rgba(255,255,255,.5); color: #fff; }
 .faq-cta a:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,.25); }
 @media (max-width: 640px) { .faq-a-inner { padding-left: 1.35rem; } }
+@media (prefers-reduced-motion: reduce) {
+    .faq-item, .faq-q .qc, .faq-cta a { transition: none; }
+}
 </style>
 
-<!-- ===== HERO ===== -->
 <section class="faq-hero">
     <div class="container">
         <h1>Pusat Bantuan &amp; FAQ</h1>
         <p>Jawaban cepat untuk pertanyaan yang paling sering diajukan calon mahasiswa, mahasiswa aktif, dan mitra FKIP UNIMOF.</p>
         <div class="faq-search-wrap">
-            <span class="icon">🔍</span>
-            <input type="text" id="faqSearch" placeholder="Ketik kata kunci… mis. beasiswa, tes masuk, lokasi" autocomplete="off" aria-label="Cari pertanyaan">
+            <span class="icon" aria-hidden="true">🔍</span>
+            <input
+                type="search"
+                id="faqSearch"
+                placeholder="Ketik kata kunci… mis. beasiswa, tes masuk, lokasi"
+                autocomplete="off"
+                aria-label="Cari pertanyaan"
+            >
         </div>
         <div class="faq-hero-stats">
             <div class="faq-hero-stat"><b><?= count($faqs) ?></b><span>Pertanyaan</span></div>
@@ -146,46 +233,73 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- ===== PILLS KATEGORI ===== -->
 <div class="container">
-    <div class="faq-pills" id="faqPills">
-        <button class="faq-pill active" data-cat="">📚 Semua <span class="n"><?= count($faqs) ?></span></button>
+    <div class="faq-pills" id="faqPills" role="group" aria-label="Filter kategori FAQ">
+        <button class="faq-pill active" type="button" data-cat="" aria-pressed="true">
+            📚 Semua <span class="n"><?= count($faqs) ?></span>
+        </button>
+
         <?php foreach ($kat_counts as $kat => $cnt): ?>
-        <button class="faq-pill" data-cat="<?= sanitize($kat) ?>"><?= $cat_icons[$kat] ?? '💬' ?> <?= sanitize($kat) ?> <span class="n"><?= $cnt ?></span></button>
+            <button
+                class="faq-pill"
+                type="button"
+                data-cat="<?= sanitize((string) $kat) ?>"
+                aria-pressed="false"
+            >
+                <?= $cat_icons[$kat] ?? '💬' ?>
+                <?= sanitize((string) $kat) ?>
+                <span class="n"><?= (int) $cnt ?></span>
+            </button>
         <?php endforeach; ?>
     </div>
 </div>
 
-<!-- ===== LIST FAQ ===== -->
 <section class="faq-section">
     <div class="container">
-        <?php if (empty($faqs)): ?>
+        <?php if ($faqs === []): ?>
             <div class="faq-empty" style="display:block">
                 <div class="ei">📭</div>
                 <h3>Belum ada FAQ</h3>
                 <p style="color:var(--text-muted)">Pertanyaan yang sering diajukan akan tampil di sini.</p>
             </div>
-        <?php else: foreach ($kat_counts as $kat => $cnt): ?>
-        <div class="faq-group" data-group="<?= sanitize($kat) ?>">
-            <div class="faq-group-head">
-                <div class="gi"><?= $cat_icons[$kat] ?? '💬' ?></div>
-                <h2><?= sanitize($kat) ?></h2>
-                <span class="gc"><?= $cnt ?> pertanyaan</span>
-            </div>
-            <?php foreach ($faqs as $f): if ((trim($f['kategori'] ?? '') ?: 'Umum') !== $kat) continue; ?>
-            <div class="faq-item" data-cat="<?= sanitize($kat) ?>" data-search="<?= sanitize(strtolower($f['pertanyaan'] . ' ' . $f['jawaban'])) ?>">
-                <button class="faq-q" aria-expanded="false">
-                    <span class="qi"><?= $cat_icons[$kat] ?? '💬' ?></span>
-                    <span class="qt"><?= sanitize($f['pertanyaan']) ?></span>
-                    <span class="qc">▾</span>
-                </button>
-                <div class="faq-a"><div class="faq-a-inner"><?= sanitize($f['jawaban']) ?></div></div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endforeach; endif; ?>
+        <?php else: ?>
+            <?php foreach ($kat_counts as $kat => $cnt): ?>
+                <div class="faq-group" data-group="<?= sanitize((string) $kat) ?>">
+                    <div class="faq-group-head">
+                        <div class="gi" aria-hidden="true"><?= $cat_icons[$kat] ?? '💬' ?></div>
+                        <h2><?= sanitize((string) $kat) ?></h2>
+                        <span class="gc"><?= (int) $cnt ?> pertanyaan</span>
+                    </div>
 
-        <div class="faq-empty" id="faqEmpty">
+                    <?php foreach ($faqs as $faq): ?>
+                        <?php if ($faq['kategori'] !== (string) $kat) { continue; } ?>
+                        <?php $faqId = (int) ($faq['id'] ?? 0); ?>
+
+                        <div
+                            class="faq-item"
+                            data-cat="<?= sanitize((string) $kat) ?>"
+                            data-search="<?= sanitize(strtolower((string) $faq['pertanyaan'] . ' ' . (string) $faq['jawaban'])) ?>"
+                        >
+                            <button
+                                class="faq-q"
+                                type="button"
+                                aria-expanded="false"
+                                aria-controls="faq-answer-<?= $faqId ?>"
+                            >
+                                <span class="qi" aria-hidden="true"><?= $cat_icons[$kat] ?? '💬' ?></span>
+                                <span class="qt"><?= sanitize((string) $faq['pertanyaan']) ?></span>
+                                <span class="qc" aria-hidden="true">▾</span>
+                            </button>
+                            <div class="faq-a" id="faq-answer-<?= $faqId ?>" aria-hidden="true">
+                                <div class="faq-a-inner"><?= sanitize((string) $faq['jawaban']) ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <div class="faq-empty" id="faqEmpty" role="status" aria-live="polite">
             <div class="ei">🔎</div>
             <h3>Tidak ada hasil cocok</h3>
             <p style="color:var(--text-muted); margin-bottom:1rem">Coba kata kunci lain, atau tanyakan langsung kepada kami.</p>
@@ -194,78 +308,133 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- ===== CTA ===== -->
 <section class="container">
     <div class="faq-cta">
         <h2>Belum menemukan jawaban?</h2>
         <p>Tim admisi kami siap membantu Anda pada jam kerja (Senin–Jumat, 08.00–16.00 WITA).</p>
         <div class="btns">
             <a href="<?= base_url('kontak.php') ?>" class="solid">✉️ Kirim Pertanyaan</a>
-            <a href="https://wa.me/<?= $wa_number ?>" target="_blank" rel="noopener" class="ghost">💬 Chat WhatsApp</a>
+            <a
+                href="https://wa.me/<?= sanitize($wa_number) ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ghost"
+            >💬 Chat WhatsApp</a>
         </div>
     </div>
 </section>
 
-<!-- ===== SCHEMA.ORG FAQPage (SEO) ===== -->
-<?php if (!empty($faqs)): ?>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": <?= json_encode(array_map(function($f) {
-      return [
-          '@type' => 'Question',
-          'name' => $f['pertanyaan'],
-          'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['jawaban']],
-      ];
-  }, $faqs), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?>
-}
-</script>
+<?php if (is_string($faqSchemaJson)): ?>
+<script type="application/ld+json"><?= $faqSchemaJson ?></script>
 <?php endif; ?>
 
 <script>
-// ===== ACCORDION =====
-function openItem(it){ it.classList.add('open'); const a=it.querySelector('.faq-a'); a.style.maxHeight=a.scrollHeight+'px'; it.querySelector('.faq-q').setAttribute('aria-expanded','true'); }
-function closeItem(it){ it.classList.remove('open'); const a=it.querySelector('.faq-a'); a.style.maxHeight='0'; it.querySelector('.faq-q').setAttribute('aria-expanded','false'); }
-document.querySelectorAll('.faq-q').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        const it = btn.closest('.faq-item');
-        const wasOpen = it.classList.contains('open');
-        document.querySelectorAll('.faq-item.open').forEach(o=>{ if(o!==it) closeItem(o); });
-        wasOpen ? closeItem(it) : openItem(it);
-    });
-});
+(() => {
+    const searchInput = document.getElementById('faqSearch');
+    const pills = Array.from(document.querySelectorAll('.faq-pill'));
+    const emptyState = document.getElementById('faqEmpty');
 
-// ===== FILTER: SEARCH + KATEGORI =====
-const faqSearch = document.getElementById('faqSearch');
-const pills = document.querySelectorAll('.faq-pill');
-function applyFaqFilter(){
-    const q = faqSearch.value.toLowerCase().trim();
-    const cat = document.querySelector('.faq-pill.active')?.dataset.cat || '';
-    let visible = 0;
-    document.querySelectorAll('.faq-item').forEach(it=>{
-        const okQ = !q || it.dataset.search.includes(q);
-        const okC = !cat || it.dataset.cat === cat;
-        const show = okQ && okC;
-        it.style.display = show ? '' : 'none';
-        if (show) visible++;
+    function openItem(item) {
+        const answer = item.querySelector('.faq-a');
+        const button = item.querySelector('.faq-q');
+
+        item.classList.add('open');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+        answer.setAttribute('aria-hidden', 'false');
+        button.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeItem(item) {
+        const answer = item.querySelector('.faq-a');
+        const button = item.querySelector('.faq-q');
+
+        item.classList.remove('open');
+        answer.style.maxHeight = '0';
+        answer.setAttribute('aria-hidden', 'true');
+        button.setAttribute('aria-expanded', 'false');
+    }
+
+    function applyFaqFilter() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activePill = pills.find((pill) => pill.classList.contains('active'));
+        const category = activePill ? activePill.dataset.cat : '';
+        let visibleCount = 0;
+
+        document.querySelectorAll('.faq-item').forEach((item) => {
+            const matchesQuery = !query || item.dataset.search.includes(query);
+            const matchesCategory = !category || item.dataset.cat === category;
+            const visible = matchesQuery && matchesCategory;
+
+            item.hidden = !visible;
+
+            if (!visible && item.classList.contains('open')) {
+                closeItem(item);
+            }
+
+            if (visible) {
+                visibleCount += 1;
+            }
+        });
+
+        document.querySelectorAll('.faq-group').forEach((group) => {
+            const hasVisibleItem = Array.from(group.querySelectorAll('.faq-item'))
+                .some((item) => !item.hidden);
+
+            group.hidden = !hasVisibleItem;
+        });
+
+        if (emptyState) {
+            emptyState.style.display = visibleCount > 0 ? 'none' : 'block';
+        }
+    }
+
+    document.querySelectorAll('.faq-q').forEach((button) => {
+        button.addEventListener('click', () => {
+            const item = button.closest('.faq-item');
+            const wasOpen = item.classList.contains('open');
+
+            document.querySelectorAll('.faq-item.open').forEach((openItemElement) => {
+                if (openItemElement !== item) {
+                    closeItem(openItemElement);
+                }
+            });
+
+            if (wasOpen) {
+                closeItem(item);
+            } else {
+                openItem(item);
+            }
+        });
     });
-    document.querySelectorAll('.faq-group').forEach(g=>{
-        const any = [...g.querySelectorAll('.faq-item')].some(i=>i.style.display !== 'none');
-        g.style.display = any ? '' : 'none';
+
+    searchInput.addEventListener('input', applyFaqFilter);
+
+    pills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+            pills.forEach((item) => {
+                const active = item === pill;
+                item.classList.toggle('active', active);
+                item.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
+            applyFaqFilter();
+        });
     });
-    document.getElementById('faqEmpty').style.display = visible ? 'none' : 'block';
-}
-faqSearch.addEventListener('input', applyFaqFilter);
-pills.forEach(p=>p.addEventListener('click', ()=>{
-    pills.forEach(x=>x.classList.remove('active'));
-    p.classList.add('active');
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.faq-item.open .faq-a').forEach((answer) => {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+        });
+    });
+
+    const firstItem = document.querySelector('.faq-item');
+
+    if (firstItem) {
+        openItem(firstItem);
+    }
+
     applyFaqFilter();
-}));
-
-// Buka item pertama otomatis agar halaman tidak terlihat "kosong"
-const first = document.querySelector('.faq-item');
-if (first) openItem(first);
+})();
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
