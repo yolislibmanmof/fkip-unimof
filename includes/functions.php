@@ -1,434 +1,845 @@
 <?php
-// includes/functions.php - Helper functions (EXTREME MULTIMATE VERSION)
+// includes/functions.php - Helper aplikasi FKIP UNIMOF
+declare(strict_types=1);
 
 /**
- * Generate Base URL yang Aman
+ * Mengakses cache pengaturan bersama agar dapat dibersihkan setelah perubahan.
  */
-function base_url(string $path = ''): string {
-    return rtrim(APP_URL, '/') . '/' . ltrim($path, '/');
+function &app_setting_cache(): array
+{
+    static $cache = [];
+    return $cache;
 }
 
 /**
- * Generate Asset URL
+ * Menghasilkan URL internal aplikasi.
  */
-function asset(string $path): string {
+function base_url(string $path = ''): string
+{
+    $base = rtrim((string) APP_URL, '/');
+    $path = ltrim($path, '/');
+
+    return $path === '' ? $base . '/' : $base . '/' . $path;
+}
+
+/**
+ * Menghasilkan URL untuk file di folder assets.
+ */
+function asset(string $path): string
+{
     return base_url('assets/' . ltrim($path, '/'));
 }
 
 /**
- * Format Tanggal Indonesia Lengkap (e.g., 25 September 2026)
+ * Mengubah string tanggal menjadi timestamp atau null jika tidak valid.
  */
-function format_tanggal(string $date, string $format = 'd F Y'): string {
-    $bulan = [
-        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
+function app_parse_timestamp(string $date): ?int
+{
     $timestamp = strtotime($date);
-    if ($format === 'd F Y') {
-        return date('d', $timestamp) . ' ' . $bulan[(int)date('n', $timestamp)] . ' ' . date('Y', $timestamp);
+    return $timestamp === false ? null : $timestamp;
+}
+
+/**
+ * Format tanggal dengan nama bulan Bahasa Indonesia.
+ */
+function format_tanggal(string $date, string $format = 'd F Y'): string
+{
+    $timestamp = app_parse_timestamp($date);
+    if ($timestamp === null) {
+        return '';
     }
+
+    $months = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+    ];
+
+    if ($format === 'd F Y') {
+        return date('d', $timestamp)
+            . ' '
+            . $months[(int) date('n', $timestamp)]
+            . ' '
+            . date('Y', $timestamp);
+    }
+
     return date($format, $timestamp);
 }
 
 /**
- * Format Tanggal Singkat (e.g., 25 Sep 2026)
+ * Format tanggal singkat dalam Bahasa Indonesia.
  */
-function format_tanggal_singkat(string $date): string {
-    $bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    $timestamp = strtotime($date);
-    return date('d', $timestamp) . ' ' . $bulan[(int)date('n', $timestamp) - 1] . ' ' . date('Y', $timestamp);
+function format_tanggal_singkat(string $date): string
+{
+    $timestamp = app_parse_timestamp($date);
+    if ($timestamp === null) {
+        return '';
+    }
+
+    $months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+
+    return date('d', $timestamp)
+        . ' '
+        . $months[(int) date('n', $timestamp) - 1]
+        . ' '
+        . date('Y', $timestamp);
 }
 
 /**
- * Format Rentang Tanggal Indonesia (e.g., 12 - 14 Oktober 2026)
- * Sangat berguna untuk modul Agenda!
+ * Format rentang tanggal dalam Bahasa Indonesia.
  */
-function format_tanggal_range(string $start_date, ?string $end_date): string {
-    if (!$end_date || $start_date === $end_date) {
+function format_tanggal_range(string $start_date, ?string $end_date): string
+{
+    if ($end_date === null || $end_date === '' || $start_date === $end_date) {
         return format_tanggal($start_date);
     }
-    $start_ts = strtotime($start_date);
-    $end_ts = strtotime($end_date);
-    $bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    
-    if (date('m Y', $start_ts) === date('m Y', $end_ts)) {
-        return date('d', $start_ts) . ' - ' . date('d', $end_ts) . ' ' . $bulan[(int)date('n', $start_ts)] . ' ' . date('Y', $start_ts);
+
+    $startTimestamp = app_parse_timestamp($start_date);
+    $endTimestamp = app_parse_timestamp($end_date);
+
+    if ($startTimestamp === null || $endTimestamp === null) {
+        return '';
     }
+
+    if (date('m Y', $startTimestamp) === date('m Y', $endTimestamp)) {
+        $months = [
+            1 => 'Januari',
+            'Februari',
+            'Maret',
+            'April',
+            'Mei',
+            'Juni',
+            'Juli',
+            'Agustus',
+            'September',
+            'Oktober',
+            'November',
+            'Desember',
+        ];
+
+        return date('d', $startTimestamp)
+            . ' - '
+            . date('d', $endTimestamp)
+            . ' '
+            . $months[(int) date('n', $startTimestamp)]
+            . ' '
+            . date('Y', $startTimestamp);
+    }
+
     return format_tanggal($start_date) . ' s.d. ' . format_tanggal($end_date);
 }
 
 /**
- * Excerpt Text (Word-based, tidak memotong kata di tengah)
+ * Membuat ringkasan teks tanpa memotong kata jika memungkinkan.
  */
-function excerpt(string $text, int $length = 150, string $end = '...'): string {
+function excerpt(string $text, int $length = 150, string $end = '...'): string
+{
     $text = strip_tags($text);
-    $text = trim(preg_replace('/\s+/', ' ', $text));
-    if (mb_strlen($text) <= $length) return $text;
-    return mb_substr($text, 0, mb_strrpos(mb_substr($text, 0, $length), ' ')) . $end;
+    $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+
+    if ($length <= 0 || mb_strlen($text, 'UTF-8') <= $length) {
+        return $length <= 0 ? '' : $text;
+    }
+
+    $snippet = mb_substr($text, 0, $length, 'UTF-8');
+    $lastSpace = mb_strrpos($snippet, ' ', 0, 'UTF-8');
+
+    if ($lastSpace !== false && $lastSpace > 0) {
+        $snippet = mb_substr($snippet, 0, $lastSpace, 'UTF-8');
+    }
+
+    return rtrim($snippet) . $end;
 }
 
 /**
- * Truncate by Words (e.g., maksimal 20 kata)
+ * Memotong teks berdasarkan jumlah kata.
  */
-function truncate_words(string $text, int $word_limit = 20, string $end = '...'): string {
-    $words = explode(' ', strip_tags($text));
-    if (count($words) <= $word_limit) return implode(' ', $words);
+function truncate_words(string $text, int $word_limit = 20, string $end = '...'): string
+{
+    if ($word_limit <= 0) {
+        return '';
+    }
+
+    $text = trim(preg_replace('/\s+/u', ' ', strip_tags($text)) ?? '');
+    if ($text === '') {
+        return '';
+    }
+
+    $words = explode(' ', $text);
+    if (count($words) <= $word_limit) {
+        return $text;
+    }
+
     return implode(' ', array_slice($words, 0, $word_limit)) . $end;
 }
 
 /**
- * Format File Size menjadi Human Readable (e.g., "2.5 MB")
+ * Format ukuran file dalam satuan yang mudah dibaca.
  */
-function format_file_size(int $bytes, int $precision = 2): string {
+function format_file_size(int $bytes, int $precision = 2): string
+{
+    $bytes = max(0, $bytes);
+    $precision = max(0, min(6, $precision));
+
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    $bytes = max($bytes, 0);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $pow = min($pow, count($units) - 1);
-    $bytes /= (1 << (10 * $pow));
-    return round($bytes, $precision) . ' ' . $units[$pow];
+    $size = (float) $bytes;
+    $unitIndex = 0;
+
+    while ($size >= 1024 && $unitIndex < count($units) - 1) {
+        $size /= 1024;
+        $unitIndex++;
+    }
+
+    return round($size, $precision) . ' ' . $units[$unitIndex];
 }
 
 /**
- * Get Website Setting dengan IN-MEMORY CACHING (Blazing Fast ⚡)
- * Mencegah query database berulang-ulang untuk setting yang sama.
+ * Mengambil nilai pengaturan; string "0" tetap dianggap nilai valid.
  */
-function get_setting(string $key, $default = null) {
+function get_setting(string $key, mixed $default = null): mixed
+{
     global $pdo;
-    static $cache = [];
-    
-    if (isset($cache[$key])) {
+
+    $cache = &app_setting_cache();
+    if (array_key_exists($key, $cache)) {
         return $cache[$key];
     }
-    
+
     try {
-        $stmt = $pdo->prepare("SELECT nilai FROM pengaturan WHERE nama_key = ?");
+        $stmt = $pdo->prepare('SELECT nilai FROM pengaturan WHERE nama_key = ? LIMIT 1');
         $stmt->execute([$key]);
         $result = $stmt->fetchColumn();
-        $cache[$key] = $result ?: $default;
+
+        $cache[$key] = $result === false ? $default : $result;
         return $cache[$key];
-    } catch (Exception $e) {
+    } catch (PDOException $exception) {
+        error_log('Unable to read application setting: ' . $exception->getMessage());
         return $default;
     }
 }
 
 /**
- * Simpan/update setting (upsert aman untuk tabel pengaturan)
- * Komplementer dari get_setting() untuk operasi write.
- * Digunakan oleh admin/pengaturan.php (termasuk Hero Video upload).
+ * Menyimpan pengaturan dan mengosongkan cache nilainya.
  */
 if (!function_exists('update_setting')) {
-    function update_setting(string $key, $value): void {
+    function update_setting(string $key, mixed $value): void
+    {
         global $pdo;
+
         try {
-            $stmt = $pdo->prepare("UPDATE pengaturan SET nilai = ? WHERE nama_key = ?");
-            $stmt->execute([$value, $key]);
-            // Jika tidak ada row yang ter-update, berarti key belum ada → INSERT baru
-            if ($stmt->rowCount() === 0) {
-                $pdo->prepare("INSERT INTO pengaturan (nama_key, nilai) VALUES (?, ?)")
-                    ->execute([$key, $value]);
-            }
-        } catch (Exception $e) {
-            // Silent fail — tidak break aplikasi jika DB bermasalah
+            $stmt = $pdo->prepare(
+                'INSERT INTO pengaturan (nama_key, nilai) VALUES (?, ?)
+                 ON DUPLICATE KEY UPDATE nilai = VALUES(nilai)'
+            );
+            $stmt->execute([$key, $value]);
+
+            $cache = &app_setting_cache();
+            unset($cache[$key]);
+        } catch (PDOException $exception) {
+            error_log('Unable to update application setting: ' . $exception->getMessage());
+            throw $exception;
         }
     }
 }
 
 /**
- * Get Statistics dengan Caching
+ * Mengambil statistik terbaru dari database.
  */
-function get_statistik(): array {
+function get_statistik(): array
+{
     global $pdo;
     static $cache = null;
-    
-    if ($cache !== null) return $cache;
-    
-    try {
-        $stmt = $pdo->query("SELECT * FROM statistik ORDER BY id DESC LIMIT 1");
-        $data = $stmt->fetch();
-        $cache = $data ?: [
-            'total_mahasiswa' => 1250, 'total_dosen' => 68, 
-            'total_prodi' => 8, 'total_penelitian' => 45, 'total_alumni' => 3200
-        ];
+
+    if ($cache !== null) {
         return $cache;
-    } catch (Exception $e) {
-        return [];
     }
-}
 
-/**
- * Get Featured News
- */
-function get_featured_berita(int $limit = 3): array {
-    global $pdo;
     try {
-        $stmt = $pdo->prepare("SELECT * FROM berita WHERE status = 'Published' ORDER BY is_featured DESC, published_at DESC LIMIT ?");
-        $stmt->execute([$limit]);
-        return $stmt->fetchAll();
-    } catch (Exception $e) {
+        $stmt = $pdo->query('SELECT * FROM statistik ORDER BY id DESC LIMIT 1');
+        $data = $stmt->fetch();
+
+        $cache = $data ?: [
+            'total_mahasiswa' => 1250,
+            'total_dosen' => 68,
+            'total_prodi' => 8,
+            'total_penelitian' => 45,
+            'total_alumni' => 3200,
+        ];
+
+        return $cache;
+    } catch (PDOException $exception) {
+        error_log('Unable to read statistics: ' . $exception->getMessage());
         return [];
     }
 }
 
 /**
- * Get Active Study Programs
+ * Mengambil berita unggulan.
  */
-function get_prodi(): array {
+function get_featured_berita(int $limit = 3): array
+{
     global $pdo;
+
     try {
-        $stmt = $pdo->query("SELECT * FROM program_studi WHERE status = 'Aktif' ORDER BY urutan ASC");
+        $stmt = $pdo->prepare(
+            "SELECT *
+             FROM berita
+             WHERE status = 'Published'
+             ORDER BY is_featured DESC, published_at DESC
+             LIMIT ?"
+        );
+        $stmt->bindValue(1, max(1, min(50, $limit)), PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll();
-    } catch (Exception $e) {
+    } catch (PDOException $exception) {
+        error_log('Unable to read featured news: ' . $exception->getMessage());
         return [];
     }
 }
 
 /**
- * Get Upcoming Agenda (Hanya yang aktif dan masa depan)
+ * Mengambil program studi aktif.
  */
-function get_agenda_mendatang(int $limit = 5): array {
+function get_prodi(): array
+{
     global $pdo;
+
     try {
-        $stmt = $pdo->prepare("SELECT * FROM agenda WHERE tanggal_mulai >= CURDATE() AND status = 'Aktif' ORDER BY tanggal_mulai ASC LIMIT ?");
-        $stmt->execute([$limit]);
+        $stmt = $pdo->query(
+            "SELECT *
+             FROM program_studi
+             WHERE status = 'Aktif'
+             ORDER BY urutan ASC"
+        );
+
         return $stmt->fetchAll();
-    } catch (Exception $e) {
+    } catch (PDOException $exception) {
+        error_log('Unable to read study programs: ' . $exception->getMessage());
         return [];
     }
 }
 
 /**
- * Flash Message Setter
+ * Mengambil agenda aktif mendatang.
  */
-function flash_message(string $type, string $message): void {
+function get_agenda_mendatang(int $limit = 5): array
+{
+    global $pdo;
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT *
+             FROM agenda
+             WHERE tanggal_mulai >= CURDATE()
+               AND status = 'Aktif'
+             ORDER BY tanggal_mulai ASC
+             LIMIT ?"
+        );
+        $stmt->bindValue(1, max(1, min(50, $limit)), PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    } catch (PDOException $exception) {
+        error_log('Unable to read upcoming agenda: ' . $exception->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Menyimpan pesan flash dengan tipe yang dibatasi.
+ */
+function flash_message(string $type, string $message): void
+{
+    $allowedTypes = ['success', 'error', 'warning', 'info'];
+    if (!in_array($type, $allowedTypes, true)) {
+        $type = 'info';
+    }
+
     $_SESSION['flash'][$type] = $message;
 }
 
 /**
- * Flash Message Display dengan Ikon & Auto-dismiss Attribute
+ * Menampilkan pesan flash dengan escaping untuk mencegah XSS.
  */
-function display_flash(): void {
-    if (empty($_SESSION['flash'])) return;
-    foreach ($_SESSION['flash'] as $type => $message) {
-        $icon = match($type) {
-            'success' => '✅',
-            'error'   => '❌',
-            'warning' => '⚠️',
-            default   => 'ℹ️'
-        };
-        echo "<div class='alert alert-{$type}' role='alert' data-auto-dismiss='5000'>
-                <span style='margin-right:8px'>{$icon}</span>
-                <span>{$message}</span>
-              </div>";
+function display_flash(): void
+{
+    if (empty($_SESSION['flash']) || !is_array($_SESSION['flash'])) {
+        return;
     }
+
+    $icons = [
+        'success' => '✅',
+        'error' => '❌',
+        'warning' => '⚠️',
+        'info' => 'ℹ️',
+    ];
+
+    foreach ($_SESSION['flash'] as $type => $message) {
+        if (!isset($icons[$type]) || !is_scalar($message)) {
+            continue;
+        }
+
+        $safeType = htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safeMessage = htmlspecialchars(
+            (string) $message,
+            ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5,
+            'UTF-8'
+        );
+
+        echo "<div class='alert alert-{$safeType}' role='alert' data-auto-dismiss='5000'>"
+            . "<span style='margin-right:8px'>{$icons[$type]}</span>"
+            . "<span>{$safeMessage}</span>"
+            . '</div>';
+    }
+
     unset($_SESSION['flash']);
 }
 
 /**
- * Upload Gambar Aman (Validasi MIME Server-Side, Ukuran, Nama Acak)
+ * Memastikan subdirektori upload berada di dalam assets/.
  */
-function upload_image(array $file, string $subdir = 'uploads', int $max_bytes = 2097152): array {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+function app_upload_directory(string $subdir): ?string
+{
+    if (!defined('APP_DIR') || !is_string(APP_DIR) || APP_DIR === '') {
+        return null;
+    }
+
+    $subdir = str_replace('\\', '/', trim($subdir, " \t\n\r\0\x0B/"));
+    $segments = $subdir === '' ? [] : explode('/', $subdir);
+
+    foreach ($segments as $segment) {
+        if ($segment === '' || $segment === '.' || $segment === '..') {
+            return null;
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $segment)) {
+            return null;
+        }
+    }
+
+    $assetsPath = APP_DIR . DIRECTORY_SEPARATOR . 'assets';
+    if (!is_dir($assetsPath) && !mkdir($assetsPath, 0755, true) && !is_dir($assetsPath)) {
+        return null;
+    }
+
+    $assetsRoot = realpath($assetsPath);
+    if ($assetsRoot === false) {
+        return null;
+    }
+
+    $targetPath = $assetsRoot;
+    foreach ($segments as $segment) {
+        $targetPath .= DIRECTORY_SEPARATOR . $segment;
+    }
+
+    if (!is_dir($targetPath) && !mkdir($targetPath, 0755, true) && !is_dir($targetPath)) {
+        return null;
+    }
+
+    $realTarget = realpath($targetPath);
+    $prefix = rtrim($assetsRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+    if (
+        $realTarget === false
+        || stripos($realTarget . DIRECTORY_SEPARATOR, $prefix) !== 0
+    ) {
+        return null;
+    }
+
+    return $realTarget;
+}
+
+/**
+ * Validasi upload gambar berdasarkan MIME dan struktur gambar.
+ */
+function upload_image(
+    array $file,
+    string $subdir = 'uploads',
+    int $max_bytes = 2097152
+): array {
+    $errorCode = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+
+    if ($errorCode === UPLOAD_ERR_NO_FILE) {
         return ['ok' => true, 'name' => null];
     }
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        return ['ok' => false, 'error' => 'Upload gagal (Kode error: ' . $file['error'] . ').'];
+
+    if ($errorCode !== UPLOAD_ERR_OK) {
+        return ['ok' => false, 'error' => 'Upload gagal. Silakan coba kembali.'];
     }
-    if ($file['size'] > $max_bytes) {
-        return ['ok' => false, 'error' => 'Ukuran file maksimal ' . format_file_size($max_bytes) . '.'];
+
+    $tmpName = $file['tmp_name'] ?? '';
+    if (!is_string($tmpName) || $tmpName === '' || !is_uploaded_file($tmpName)) {
+        return ['ok' => false, 'error' => 'File upload tidak valid.'];
     }
-    
+
+    $actualSize = filesize($tmpName);
+    if ($actualSize === false || $actualSize > max(0, $max_bytes)) {
+        return [
+            'ok' => false,
+            'error' => 'Ukuran file maksimal ' . format_file_size(max(0, $max_bytes)) . '.',
+        ];
+    }
+
+    if (!class_exists finfo::class) {
+        return ['ok' => false, 'error' => 'Validasi tipe file tidak tersedia di server.'];
+    }
+
     $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime  = $finfo->file($file['tmp_name']);
-    $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
-    
-    if (!isset($allowed[$mime])) {
-        return ['ok' => false, 'error' => 'Format file tidak diizinkan. Hanya JPG, PNG, WEBP, atau GIF.'];
+    $mime = $finfo->file($tmpName);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    ];
+
+    if (!is_string($mime) || !isset($allowed[$mime])) {
+        return ['ok' => false, 'error' => 'Format gambar tidak diizinkan.'];
     }
-    if (@getimagesize($file['tmp_name']) === false) {
-        return ['ok' => false, 'error' => 'File terdeteksi bukan gambar valid (korup atau palsu).'];
+
+    if (@getimagesize($tmpName) === false) {
+        return ['ok' => false, 'error' => 'File bukan gambar valid.'];
     }
-    
-    $dir = APP_DIR . '/assets/' . $subdir;
-    if (!is_dir($dir)) { mkdir($dir, 0755, true); }
-    
+
+    $directory = app_upload_directory($subdir);
+    if ($directory === null) {
+        error_log('Unable to resolve a safe image upload directory.');
+        return ['ok' => false, 'error' => 'Folder upload tidak dapat digunakan.'];
+    }
+
     $name = bin2hex(random_bytes(16)) . '.' . $allowed[$mime];
-    if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) {
-        return ['ok' => false, 'error' => 'Gagal menyimpan file ke server. Periksa izin folder.'];
+    if (!move_uploaded_file($tmpName, $directory . DIRECTORY_SEPARATOR . $name)) {
+        error_log('Unable to move uploaded image into its destination directory.');
+        return ['ok' => false, 'error' => 'Gagal menyimpan gambar ke server.'];
     }
+
     return ['ok' => true, 'name' => $name];
 }
 
 /**
- * Upload File Umum (PDF, DOC, ZIP) untuk Download Center
+ * Upload dokumen menggunakan ekstensi yang ditentukan dari MIME tervalidasi.
  */
-function upload_file(array $file, string $subdir = 'downloads', array $allowed_mimes = [], int $max_bytes = 10485760): array {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+function upload_file(
+    array $file,
+    string $subdir = 'downloads',
+    array $allowed_mimes = [],
+    int $max_bytes = 10485760
+): array {
+    $errorCode = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+
+    if ($errorCode === UPLOAD_ERR_NO_FILE) {
         return ['ok' => false, 'error' => 'Tidak ada file yang dipilih.'];
     }
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        return ['ok' => false, 'error' => 'Upload gagal (Kode error: ' . $file['error'] . ').'];
+
+    if ($errorCode !== UPLOAD_ERR_OK) {
+        return ['ok' => false, 'error' => 'Upload gagal. Silakan coba kembali.'];
     }
-    if ($file['size'] > $max_bytes) {
-        return ['ok' => false, 'error' => 'Ukuran file maksimal ' . format_file_size($max_bytes) . '.'];
+
+    $tmpName = $file['tmp_name'] ?? '';
+    if (!is_string($tmpName) || $tmpName === '' || !is_uploaded_file($tmpName)) {
+        return ['ok' => false, 'error' => 'File upload tidak valid.'];
     }
-    
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = $finfo->file($file['tmp_name']);
-    
-    if (empty($allowed_mimes)) {
-        $allowed_mimes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/zip',
-            'application/x-rar-compressed'
+
+    $actualSize = filesize($tmpName);
+    if ($actualSize === false || $actualSize > max(0, $max_bytes)) {
+        return [
+            'ok' => false,
+            'error' => 'Ukuran file maksimal ' . format_file_size(max(0, $max_bytes)) . '.',
         ];
     }
-    
-    if (!in_array($mime, $allowed_mimes, true)) {
+
+    if (!class_exists finfo::class) {
+        return ['ok' => false, 'error' => 'Validasi tipe file tidak tersedia di server.'];
+    }
+
+    $extensionsByMime = [
+        'application/pdf' => 'pdf',
+        'application/msword' => 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+        'application/vnd.ms-excel' => 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+        'application/vnd.ms-powerpoint' => 'ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+        'application/zip' => 'zip',
+        'application/x-zip-compressed' => 'zip',
+        'application/x-rar-compressed' => 'rar',
+        'application/vnd.rar' => 'rar',
+        'application/x-7z-compressed' => '7z',
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    ];
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($tmpName);
+
+    if (
+        !is_string($mime)
+        || !in_array($mime, $allowed_mimes, true)
+        || !isset($extensionsByMime[$mime])
+    ) {
         return ['ok' => false, 'error' => 'Format file tidak diizinkan.'];
     }
-    
-    $dir = APP_DIR . '/assets/' . $subdir;
-    if (!is_dir($dir)) { mkdir($dir, 0755, true); }
-    
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $safe_ext = preg_replace('/[^a-zA-Z0-9]/', '', strtolower($ext));
-    $name = bin2hex(random_bytes(16)) . ($safe_ext ? '.' . $safe_ext : '');
-    
-    if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) {
+
+    $directory = app_upload_directory($subdir);
+    if ($directory === null) {
+        error_log('Unable to resolve a safe document upload directory.');
+        return ['ok' => false, 'error' => 'Folder upload tidak dapat digunakan.'];
+    }
+
+    $name = bin2hex(random_bytes(16)) . '.' . $extensionsByMime[$mime];
+    if (!move_uploaded_file($tmpName, $directory . DIRECTORY_SEPARATOR . $name)) {
+        error_log('Unable to move uploaded document into its destination directory.');
         return ['ok' => false, 'error' => 'Gagal menyimpan file ke server.'];
     }
-    
-    return ['ok' => true, 'name' => $name, 'size' => format_file_size($file['size'])];
+
+    return [
+        'ok' => true,
+        'name' => $name,
+        'size' => format_file_size((int) $actualSize),
+    ];
 }
 
 /**
- * Hapus File Upload
+ * Menghapus upload berdasarkan nama file, tanpa menerima path dari pengguna.
  */
-function delete_upload(?string $name, string $subdir = 'uploads'): void {
-    if ($name) {
-        $path = APP_DIR . '/assets/' . $subdir . '/' . basename($name);
-        if (is_file($path)) {
-            @unlink($path);
-        }
+function delete_upload(?string $name, string $subdir = 'uploads'): void
+{
+    if ($name === null || $name === '' || basename($name) !== $name) {
+        return;
+    }
+
+    $directory = app_upload_directory($subdir);
+    if ($directory === null) {
+        error_log('Unable to resolve a safe upload directory for deletion.');
+        return;
+    }
+
+    $path = $directory . DIRECTORY_SEPARATOR . $name;
+    if (is_file($path) && !unlink($path)) {
+        error_log('Unable to delete an uploaded file.');
     }
 }
 
 /**
- * Format Time Ago (e.g., "2 jam lalu")
+ * Menghasilkan teks waktu relatif.
  */
-function time_ago(int $timestamp): string {
+function time_ago(int $timestamp): string
+{
     $diff = time() - $timestamp;
-    if ($diff < 60) return 'Baru saja';
-    if ($diff < 3600) return floor($diff / 60) . ' menit lalu';
-    if ($diff < 86400) return floor($diff / 3600) . ' jam lalu';
-    if ($diff < 604800) return floor($diff / 86400) . ' hari lalu';
-    if ($diff < 2592000) return floor($diff / 604800) . ' minggu lalu';
-    if ($diff < 31536000) return floor($diff / 2592000) . ' bulan lalu';
-    return floor($diff / 31536000) . ' tahun lalu';
-}
 
-/**
- * Highlight Search Query dalam Teks
- */
-function highlight_search(string $text, string $q): string {
-    $q = trim($q);
-    if ($q === '') return $text;
-    $pattern = '/(' . preg_quote($q, '/') . ')/iu';
-    $result = preg_replace($pattern, '<mark>$1</mark>', $text);
-    return $result ?? $text;
-}
-
-/**
- * Generate Pagination HTML (Smart & Responsive)
- * Otomatis menangani logika "1 ... 4 5 6 ... 10"
- */
-function generate_pagination(int $current_page, int $total_pages, string $base_url): string {
-    if ($total_pages <= 1) return '';
-    
-    $html = '<nav class="pagination-pro"><div class="page-info">Halaman ' . $current_page . ' dari ' . $total_pages . '</div><div class="page-buttons">';
-    
-    if ($current_page > 1) {
-        $html .= '<a href="' . $base_url . ($current_page - 1) . '" class="page-btn" aria-label="Previous">←</a>';
-    } else {
-        $html .= '<span class="page-btn disabled">←</span>';
+    if ($diff < 0) {
+        return 'Akan datang';
     }
-    
+    if ($diff < 60) {
+        return 'Baru saja';
+    }
+    if ($diff < 3600) {
+        return (string) floor($diff / 60) . ' menit lalu';
+    }
+    if ($diff < 86400) {
+        return (string) floor($diff / 3600) . ' jam lalu';
+    }
+    if ($diff < 604800) {
+        return (string) floor($diff / 86400) . ' hari lalu';
+    }
+    if ($diff < 2592000) {
+        return (string) floor($diff / 604800) . ' minggu lalu';
+    }
+    if ($diff < 31536000) {
+        return (string) floor($diff / 2592000) . ' bulan lalu';
+    }
+
+    return (string) floor($diff / 31536000) . ' tahun lalu';
+}
+
+/**
+ * Menyorot teks pencarian; teks dan query di-escape sebelum HTML dibuat.
+ */
+function highlight_search(string $text, string $q): string
+{
+    $query = trim($q);
+    $safeText = htmlspecialchars(
+        $text,
+        ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5,
+        'UTF-8'
+    );
+
+    if ($query === '') {
+        return $safeText;
+    }
+
+    $safeQuery = htmlspecialchars(
+        $query,
+        ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5,
+        'UTF-8'
+    );
+
+    $pattern = '/' . preg_quote($safeQuery, '/') . '/iu';
+    $result = preg_replace_callback(
+        $pattern,
+        static fn(array $matches): string => '<mark>' . $matches[0] . '</mark>',
+        $safeText
+    );
+
+    return $result ?? $safeText;
+}
+
+/**
+ * Menghasilkan markup navigasi halaman.
+ */
+function generate_pagination(int $current_page, int $total_pages, string $base_url): string
+{
+    $total_pages = max(0, $total_pages);
+    if ($total_pages <= 1) {
+        return '';
+    }
+
+    $current_page = max(1, min($current_page, $total_pages));
+    $safeBaseUrl = htmlspecialchars(
+        $base_url,
+        ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5,
+        'UTF-8'
+    );
+
+    $html = '<nav class="pagination-pro" aria-label="Navigasi halaman">'
+        . '<div class="page-info">Halaman '
+        . $current_page
+        . ' dari '
+        . $total_pages
+        . '</div><div class="page-buttons">';
+
+    if ($current_page > 1) {
+        $html .= '<a href="' . $safeBaseUrl . ($current_page - 1)
+            . '" class="page-btn" aria-label="Halaman sebelumnya">←</a>';
+    } else {
+        $html .= '<span class="page-btn disabled" aria-disabled="true">←</span>';
+    }
+
     $range = 2;
     $start = max(1, $current_page - $range);
     $end = min($total_pages, $current_page + $range);
-    
+
     if ($start > 1) {
-        $html .= '<a href="' . $base_url . '1" class="page-btn">1</a>';
-        if ($start > 2) $html .= '<span class="page-dots">…</span>';
-    }
-    
-    for ($i = $start; $i <= $end; $i++) {
-        if ($i === $current_page) {
-            $html .= '<span class="page-btn current">' . $i . '</span>';
-        } else {
-            $html .= '<a href="' . $base_url . $i . '" class="page-btn">' . $i . '</a>';
+        $html .= '<a href="' . $safeBaseUrl . '1" class="page-btn">1</a>';
+        if ($start > 2) {
+            $html .= '<span class="page-dots" aria-hidden="true">…</span>';
         }
     }
-    
+
+    for ($page = $start; $page <= $end; $page++) {
+        if ($page === $current_page) {
+            $html .= '<span class="page-btn current" aria-current="page">'
+                . $page
+                . '</span>';
+        } else {
+            $html .= '<a href="' . $safeBaseUrl . $page . '" class="page-btn">'
+                . $page
+                . '</a>';
+        }
+    }
+
     if ($end < $total_pages) {
-        if ($end < $total_pages - 1) $html .= '<span class="page-dots">…</span>';
-        $html .= '<a href="' . $base_url . $total_pages . '" class="page-btn">' . $total_pages . '</a>';
+        if ($end < $total_pages - 1) {
+            $html .= '<span class="page-dots" aria-hidden="true">…</span>';
+        }
+
+        $html .= '<a href="' . $safeBaseUrl . $total_pages . '" class="page-btn">'
+            . $total_pages
+            . '</a>';
     }
-    
+
     if ($current_page < $total_pages) {
-        $html .= '<a href="' . $base_url . ($current_page + 1) . '" class="page-btn" aria-label="Next">→</a>';
+        $html .= '<a href="' . $safeBaseUrl . ($current_page + 1)
+            . '" class="page-btn" aria-label="Halaman berikutnya">→</a>';
     } else {
-        $html .= '<span class="page-btn disabled">→</span>';
+        $html .= '<span class="page-btn disabled" aria-disabled="true">→</span>';
     }
-    
-    $html .= '</div></nav>';
-    return $html;
+
+    return $html . '</div></nav>';
 }
 
 /**
- * Clean Filename (Menghapus karakter aneh, spasi jadi underscore)
+ * Membersihkan nama file untuk kebutuhan tampilan atau metadata.
  */
-function clean_filename(string $filename): string {
-    $filename = preg_replace('/[^a-zA-Z0-9_\.\-]/', '_', $filename);
-    return preg_replace('/_+/', '_', $filename);
+function clean_filename(string $filename): string
+{
+    $cleaned = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $filename) ?? '';
+    return preg_replace('/_+/', '_', $cleaned) ?? '';
 }
 
 /**
- * Rate Limiting sederhana berbasis Session
- * Mengembalikan TRUE jika masih diizinkan, FALSE jika melebihi batas
+ * Memeriksa dan mencatat percobaan berdasarkan sesi.
  */
-function check_rate_limit(string $identifier, int $max_attempts = 5, int $window_seconds = 3600): bool {
-    $key = 'rl_' . md5($identifier);
+function check_rate_limit(
+    string $identifier,
+    int $max_attempts = 5,
+    int $window_seconds = 3600
+): bool {
+    $max_attempts = max(1, $max_attempts);
+    $window_seconds = max(1, $window_seconds);
+    $key = 'rl_' . hash('sha256', $identifier);
     $now = time();
-    $data = $_SESSION[$key] ?? ['count' => 0, 'start' => $now];
+    $data = $_SESSION[$key] ?? null;
 
-    // Reset jendela waktu jika sudah lewat
-    if ($now - $data['start'] >= $window_seconds) {
+    if (
+        !is_array($data)
+        || !isset($data['count'], $data['start'])
+        || !is_numeric($data['count'])
+        || !is_numeric($data['start'])
+        || $now - (int) $data['start'] >= $window_seconds
+    ) {
         $data = ['count' => 0, 'start' => $now];
     }
 
-    // Blokir jika melebihi batas
-    if ($data['count'] >= $max_attempts) {
+    if ((int) $data['count'] >= $max_attempts) {
         $_SESSION[$key] = $data;
         return false;
     }
 
-    $data['count']++;
+    $data['count'] = (int) $data['count'] + 1;
     $_SESSION[$key] = $data;
+
     return true;
 }
 
 /**
- * Sisa kuota rate limit (untuk tampilan UI)
+ * Mengembalikan kuota percobaan yang tersisa pada sesi saat ini.
  */
-function rate_limit_remaining(string $identifier, int $max_attempts = 5, int $window_seconds = 3600): int {
-    $key = 'rl_' . md5($identifier);
+function rate_limit_remaining(
+    string $identifier,
+    int $max_attempts = 5,
+    int $window_seconds = 3600
+): int {
+    $max_attempts = max(1, $max_attempts);
+    $window_seconds = max(1, $window_seconds);
+    $key = 'rl_' . hash('sha256', $identifier);
     $now = time();
-    $data = $_SESSION[$key] ?? ['count' => 0, 'start' => $now];
-    if ($now - $data['start'] >= $window_seconds) return $max_attempts;
-    return max(0, $max_attempts - $data['count']);
+    $data = $_SESSION[$key] ?? null;
+
+    if (
+        !is_array($data)
+        || !isset($data['count'], $data['start'])
+        || !is_numeric($data['count'])
+        || !is_numeric($data['start'])
+        || $now - (int) $data['start'] >= $window_seconds
+    ) {
+        return $max_attempts;
+    }
+
+    return max(0, $max_attempts - (int) $data['count']);
 }
