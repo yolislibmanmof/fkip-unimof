@@ -2,18 +2,12 @@
 // includes/functions.php - Helper aplikasi FKIP UNIMOF
 declare(strict_types=1);
 
-/**
- * Mengakses cache pengaturan bersama agar dapat dibersihkan setelah perubahan.
- */
 function &app_setting_cache(): array
 {
     static $cache = [];
     return $cache;
 }
 
-/**
- * Menghasilkan URL internal aplikasi.
- */
 function base_url(string $path = ''): string
 {
     $base = rtrim((string) APP_URL, '/');
@@ -22,26 +16,17 @@ function base_url(string $path = ''): string
     return $path === '' ? $base . '/' : $base . '/' . $path;
 }
 
-/**
- * Menghasilkan URL untuk file di folder assets.
- */
 function asset(string $path): string
 {
     return base_url('assets/' . ltrim($path, '/'));
 }
 
-/**
- * Mengubah string tanggal menjadi timestamp atau null jika tidak valid.
- */
 function app_parse_timestamp(string $date): ?int
 {
     $timestamp = strtotime($date);
     return $timestamp === false ? null : $timestamp;
 }
 
-/**
- * Format tanggal dengan nama bulan Bahasa Indonesia.
- */
 function format_tanggal(string $date, string $format = 'd F Y'): string
 {
     $timestamp = app_parse_timestamp($date);
@@ -50,34 +35,19 @@ function format_tanggal(string $date, string $format = 'd F Y'): string
     }
 
     $months = [
-        1 => 'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember',
+        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
     ];
 
     if ($format === 'd F Y') {
         return date('d', $timestamp)
-            . ' '
-            . $months[(int) date('n', $timestamp)]
-            . ' '
-            . date('Y', $timestamp);
+            . ' ' . $months[(int) date('n', $timestamp)]
+            . ' ' . date('Y', $timestamp);
     }
 
     return date($format, $timestamp);
 }
 
-/**
- * Format tanggal singkat dalam Bahasa Indonesia.
- */
 function format_tanggal_singkat(string $date): string
 {
     $timestamp = app_parse_timestamp($date);
@@ -91,15 +61,10 @@ function format_tanggal_singkat(string $date): string
     ];
 
     return date('d', $timestamp)
-        . ' '
-        . $months[(int) date('n', $timestamp) - 1]
-        . ' '
-        . date('Y', $timestamp);
+        . ' ' . $months[(int) date('n', $timestamp) - 1]
+        . ' ' . date('Y', $timestamp);
 }
 
-/**
- * Format rentang tanggal dalam Bahasa Indonesia.
- */
 function format_tanggal_range(string $start_date, ?string $end_date): string
 {
     if ($end_date === null || $end_date === '' || $start_date === $end_date) {
@@ -115,42 +80,30 @@ function format_tanggal_range(string $start_date, ?string $end_date): string
 
     if (date('m Y', $startTimestamp) === date('m Y', $endTimestamp)) {
         $months = [
-            1 => 'Januari',
-            'Februari',
-            'Maret',
-            'April',
-            'Mei',
-            'Juni',
-            'Juli',
-            'Agustus',
-            'September',
-            'Oktober',
-            'November',
-            'Desember',
+            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
         ];
 
         return date('d', $startTimestamp)
-            . ' - '
-            . date('d', $endTimestamp)
-            . ' '
-            . $months[(int) date('n', $startTimestamp)]
-            . ' '
-            . date('Y', $startTimestamp);
+            . ' - ' . date('d', $endTimestamp)
+            . ' ' . $months[(int) date('n', $startTimestamp)]
+            . ' ' . date('Y', $startTimestamp);
     }
 
     return format_tanggal($start_date) . ' s.d. ' . format_tanggal($end_date);
 }
 
-/**
- * Membuat ringkasan teks tanpa memotong kata jika memungkinkan.
- */
 function excerpt(string $text, int $length = 150, string $end = '...'): string
 {
     $text = strip_tags($text);
     $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
 
-    if ($length <= 0 || mb_strlen($text, 'UTF-8') <= $length) {
-        return $length <= 0 ? '' : $text;
+    if ($length <= 0) {
+        return '';
+    }
+
+    if (mb_strlen($text, 'UTF-8') <= $length) {
+        return $text;
     }
 
     $snippet = mb_substr($text, 0, $length, 'UTF-8');
@@ -163,9 +116,6 @@ function excerpt(string $text, int $length = 150, string $end = '...'): string
     return rtrim($snippet) . $end;
 }
 
-/**
- * Memotong teks berdasarkan jumlah kata.
- */
 function truncate_words(string $text, int $word_limit = 20, string $end = '...'): string
 {
     if ($word_limit <= 0) {
@@ -185,9 +135,6 @@ function truncate_words(string $text, int $word_limit = 20, string $end = '...')
     return implode(' ', array_slice($words, 0, $word_limit)) . $end;
 }
 
-/**
- * Format ukuran file dalam satuan yang mudah dibaca.
- */
 function format_file_size(int $bytes, int $precision = 2): string
 {
     $bytes = max(0, $bytes);
@@ -205,9 +152,6 @@ function format_file_size(int $bytes, int $precision = 2): string
     return round($size, $precision) . ' ' . $units[$unitIndex];
 }
 
-/**
- * Mengambil nilai pengaturan; string "0" tetap dianggap nilai valid.
- */
 function get_setting(string $key, mixed $default = null): mixed
 {
     global $pdo;
@@ -218,7 +162,9 @@ function get_setting(string $key, mixed $default = null): mixed
     }
 
     try {
-        $stmt = $pdo->prepare('SELECT nilai FROM pengaturan WHERE nama_key = ? LIMIT 1');
+        $stmt = $pdo->prepare(
+            'SELECT nilai FROM pengaturan WHERE nama_key = ? LIMIT 1'
+        );
         $stmt->execute([$key]);
         $result = $stmt->fetchColumn();
 
@@ -230,9 +176,6 @@ function get_setting(string $key, mixed $default = null): mixed
     }
 }
 
-/**
- * Menyimpan pengaturan dan mengosongkan cache nilainya.
- */
 if (!function_exists('update_setting')) {
     function update_setting(string $key, mixed $value): void
     {
@@ -254,9 +197,6 @@ if (!function_exists('update_setting')) {
     }
 }
 
-/**
- * Mengambil statistik terbaru dari database.
- */
 function get_statistik(): array
 {
     global $pdo;
@@ -285,9 +225,6 @@ function get_statistik(): array
     }
 }
 
-/**
- * Mengambil berita unggulan.
- */
 function get_featured_berita(int $limit = 3): array
 {
     global $pdo;
@@ -310,9 +247,6 @@ function get_featured_berita(int $limit = 3): array
     }
 }
 
-/**
- * Mengambil program studi aktif.
- */
 function get_prodi(): array
 {
     global $pdo;
@@ -332,9 +266,6 @@ function get_prodi(): array
     }
 }
 
-/**
- * Mengambil agenda aktif mendatang.
- */
 function get_agenda_mendatang(int $limit = 5): array
 {
     global $pdo;
@@ -358,9 +289,6 @@ function get_agenda_mendatang(int $limit = 5): array
     }
 }
 
-/**
- * Menyimpan pesan flash dengan tipe yang dibatasi.
- */
 function flash_message(string $type, string $message): void
 {
     $allowedTypes = ['success', 'error', 'warning', 'info'];
@@ -371,9 +299,6 @@ function flash_message(string $type, string $message): void
     $_SESSION['flash'][$type] = $message;
 }
 
-/**
- * Menampilkan pesan flash dengan escaping untuk mencegah XSS.
- */
 function display_flash(): void
 {
     if (empty($_SESSION['flash']) || !is_array($_SESSION['flash'])) {
@@ -392,7 +317,11 @@ function display_flash(): void
             continue;
         }
 
-        $safeType = htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $safeType = htmlspecialchars(
+            $type,
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
         $safeMessage = htmlspecialchars(
             (string) $message,
             ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5,
@@ -408,9 +337,6 @@ function display_flash(): void
     unset($_SESSION['flash']);
 }
 
-/**
- * Memastikan subdirektori upload berada di dalam assets/.
- */
 function app_upload_directory(string $subdir): ?string
 {
     if (!defined('APP_DIR') || !is_string(APP_DIR) || APP_DIR === '') {
@@ -421,11 +347,12 @@ function app_upload_directory(string $subdir): ?string
     $segments = $subdir === '' ? [] : explode('/', $subdir);
 
     foreach ($segments as $segment) {
-        if ($segment === '' || $segment === '.' || $segment === '..') {
-            return null;
-        }
-
-        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $segment)) {
+        if (
+            $segment === ''
+            || $segment === '.'
+            || $segment === '..'
+            || !preg_match('/^[a-zA-Z0-9_-]+$/', $segment)
+        ) {
             return null;
         }
     }
@@ -462,9 +389,6 @@ function app_upload_directory(string $subdir): ?string
     return $realTarget;
 }
 
-/**
- * Validasi upload gambar berdasarkan MIME dan struktur gambar.
- */
 function upload_image(
     array $file,
     string $subdir = 'uploads',
@@ -489,11 +413,13 @@ function upload_image(
     if ($actualSize === false || $actualSize > max(0, $max_bytes)) {
         return [
             'ok' => false,
-            'error' => 'Ukuran file maksimal ' . format_file_size(max(0, $max_bytes)) . '.',
+            'error' => 'Ukuran file maksimal '
+                . format_file_size(max(0, $max_bytes))
+                . '.',
         ];
     }
 
-    if (!class_exists finfo::class) {
+    if (!class_exists(finfo::class)) {
         return ['ok' => false, 'error' => 'Validasi tipe file tidak tersedia di server.'];
     }
 
@@ -529,9 +455,6 @@ function upload_image(
     return ['ok' => true, 'name' => $name];
 }
 
-/**
- * Upload dokumen menggunakan ekstensi yang ditentukan dari MIME tervalidasi.
- */
 function upload_file(
     array $file,
     string $subdir = 'downloads',
@@ -557,11 +480,13 @@ function upload_file(
     if ($actualSize === false || $actualSize > max(0, $max_bytes)) {
         return [
             'ok' => false,
-            'error' => 'Ukuran file maksimal ' . format_file_size(max(0, $max_bytes)) . '.',
+            'error' => 'Ukuran file maksimal '
+                . format_file_size(max(0, $max_bytes))
+                . '.',
         ];
     }
 
-    if (!class_exists finfo::class) {
+    if (!class_exists(finfo::class)) {
         return ['ok' => false, 'error' => 'Validasi tipe file tidak tersedia di server.'];
     }
 
@@ -614,9 +539,6 @@ function upload_file(
     ];
 }
 
-/**
- * Menghapus upload berdasarkan nama file, tanpa menerima path dari pengguna.
- */
 function delete_upload(?string $name, string $subdir = 'uploads'): void
 {
     if ($name === null || $name === '' || basename($name) !== $name) {
@@ -635,9 +557,6 @@ function delete_upload(?string $name, string $subdir = 'uploads'): void
     }
 }
 
-/**
- * Menghasilkan teks waktu relatif.
- */
 function time_ago(int $timestamp): string
 {
     $diff = time() - $timestamp;
@@ -649,27 +568,24 @@ function time_ago(int $timestamp): string
         return 'Baru saja';
     }
     if ($diff < 3600) {
-        return (string) floor($diff / 60) . ' menit lalu';
+        return floor($diff / 60) . ' menit lalu';
     }
     if ($diff < 86400) {
-        return (string) floor($diff / 3600) . ' jam lalu';
+        return floor($diff / 3600) . ' jam lalu';
     }
     if ($diff < 604800) {
-        return (string) floor($diff / 86400) . ' hari lalu';
+        return floor($diff / 86400) . ' hari lalu';
     }
     if ($diff < 2592000) {
-        return (string) floor($diff / 604800) . ' minggu lalu';
+        return floor($diff / 604800) . ' minggu lalu';
     }
     if ($diff < 31536000) {
-        return (string) floor($diff / 2592000) . ' bulan lalu';
+        return floor($diff / 2592000) . ' bulan lalu';
     }
 
-    return (string) floor($diff / 31536000) . ' tahun lalu';
+    return floor($diff / 31536000) . ' tahun lalu';
 }
 
-/**
- * Menyorot teks pencarian; teks dan query di-escape sebelum HTML dibuat.
- */
 function highlight_search(string $text, string $q): string
 {
     $query = trim($q);
@@ -699,11 +615,11 @@ function highlight_search(string $text, string $q): string
     return $result ?? $safeText;
 }
 
-/**
- * Menghasilkan markup navigasi halaman.
- */
-function generate_pagination(int $current_page, int $total_pages, string $base_url): string
-{
+function generate_pagination(
+    int $current_page,
+    int $total_pages,
+    string $base_url
+): string {
     $total_pages = max(0, $total_pages);
     if ($total_pages <= 1) {
         return '';
@@ -718,9 +634,7 @@ function generate_pagination(int $current_page, int $total_pages, string $base_u
 
     $html = '<nav class="pagination-pro" aria-label="Navigasi halaman">'
         . '<div class="page-info">Halaman '
-        . $current_page
-        . ' dari '
-        . $total_pages
+        . $current_page . ' dari ' . $total_pages
         . '</div><div class="page-buttons">';
 
     if ($current_page > 1) {
@@ -744,12 +658,10 @@ function generate_pagination(int $current_page, int $total_pages, string $base_u
     for ($page = $start; $page <= $end; $page++) {
         if ($page === $current_page) {
             $html .= '<span class="page-btn current" aria-current="page">'
-                . $page
-                . '</span>';
+                . $page . '</span>';
         } else {
             $html .= '<a href="' . $safeBaseUrl . $page . '" class="page-btn">'
-                . $page
-                . '</a>';
+                . $page . '</a>';
         }
     }
 
@@ -759,8 +671,7 @@ function generate_pagination(int $current_page, int $total_pages, string $base_u
         }
 
         $html .= '<a href="' . $safeBaseUrl . $total_pages . '" class="page-btn">'
-            . $total_pages
-            . '</a>';
+            . $total_pages . '</a>';
     }
 
     if ($current_page < $total_pages) {
@@ -773,18 +684,12 @@ function generate_pagination(int $current_page, int $total_pages, string $base_u
     return $html . '</div></nav>';
 }
 
-/**
- * Membersihkan nama file untuk kebutuhan tampilan atau metadata.
- */
 function clean_filename(string $filename): string
 {
     $cleaned = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $filename) ?? '';
     return preg_replace('/_+/', '_', $cleaned) ?? '';
 }
 
-/**
- * Memeriksa dan mencatat percobaan berdasarkan sesi.
- */
 function check_rate_limit(
     string $identifier,
     int $max_attempts = 5,
@@ -817,9 +722,6 @@ function check_rate_limit(
     return true;
 }
 
-/**
- * Mengembalikan kuota percobaan yang tersisa pada sesi saat ini.
- */
 function rate_limit_remaining(
     string $identifier,
     int $max_attempts = 5,
