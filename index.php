@@ -1,6 +1,7 @@
 <?php
 // index.php - Beranda FKIP UNIMOF (EXTREME MULTIMATE VERSION)
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/icons.php'; // ✅ IKON REALISTIS: sprite + helper
 
 $page_title = 'Beranda';
 $page_description = 'Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere — Mencetak pendidik profesional berkarakter Islami untuk Indonesia Timur';
@@ -147,12 +148,13 @@ try {
 } catch (Exception $e) {}
 
 // Fallback ticker jika kosong
+// ✅ IKON REALISTIS: emoji dihapus, ikon diambil dari kolom 'icon'
 if (empty($ticker)) {
     $ticker = [
-        ['judul' => '🔥 Penerimaan Mahasiswa Baru 2026/2027 Gelombang 1 Telah Dibuka!'],
-        ['judul' => '📅 Pendaftaran Wisuda Periode I ditutup 31 Desember 2026'],
-        ['judul' => '🏆 Selamat kepada mahasiswa berprestasi di Kompetisi Nasional'],
-        ['judul' => '📢 Seminar Nasional Pendidikan akan dilaksanakan bulan depan'],
+        ['judul' => 'Penerimaan Mahasiswa Baru 2026/2027 Gelombang 1 Telah Dibuka!', 'icon' => 'flame'],
+        ['judul' => 'Pendaftaran Wisuda Periode I ditutup 31 Desember 2026',        'icon' => 'cal'],
+        ['judul' => 'Selamat kepada mahasiswa berprestasi di Kompetisi Nasional',   'icon' => 'trophy'],
+        ['judul' => 'Seminar Nasional Pendidikan akan dilaksanakan bulan depan',    'icon' => 'mega'],
     ];
 }
 
@@ -163,8 +165,8 @@ $hero_config = [
     'headline_3'   => 'Menghadirkan Harapan',
     'badge_text'   => 'Penerimaan Mahasiswa Baru 2026/2027 Telah Dibuka',
     'badge_link'   => base_url('pmb.php'),
-    'primary_cta'  => ['text' => 'Jelajahi Program Studi', 'url' => base_url('program.php'), 'icon' => '🎓'],
-    'secondary_cta' => ['text' => 'Hubungi Kami', 'url' => base_url('kontak.php'), 'icon' => '💬'],
+    'primary_cta'  => ['text' => 'Jelajahi Program Studi', 'url' => base_url('program.php'), 'icon' => 'grad'],
+    'secondary_cta' => ['text' => 'Hubungi Kami', 'url' => base_url('kontak.php'), 'icon' => 'chat'],
 ];
 
 // =====================================================
@@ -193,6 +195,7 @@ try {
 } catch (Exception $e) {}
 
 require_once __DIR__ . '/includes/header.php';
+echo icon_sprite(); // ✅ IKON REALISTIS: sprite dicetak sekali di sini
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -425,7 +428,7 @@ require_once __DIR__ . '/includes/header.php';
     background: linear-gradient(90deg, var(--stat-color, var(--primary)), transparent);
 }
 .stat-card-extreme:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: var(--stat-color, var(--primary)); }
-.stat-icon-extreme { font-size: 2.5rem; margin-bottom: 1rem; transition: transform 0.3s; }
+.stat-icon-extreme { margin-bottom: 1rem; transition: transform 0.3s; line-height: 1; }
 .stat-card-extreme:hover .stat-icon-extreme { transform: scale(1.15) rotate(-8deg); }
 .stat-number-extreme {
     font-family: var(--font-display); font-size: 3rem; font-weight: 900;
@@ -469,10 +472,10 @@ require_once __DIR__ . '/includes/header.php';
 .feature-item-extreme:hover { transform: translateX(8px); border-color: var(--primary); box-shadow: var(--shadow-md); }
 .feature-icon-extreme {
     width: 50px; height: 50px; background: rgba(10,104,71,0.1); border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;
-    transition: all 0.3s;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all 0.3s; line-height: 1;
 }
-.feature-item-extreme:hover .feature-icon-extreme { background: var(--primary); color: white; transform: scale(1.1); }
+.feature-item-extreme:hover .feature-icon-extreme { background: var(--primary); transform: scale(1.1); }
 .feature-item-extreme h4 { font-size: 1.05rem; margin-bottom: 0.25rem; font-weight: 700; }
 .feature-item-extreme p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
@@ -493,9 +496,9 @@ require_once __DIR__ . '/includes/header.php';
 
 .img-placeholder-extreme {
     width: 100%; height: 100%; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; color: white; font-size: 3.5rem;
+    align-items: center; justify-content: center; color: white; gap: 0.5rem;
 }
-.img-placeholder-extreme p { font-size: 1rem; margin-top: 0.75rem; font-weight: 700; letter-spacing: 0.05em; }
+.img-placeholder-extreme p { font-size: 1rem; margin-top: 0.25rem; font-weight: 700; letter-spacing: 0.05em; }
 
 .stats-floating-extreme {
     position: absolute; bottom: -5%; right: 5%; z-index: 3;
@@ -549,7 +552,7 @@ require_once __DIR__ . '/includes/header.php';
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     transform: scale(1.1); transform-origin: left;
 }
-.program-icon-extreme { font-size: 2.5rem; margin-bottom: 1.25rem; transition: transform 0.4s; }
+.program-icon-extreme { margin-bottom: 1.25rem; transition: transform 0.4s; line-height: 1; }
 .program-card-extreme:hover .program-icon-extreme { transform: scale(1.2) rotate(-10deg); }
 
 .program-badge-extreme {
@@ -582,10 +585,11 @@ require_once __DIR__ . '/includes/header.php';
     padding: 7rem 0; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
     position: relative; overflow: hidden;
 }
-.section-prestasi-extreme::before {
-    content: '🏆'; position: absolute; font-size: 25rem; opacity: 0.05;
-    top: 50%; right: -5%; transform: translateY(-50%) rotate(-15deg);
-    pointer-events: none;
+/* ✅ IKON REALISTIS: watermark emoji 🏆 diganti SVG trophy (lihat .prestasi-watermark) */
+.prestasi-watermark {
+    position: absolute; top: 50%; right: -5%; width: 25rem; height: 25rem;
+    transform: translateY(-50%) rotate(-15deg);
+    opacity: 0.05; pointer-events: none; filter: none !important;
 }
 .prestasi-grid-extreme {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -664,6 +668,7 @@ require_once __DIR__ . '/includes/header.php';
     display: flex; gap: 1.25rem; color: var(--text-muted); font-size: 0.82rem;
     margin-bottom: 1rem; font-weight: 600;
 }
+.news-meta-extreme span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .news-title-extreme { font-size: 1.2rem; font-weight: 800; line-height: 1.4; margin-bottom: 1rem; }
 .news-title-extreme a {
     color: var(--text-primary); text-decoration: none;
@@ -724,7 +729,7 @@ require_once __DIR__ . '/includes/header.php';
 .calendar-type-extreme.rapat { background: #dcfce7; color: #166534; }
 .calendar-type-extreme.lainnya { background: #f3f4f6; color: #4b5563; }
 .calendar-info-extreme h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem; }
-.calendar-info-extreme p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+.calendar-info-extreme p { font-size: 0.82rem; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 0.35rem; }
 .calendar-arrow-extreme { color: var(--primary); font-size: 1.5rem; transition: transform 0.3s; opacity: 0; }
 .calendar-item-extreme:hover .calendar-arrow-extreme { opacity: 1; transform: translateX(5px); }
 
@@ -759,8 +764,8 @@ require_once __DIR__ . '/includes/header.php';
     font-style: italic; margin-bottom: 1.5rem; position: relative; z-index: 1;
 }
 .testi-name-extreme { font-weight: 800; font-size: 1rem; color: var(--text-primary); }
-.testi-meta-extreme { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; }
-.testi-stars-extreme { color: #f59e0b; font-size: 1.1rem; margin-top: 0.75rem; letter-spacing: 0.15em; }
+.testi-meta-extreme { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+.testi-stars-extreme { margin-top: 0.75rem; display: flex; justify-content: center; gap: 3px; }
 .testi-nav-extreme {
     display: flex; justify-content: center; align-items: center;
     gap: 1rem; margin-top: 1.5rem;
@@ -798,7 +803,7 @@ require_once __DIR__ . '/includes/header.php';
 .galeri-item-extreme:hover img { transform: scale(1.08); }
 .galeri-placeholder {
     width: 100%; height: 100%; display: flex; align-items: center;
-    justify-content: center; font-size: 3rem; color: var(--text-muted); opacity: 0.5;
+    justify-content: center; color: var(--text-muted); opacity: 0.5;
     background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
 }
 .galeri-overlay {
@@ -847,7 +852,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 .mitra-item-text {
     font-weight: 700; font-size: 0.9rem; color: var(--text-primary);
-    text-align: center;
+    text-align: center; display: inline-flex; align-items: center; gap: 0.5rem;
 }
 
 /* =====================================================
@@ -889,7 +894,7 @@ require_once __DIR__ . '/includes/header.php';
     width: 60px; height: 60px; border-radius: 50%;
     background: linear-gradient(135deg, #25D366, #128C7E);
     color: white; display: flex; align-items: center; justify-content: center;
-    font-size: 1.75rem; text-decoration: none; box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    text-decoration: none; box-shadow: 0 8px 25px rgba(37,211,102,0.4);
     transition: all 0.3s; animation: waFloat 3s ease-in-out infinite;
 }
 .floating-wa:hover { transform: scale(1.1); }
@@ -905,7 +910,7 @@ require_once __DIR__ . '/includes/header.php';
     width: 60px; height: 60px; border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
     color: white; display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; text-decoration: none;
+    text-decoration: none;
     box-shadow: 0 8px 25px rgba(10,104,71,0.4);
     transition: all 0.3s;
 }
@@ -954,10 +959,36 @@ require_once __DIR__ . '/includes/header.php';
     border-radius: var(--radius-xl); border: 2px dashed var(--border);
 }
 .empty-icon-lg {
-    font-size: 4rem; margin-bottom: 0.85rem; opacity: 0.5;
+    margin-bottom: 0.85rem; opacity: 0.5; line-height: 1;
     animation: float 3s ease-in-out infinite;
 }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* =====================================================
+   ✅ IKON REALISTIS — penyesuaian tampilan sprite SVG
+   ===================================================== */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ic {
+    display: inline-block; vertical-align: -0.32em; flex: none;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22));
+}
+.stat-icon-extreme .ic      { filter: drop-shadow(0 7px 9px rgba(0,0,0,0.30)); }
+.feature-icon-extreme .ic   { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.30)); }
+.program-icon-extreme .ic   { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.28)); }
+.hero-trust-pill .ic        { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
+.ticker-label .ic           { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)); }
+.ticker-item .ic            { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+.img-placeholder-extreme .ic{ filter: drop-shadow(0 8px 12px rgba(0,0,0,0.35)); }
+.news-meta-extreme .ic,
+.program-meta-extreme .ic,
+.prestasi-meta-extreme .ic,
+.calendar-info-extreme .ic  { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); }
+.testi-stars-extreme .ic    { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); }
+.floating-wa .ic,
+.floating-pmb .ic           { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.40)); }
+.hero-sound-toggle .ic      { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.50)); }
+.empty-icon-lg .ic          { filter: drop-shadow(0 8px 12px rgba(0,0,0,0.20)); }
+.galeri-placeholder .ic     { filter: none; }
 
 /* =====================================================
    RESPONSIVE
@@ -992,7 +1023,7 @@ require_once __DIR__ . '/includes/header.php';
 <!-- ===== HERO EXTREME ===== -->
 <section class="hero-extreme <?= $hero_video_url ? 'has-video' : '' ?>" id="hero">
     <?php if ($hero_video_url): ?>
-    <!-- 🎥 Layer Video Background -->
+    <!-- Layer Video Background -->
     <div class="hero-video-wrap" id="heroVideoWrap">
         <video class="hero-video-bg" id="heroVideo"
                autoplay muted loop playsinline preload="metadata"
@@ -1002,7 +1033,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="hero-video-overlay"></div>
     </div>
     <button class="hero-sound-toggle" id="heroSoundToggle"
-            aria-label="Aktifkan atau nonaktifkan suara video" title="Suara video">🔇</button>
+            aria-label="Aktifkan atau nonaktifkan suara video" title="Suara video"><?= ric('vol-mute', 20) ?></button>
     <?php endif; ?>
     <div class="hero-bg-extreme"></div>
     <div class="hero-particles-extreme" id="particles"></div>
@@ -1029,10 +1060,10 @@ require_once __DIR__ . '/includes/header.php';
         </p>
 
         <div class="hero-trust-row" data-aos="fade-up" data-aos-delay="300">
-            <span class="hero-trust-pill">🎓 <?= $stat_prodi ?> Program Studi</span>
-            <span class="hero-trust-pill">👨‍🎓 <?= number_format($stat_mahasiswa) ?> Mahasiswa</span>
-            <span class="hero-trust-pill">🏆 <?= $stat_prestasi ?> Prestasi</span>
-            <span class="hero-trust-pill">⭐ Akreditasi Unggul</span>
+            <span class="hero-trust-pill"><?= ric('grad', 17) ?> <?= $stat_prodi ?> Program Studi</span>
+            <span class="hero-trust-pill"><?= ric('student', 17) ?> <?= number_format($stat_mahasiswa) ?> Mahasiswa</span>
+            <span class="hero-trust-pill"><?= ric('trophy', 17) ?> <?= $stat_prestasi ?> Prestasi</span>
+            <span class="hero-trust-pill"><?= ric('star', 17) ?> Akreditasi Unggul</span>
         </div>
 
         <div class="hero-actions-extreme" data-aos="fade-up" data-aos-delay="400">
@@ -1059,14 +1090,14 @@ require_once __DIR__ . '/includes/header.php';
 <!-- ===== TICKER PENGUMUMAN ===== -->
 <?php if (!empty($ticker)): ?>
 <div class="ticker-bar">
-    <div class="ticker-label">📢 Pengumuman</div>
+    <div class="ticker-label"><?= ric('mega', 16) ?> Pengumuman</div>
     <div class="ticker-track">
         <?php
         // Duplikasi agar loop seamless
         $ticker_double = array_merge($ticker, $ticker);
         foreach ($ticker_double as $t):
         ?>
-        <span class="ticker-item"><?= sanitize($t['judul']) ?></span>
+        <span class="ticker-item"><?php if (!empty($t['icon'])) echo ric($t['icon'], 15); ?><?= ric_text(sanitize($t['judul'])) ?></span>
         <?php endforeach; ?>
     </div>
 </div>
@@ -1076,22 +1107,22 @@ require_once __DIR__ . '/includes/header.php';
 <div class="container">
     <div class="stats-bar-extreme" data-aos="fade-up">
         <div class="stat-card-extreme" style="--stat-color: #3b82f6;">
-            <div class="stat-icon-extreme">👨‍🎓</div>
+            <div class="stat-icon-extreme"><?= ric('student', 42) ?></div>
             <div class="stat-number-extreme count-up" data-count="<?= $stat_mahasiswa ?>">0</div>
             <div class="stat-label-extreme">Mahasiswa Aktif</div>
         </div>
         <div class="stat-card-extreme" style="--stat-color: #10b981;">
-            <div class="stat-icon-extreme">🎓</div>
+            <div class="stat-icon-extreme"><?= ric('grad', 42) ?></div>
             <div class="stat-number-extreme count-up" data-count="<?= $stat_prodi ?>">0</div>
             <div class="stat-label-extreme">Program Studi</div>
         </div>
         <div class="stat-card-extreme" style="--stat-color: #f59e0b;">
-            <div class="stat-icon-extreme">👨‍🏫</div>
+            <div class="stat-icon-extreme"><?= ric('teacher', 42) ?></div>
             <div class="stat-number-extreme count-up" data-count="<?= $stat_dosen ?>">0</div>
             <div class="stat-label-extreme">Dosen Berkualitas</div>
         </div>
         <div class="stat-card-extreme" style="--stat-color: #8b5cf6;">
-            <div class="stat-icon-extreme">🏆</div>
+            <div class="stat-icon-extreme"><?= ric('trophy', 42) ?></div>
             <div class="stat-number-extreme count-up" data-count="<?= $stat_alumni ?>">0</div>
             <div class="stat-label-extreme">Alumni Sukses</div>
         </div>
@@ -1109,28 +1140,28 @@ require_once __DIR__ . '/includes/header.php';
 
                 <div class="features-list-extreme">
                     <div class="feature-item-extreme">
-                        <div class="feature-icon-extreme">🎓</div>
+                        <div class="feature-icon-extreme"><?= ric('grad', 28) ?></div>
                         <div>
                             <h4>Kurikulum Modern</h4>
                             <p>Disusun mengikuti standar KKNI dan kebutuhan industri pendidikan 4.0</p>
                         </div>
                     </div>
                     <div class="feature-item-extreme">
-                        <div class="feature-icon-extreme">🌏</div>
+                        <div class="feature-icon-extreme"><?= ric('globe', 28) ?></div>
                         <div>
                             <h4>Jaringan Global</h4>
                             <p>Kerjasama dengan universitas dan lembaga pendidikan di ASEAN</p>
                         </div>
                     </div>
                     <div class="feature-item-extreme">
-                        <div class="feature-icon-extreme">💼</div>
+                        <div class="feature-icon-extreme"><?= ric('briefcase', 28) ?></div>
                         <div>
                             <h4>Siap Kerja</h4>
                             <p>Program magang, sertifikasi, dan career center terintegrasi</p>
                         </div>
                     </div>
                     <div class="feature-item-extreme">
-                        <div class="feature-icon-extreme">🔬</div>
+                        <div class="feature-icon-extreme"><?= ric('micro', 28) ?></div>
                         <div>
                             <h4>Research-Driven</h4>
                             <p>Pusat riset pendidikan dengan jurnal ilmiah bereputasi</p>
@@ -1145,19 +1176,19 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="image-stack-extreme">
                     <div class="img-main-extreme">
                         <div class="img-placeholder-extreme" style="background: linear-gradient(135deg, #0a6847 0%, #16a34a 100%);">
-                            <span>🏛️</span>
+                            <?= ric('bank', 62) ?>
                             <p>Kampus FKIP</p>
                         </div>
                     </div>
                     <div class="img-accent-extreme img-1-extreme">
                         <div class="img-placeholder-extreme" style="background: linear-gradient(135deg, #f5a623 0%, #fbbf24 100%);">
-                            <span>📚</span>
+                            <?= ric('books', 52) ?>
                             <p>Perpustakaan</p>
                         </div>
                     </div>
                     <div class="img-accent-extreme img-2-extreme">
                         <div class="img-placeholder-extreme" style="background: linear-gradient(135deg, #16213e 0%, #3b82f6 100%);">
-                            <span>🧪</span>
+                            <?= ric('flask', 52) ?>
                             <p>Laboratorium</p>
                         </div>
                     </div>
@@ -1201,26 +1232,27 @@ require_once __DIR__ . '/includes/header.php';
                 ['#ec4899', '#db2777'], ['#ef4444', '#dc2626'],
                 ['#14b8a6', '#0d9488'], ['#f97316', '#ea580c']
             ];
-            $icons = ['📐', '⚛️', '🧬', '🧪', '🌐', '📖', '💰', '⚖️', '🎨', '🎭'];
+            // ✅ IKON REALISTIS: nama ikon SVG pengganti emoji
+            $icons = ['ruler', 'atom', 'dna', 'flask', 'globe', 'book', 'coins', 'scale', 'palette', 'masks'];
 
             foreach ($prodi as $index => $p):
                 $colors = $prodi_colors[$index % count($prodi_colors)];
-                $icon = $icons[$index % count($icons)] ?? '🎓';
+                $icon = $icons[$index % count($icons)] ?? 'grad';
             ?>
             <article class="program-card-extreme" data-aos="fade-up" data-aos-delay="<?= ($index % 4) * 100 ?>"
                 onclick="window.location='<?= base_url('program-detail.php?id=' . $p['id']) ?>'"
                 style="--card-color-1: <?= $colors[0] ?>; --card-color-2: <?= $colors[1] ?>;">
                 <div class="program-number-extreme"><?= str_pad($index + 1, 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="program-icon-extreme"><?= $icon ?></div>
+                <div class="program-icon-extreme"><?= ric($icon, 42) ?></div>
                 <div class="program-badge-extreme"><?= sanitize($p['akreditasi'] ?? 'Terakreditasi') ?></div>
                 <h3 class="program-title-extreme"><?= sanitize($p['nama']) ?></h3>
                 <p class="program-level-extreme"><?= sanitize($p['jenjang'] ?? 'S1') ?> • <?= sanitize($p['singkatan'] ?? '') ?></p>
                 <div class="program-meta-extreme">
                     <?php if ($prodi_cols['jumlah_dosen'] && !empty($p['jumlah_dosen'])): ?>
-                        <span>👨‍🏫 <?= (int)$p['jumlah_dosen'] ?> Dosen</span>
+                        <span><?= ric('teacher', 14) ?> <?= (int)$p['jumlah_dosen'] ?> Dosen</span>
                     <?php endif; ?>
                     <?php if ($prodi_cols['jumlah_mahasiswa'] && !empty($p['jumlah_mahasiswa'])): ?>
-                        <span>👨‍🎓 <?= (int)$p['jumlah_mahasiswa'] ?> Mhs</span>
+                        <span><?= ric('student', 14) ?> <?= (int)$p['jumlah_mahasiswa'] ?> Mhs</span>
                     <?php endif; ?>
                 </div>
                 <a href="<?= base_url('program-detail.php?id=' . $p['id']) ?>" class="program-link-extreme" onclick="event.stopPropagation()">
@@ -1238,6 +1270,7 @@ require_once __DIR__ . '/includes/header.php';
 <!-- ===== PRESTASI SHOWCASE ===== -->
 <?php if (!empty($prestasi_latest)): ?>
 <section class="section-prestasi-extreme" id="prestasi">
+    <?= ric('trophy', 400, 'ic prestasi-watermark') ?>
     <div class="container">
         <div class="section-header-split" data-aos="fade-up">
             <div>
@@ -1250,11 +1283,12 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="prestasi-grid-extreme">
             <?php
+            // ✅ IKON REALISTIS
             $tingkat_icons = [
-                'Internasional' => ['icon' => '🌍', 'badge' => 'badge-intl-ext'],
-                'Nasional'      => ['icon' => '🇮🇩', 'badge' => 'badge-nas-ext'],
-                'Wilayah'       => ['icon' => '🏛️', 'badge' => 'badge-reg-ext'],
-                'Universitas'   => ['icon' => '🏫', 'badge' => 'badge-default-ext'],
+                'Internasional' => ['icon' => 'globe', 'badge' => 'badge-intl-ext'],
+                'Nasional'      => ['icon' => 'flag',  'badge' => 'badge-nas-ext'],
+                'Wilayah'       => ['icon' => 'bank',  'badge' => 'badge-reg-ext'],
+                'Universitas'   => ['icon' => 'school','badge' => 'badge-default-ext'],
             ];
             foreach ($prestasi_latest as $pr):
                 $t = $pr['tingkat'] ?? 'Nasional';
@@ -1263,18 +1297,18 @@ require_once __DIR__ . '/includes/header.php';
             <div class="prestasi-card-extreme" data-aos="fade-up">
                 <div class="prestasi-year-extreme"><?= sanitize($pr['tahun'] ?? '-') ?></div>
                 <span class="prestasi-level-badge <?= $meta['badge'] ?>">
-                    <?= $meta['icon'] ?> <?= strtoupper(sanitize($t)) ?>
+                    <?= ric($meta['icon'], 14) ?> <?= strtoupper(sanitize($t)) ?>
                 </span>
                 <h3 class="prestasi-title-extreme"><?= sanitize($pr['judul']) ?></h3>
                 <div class="prestasi-meta-extreme">
                     <?php if (!empty($pr['mahasiswa'])): ?>
-                        <span>👤 <?= sanitize($pr['mahasiswa']) ?></span>
+                        <span><?= ric('user', 14) ?> <?= sanitize($pr['mahasiswa']) ?></span>
                     <?php endif; ?>
                     <?php if (!empty($pr['juara'])): ?>
-                        <span>🥇 <?= sanitize($pr['juara']) ?></span>
+                        <span><?= ric('medal', 14) ?> <?= sanitize($pr['juara']) ?></span>
                     <?php endif; ?>
                     <?php if (!empty($pr['prodi_singkatan'])): ?>
-                        <span>🎓 <?= sanitize($pr['prodi_singkatan']) ?></span>
+                        <span><?= ric('grad', 14) ?> <?= sanitize($pr['prodi_singkatan']) ?></span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -1298,7 +1332,7 @@ require_once __DIR__ . '/includes/header.php';
 
         <?php if (empty($berita_terbaru)): ?>
             <div class="empty-state-premium" data-aos="fade-up">
-                <div class="empty-icon-lg">📭</div>
+                <div class="empty-icon-lg"><?= ric('news', 64) ?></div>
                 <h3>Belum ada berita yang dipublikasikan</h3>
                 <p style="color: var(--text-muted); margin-top: 0.5rem;">Kunjungi lagi nanti untuk update terbaru.</p>
             </div>
@@ -1310,8 +1344,8 @@ require_once __DIR__ . '/includes/header.php';
                         <?php if (!empty($berita['gambar'])): ?>
                             <img src="<?= asset('uploads/' . basename($berita['gambar'])) ?>" alt="<?= sanitize($berita['judul']) ?>" loading="lazy">
                         <?php else: ?>
-                            <div class="img-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; font-size:4rem; color:white;">
-                                📰
+                            <div class="img-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; color:white;">
+                                <?= ric('news', 60) ?>
                             </div>
                         <?php endif; ?>
                         <?php if (!empty($berita['kategori'])): ?>
@@ -1320,9 +1354,9 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div class="news-content-extreme">
                         <div class="news-meta-extreme">
-                            <span>📅 <?= format_tanggal_singkat($berita['published_at'] ?? $berita['created_at']) ?></span>
+                            <span><?= ric('cal', 14) ?> <?= format_tanggal_singkat($berita['published_at'] ?? $berita['created_at']) ?></span>
                             <?php if ($berita_cols['views']): ?>
-                                <span>👁 <?= number_format($berita['views'] ?? 0) ?> Views</span>
+                                <span><?= ric('eye', 14) ?> <?= number_format($berita['views'] ?? 0) ?> Views</span>
                             <?php endif; ?>
                         </div>
                         <h3 class="news-title-extreme">
@@ -1388,7 +1422,7 @@ require_once __DIR__ . '/includes/header.php';
                             <span class="calendar-type-extreme <?= $jenis ?>"><?= ucfirst(sanitize($ag['jenis'] ?? 'Agenda')) ?></span>
                             <h4><?= sanitize($ag['judul']) ?></h4>
                             <?php if (!empty($ag['lokasi'])): ?>
-                                <p>📍 <?= sanitize($ag['lokasi']) ?></p>
+                                <p><?= ric('pin', 14) ?> <?= sanitize($ag['lokasi']) ?></p>
                             <?php endif; ?>
                         </div>
                         <div class="calendar-arrow-extreme">→</div>
@@ -1430,9 +1464,9 @@ require_once __DIR__ . '/includes/header.php';
                             <p class="testi-quote-extreme">"<?= sanitize($t['pesan']) ?>"</p>
                             <div class="testi-name-extreme"><?= sanitize($t['nama']) ?></div>
                             <div class="testi-meta-extreme">
-                                💬 <?= sanitize($t['jabatan'] ?: 'Alumni / Mahasiswa FKIP') ?>
+                                <?= ric('chat', 14) ?> <?= sanitize($t['jabatan'] ?: 'Alumni / Mahasiswa FKIP') ?>
                             </div>
-                            <div class="testi-stars-extreme"><?php for ($i = 1; $i <= 5; $i++): ?><?= $i <= $rating ? '★' : '☆' ?><?php endfor; ?></div>
+                            <div class="testi-stars-extreme"><?php for ($i = 1; $i <= 5; $i++): echo $i <= $rating ? ric('star', 18) : ric('star-o', 18); endfor; ?></div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -1467,7 +1501,7 @@ require_once __DIR__ . '/includes/header.php';
                 <?php if (!empty($g['gambar'])): ?>
                     <img src="<?= asset('uploads/galeri/' . basename($g['gambar'])) ?>" alt="<?= sanitize($g['judul'] ?? '') ?>" loading="lazy">
                 <?php else: ?>
-                    <div class="galeri-placeholder">📸</div>
+                    <div class="galeri-placeholder"><?= ric('cam', 46) ?></div>
                 <?php endif; ?>
                 <div class="galeri-overlay">
                     <span class="galeri-caption"><?= sanitize($g['judul'] ?? 'Kegiatan FKIP UNIMOF') ?></span>
@@ -1496,13 +1530,14 @@ require_once __DIR__ . '/includes/header.php';
             $mitra_double = array_merge($mitra, $mitra);
             foreach ($mitra_double as $m):
                 $jenis = $m['jenis'] ?? 'Mitra';
-                $icon = $jenis === 'Universitas' ? '🎓' : ($jenis === 'Pemerintah' ? '🏛️' : ($jenis === 'Industri' ? '🏭' : '🤝'));
+                // ✅ IKON REALISTIS
+                $icon = $jenis === 'Universitas' ? 'grad' : ($jenis === 'Pemerintah' ? 'bank' : ($jenis === 'Industri' ? 'factory' : 'handshake'));
             ?>
             <div class="mitra-item-extreme">
                 <?php if (!empty($m['logo'])): ?>
                     <img src="<?= asset('uploads/kerjasama/' . basename($m['logo'])) ?>" alt="<?= sanitize($m['nama_institusi']) ?>" class="mitra-item-logo">
                 <?php else: ?>
-                    <span class="mitra-item-text"><?= $icon ?> <?= sanitize($m['nama_institusi']) ?></span>
+                    <span class="mitra-item-text"><?= ric($icon, 22) ?> <?= sanitize($m['nama_institusi']) ?></span>
                 <?php endif; ?>
             </div>
             <?php endforeach; ?>
@@ -1537,8 +1572,8 @@ require_once __DIR__ . '/includes/header.php';
 </section>
 
 <!-- ===== FLOATING BUTTONS ===== -->
-<a href="<?= base_url('pmb.php') ?>" class="floating-pmb" title="Daftar Sekarang">📝</a>
-<a href="https://wa.me/6281234567890?text=Halo%20Admin%20FKIP%20UNIMOF,%20saya%20ingin%20bertanya" target="_blank" class="floating-wa" title="Chat Admin">💬</a>
+<a href="<?= base_url('pmb.php') ?>" class="floating-pmb" title="Daftar Sekarang"><?= ric('pen', 26) ?></a>
+<a href="https://wa.me/6281234567890?text=Halo%20Admin%20FKIP%20UNIMOF,%20saya%20ingin%20bertanya" target="_blank" class="floating-wa" title="Chat Admin"><?= ric('chat-w', 30) ?></a>
 <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Kembali ke atas">↑</button>
 
 <!-- ===== TOAST ===== -->
@@ -1653,6 +1688,10 @@ document.addEventListener('keydown', (e) => {
     const hero    = document.getElementById('hero');
     if (!video || !wrap || !hero) return;
 
+    // ✅ IKON REALISTIS: ikon speaker SVG untuk toggle suara
+    const IC_MUTE = '<svg class="ic" width="20" height="20" aria-hidden="true"><use href="#ic-vol-mute"></use></svg>';
+    const IC_VOL  = '<svg class="ic" width="20" height="20" aria-hidden="true"><use href="#ic-vol"></use></svg>';
+
     // 1) Hormati prefers-reduced-motion & mode hemat data
     const reduced  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = !!(navigator.connection && navigator.connection.saveData);
@@ -1689,7 +1728,7 @@ document.addEventListener('keydown', (e) => {
     if (soundBtn) {
         soundBtn.addEventListener('click', () => {
             video.muted = !video.muted;
-            soundBtn.textContent = video.muted ? '🔇' : '🔊';
+            soundBtn.innerHTML = video.muted ? IC_MUTE : IC_VOL;
             soundBtn.classList.toggle('unmuted', !video.muted);
             if (!video.muted) video.play().catch(() => {});
         });
@@ -1700,7 +1739,7 @@ document.addEventListener('keydown', (e) => {
     if (pr && pr.catch) pr.catch(() => { video.muted = true; video.play().catch(() => {}); });
 })();
 
-console.log('%c🏠 Beranda FKIP UNIMOF - EXTREME MULTIMATE', 'color:#0a6847;font-size:16px;font-weight:bold');
+console.log('%cBeranda FKIP UNIMOF - EXTREME MULTIMATE (Ikon Realistis)', 'color:#0a6847;font-size:16px;font-weight:bold');
 console.log('%cWebsite siap dengan performa optimal!', 'color:#64748b');
 </script>
 

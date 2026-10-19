@@ -1,5 +1,6 @@
 <?php
 // includes/header.php - Public Website Header (EXTREME MULTIMATE VERSION)
+require_once __DIR__ . '/icons.php'; // ✅ IKON REALISTIS: sprite + helper
 
 // =====================================================
 // MAINTENANCE MODE ENFORCEMENT (hanya sisi publik)
@@ -32,16 +33,19 @@ if (!defined('MAINTENANCE_BYPASS')) {
                 *{margin:0;padding:0;box-sizing:border-box}
                 body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#064e34,#0a6847 50%,#065f46);color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center}
                 .box{max-width:560px}
-                .icon{font-size:4rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite}
+                .icon{margin-bottom:1rem;animation:float 3s ease-in-out infinite;line-height:1}
                 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
                 h1{font-size:2rem;margin-bottom:.75rem}
                 p{opacity:.9;line-height:1.7;margin-bottom:1.5rem;white-space:pre-line}
                 .badge{display:inline-block;padding:.4rem 1rem;border:1px solid rgba(255,255,255,.35);border-radius:999px;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+                .sprite{position:absolute;width:0;height:0;overflow:hidden}
+                .ic{display:inline-block;vertical-align:-0.15em;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
             </style>
             </head>
             <body>
+                <?php echo icon_sprite(); // ✅ IKON REALISTIS: sprite untuk halaman maintenance ?>
                 <div class="box">
-                    <div class="icon">🛠️</div>
+                    <div class="icon"><?= ric('wrench', 72) ?></div>
                     <h1>Sedang Dalam Pemeliharaan</h1>
                     <p><?= htmlspecialchars($mm_message, ENT_QUOTES, 'UTF-8') ?></p>
                     <span class="badge">FKIP UNIMOF • <?= date('Y') ?></span>
@@ -63,8 +67,6 @@ $page_description = $page_description ?? 'Fakultas Keguruan dan Ilmu Pendidikan 
 $page_keywords = $page_keywords ?? 'FKIP, UNIMOF, Universitas Muhammadiyah Maumere, Pendidikan, Kampus, Maumere, NTT';
 $page_image = $page_image ?? (get_active_logo_url() ?? asset('images/og-default.jpg'));
 
-// ===== AUTO-DETECT LOGO & FAVICON DARI UPLOAD ADMIN =====
-// Sync dengan admin/pengaturan.php yang upload ke assets/images/
 function get_active_logo_url() {
     $extensions = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
     foreach ($extensions as $ext) {
@@ -73,7 +75,7 @@ function get_active_logo_url() {
             return base_url('assets/images/logo.' . $ext);
         }
     }
-    return null; // Tidak ada logo → pakai monogram
+    return null;
 }
 
 function get_active_favicon_url() {
@@ -84,26 +86,23 @@ function get_active_favicon_url() {
             return base_url('assets/images/favicon.' . $ext);
         }
     }
-    return base_url('favicon.svg'); // Fallback default
+    return base_url('favicon.svg');
 }
 
 $active_logo_url = get_active_logo_url();
 $active_favicon_url = get_active_favicon_url();
 
-// Logika pintar untuk highlight menu dropdown (LENGKAP dengan modul baru)
 $is_profil = in_array($current_page, ['about.php', 'dosen.php', 'fasilitas.php', 'prestasi.php', 'akreditasi.php', 'kerjasama.php']);
 $is_akademik = in_array($current_page, ['program.php', 'riset.php', 'jurnal.php']);
 $is_mahasiswa = in_array($current_page, ['pmb.php', 'beasiswa.php', 'alumni.php']);
 $is_info = in_array($current_page, ['berita.php', 'agenda.php', 'download.php', 'kontak.php', 'faq.php', 'galeri.php', 'blog.php', 'blog-detail.php', 'video.php']);
 
-// Page type detection (untuk breadcrumb & schema.org)
 $page_type = 'WebPage';
 if (in_array($current_page, ['berita-detail.php', 'berita.php'])) $page_type = 'Article';
 if ($current_page === 'program-detail.php') $page_type = 'Course';
 if ($current_page === 'tentang.php') $page_type = 'AboutPage';
 if ($current_page === 'kontak.php') $page_type = 'ContactPage';
 
-// Smart breadcrumb (auto-detect)
 $breadcrumb_trail = [
     ['name' => 'Beranda', 'url' => base_url()],
 ];
@@ -176,7 +175,6 @@ if (isset($crumb_map[$current_page])) {
     $breadcrumb_trail = array_merge($breadcrumb_trail, $crumb_map[$current_page]);
 }
 
-// Smart top bar message (dari DB jika ada, fallback statis)
 $topbar_msg = null;
 try {
     $tb_cols = $pdo->query("SHOW COLUMNS FROM `pengaturan`")->fetchAll(PDO::FETCH_COLUMN);
@@ -187,10 +185,9 @@ try {
     }
 } catch (Exception $e) {}
 if (empty($topbar_msg)) {
-    $topbar_msg = '🔥 Penerimaan Mahasiswa Baru 2026/2027 Gelombang 1 Telah Dibuka! Daftar sekarang sebelum kuota habis.';
+    $topbar_msg = 'Penerimaan Mahasiswa Baru 2026/2027 Gelombang 1 Telah Dibuka! Daftar sekarang sebelum kuota habis.';
 }
 
-// Notifikasi pengumuman (dari DB)
 $notif_count = 0;
 $notif_items = [];
 try {
@@ -201,7 +198,6 @@ try {
     }
 } catch (Exception $e) {}
 
-// Canonical URL: gunakan domain dari konfigurasi, bukan HTTP_HOST dari request.
 $appPath = parse_url(APP_URL, PHP_URL_PATH);
 $appPath = is_string($appPath) ? rtrim($appPath, '/') : '';
 
@@ -253,7 +249,6 @@ if ($canonicalParams !== []) {
     );
 }
 
-// Theme detection
 $default_theme = 'light';
 ?>
 <!DOCTYPE html>
@@ -263,7 +258,6 @@ $default_theme = 'light';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <!-- SEO -->
     <title><?= sanitize($page_title) ?> | FKIP UNIMOF</title>
     <meta name="description" content="<?= sanitize($page_description) ?>">
     <meta name="keywords" content="<?= sanitize($page_keywords) ?>">
@@ -271,9 +265,24 @@ $default_theme = 'light';
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="theme-color" content="#0a6847" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+
+    <!-- ✅ THEME PERSISTENCE: Baca preferensi dari localStorage SEBELUM render
+         Mencegah flash-of-wrong-theme saat reload. -->
+    <script>
+    (function() {
+        try {
+            var saved = localStorage.getItem('fkip_theme');
+            if (saved === 'dark' || saved === 'light') {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        } catch (e) {}
+    })();
+    </script>
+
     <link rel="canonical" href="<?= $canonical_url ?>">
 
-    <!-- Open Graph -->
     <meta property="og:type" content="<?= $page_type === 'Article' ? 'article' : 'website' ?>">
     <meta property="og:title" content="<?= sanitize($page_title) ?> | FKIP UNIMOF">
     <meta property="og:description" content="<?= sanitize($page_description) ?>">
@@ -282,41 +291,31 @@ $default_theme = 'light';
     <meta property="og:site_name" content="FKIP UNIMOF">
     <meta property="og:locale" content="id_ID">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?= sanitize($page_title) ?> | FKIP UNIMOF">
     <meta name="twitter:description" content="<?= sanitize($page_description) ?>">
     <meta name="twitter:image" content="<?= $page_image ?>">
 
-<!-- ✅ Favicon - AUTO-DETECT dari upload admin (assets/images/favicon.*) -->
 <link rel="icon" href="<?= $active_favicon_url ?>">
 <link rel="shortcut icon" href="<?= $active_favicon_url ?>">
 <link rel="apple-touch-icon" sizes="180x180" href="<?= $active_favicon_url ?>">
 <link rel="icon" type="image/png" sizes="32x32" href="<?= $active_favicon_url ?>">
 <link rel="icon" type="image/png" sizes="16x16" href="<?= $active_favicon_url ?>">
 <link rel="manifest" href="<?= base_url('manifest.json') ?>">
-    <!-- OPSIONAL: aktifkan setelah file PNG tersedia (untuk iOS/legacy)
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= asset('images/favicon.png') ?>">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= asset('images/apple-touch-icon.png') ?>">
-    -->
 
-    <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
 
-    <!-- Resource Hints (prefetch halaman populer) -->
     <link rel="prefetch" href="<?= base_url('program.php') ?>">
     <link rel="prefetch" href="<?= base_url('pmb.php') ?>">
     <link rel="prefetch" href="<?= base_url('berita.php') ?>">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
-    <!-- AOS Animation Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>?v=<?= time() ?>">
 
 <?php
@@ -417,51 +416,38 @@ $headerEncodeSchema = static function (array $schema): string {
 <script type="application/ld+json"><?= $headerEncodeSchema($headerOrganizationSchema) ?></script>
 <script type="application/ld+json"><?= $headerEncodeSchema($headerBreadcrumbSchema) ?></script>
 
-    <!-- Critical Inline CSS (EXTREME MULTIMATE) -->
 <style>
-/* =====================================================
-   CSS VARIABLES (Design Tokens)
-   ===================================================== */
 :root {
-    /* Brand Colors */
     --primary: #0a6847;
     --primary-light: #10b981;
     --primary-dark: #064e34;
     --accent: #f59e0b;
 
-    /* Backgrounds */
     --bg-primary: #ffffff;
     --bg-secondary: #f8fafc;
     --bg-tertiary: #f1f5f9;
 
-    /* Text */
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
 
-    /* Borders */
     --border: #e2e8f0;
 
-    /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
     --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
 
-    /* Radius */
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
 
-    /* Layout */
     --header-height: 80px;
 
-    /* Fonts */
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ===== DARK MODE ===== */
 [data-theme="dark"] {
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
@@ -472,7 +458,6 @@ $headerEncodeSchema = static function (array $schema): string {
     --border: #334155;
 }
 
-/* ===== BASE ===== */
 html { scroll-behavior: smooth; }
 body {
     font-family: var(--font-body);
@@ -484,9 +469,6 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* =====================================================
-   SKIP TO CONTENT (Accessibility)
-   ===================================================== */
 .skip-link {
     position: fixed; top: -100px; left: 1rem; z-index: 10000;
     background: var(--primary); color: white;
@@ -497,9 +479,6 @@ body {
 }
 .skip-link:focus { top: 0; }
 
-/* =====================================================
-   TOP BAR (Announcement Strip)
-   ===================================================== */
 .topbar-premium {
     background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
     color: white; padding: 0.5rem 0; font-size: 0.85rem;
@@ -541,9 +520,6 @@ body {
 }
 .topbar-cta:hover { background: rgba(255,255,255,0.25); color: white; }
 
-/* =====================================================
-   HEADER / NAVBAR (EXTREME)
-   ===================================================== */
 .header-premium {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -571,7 +547,6 @@ body {
 }
 .header-premium.scrolled .navbar-container { padding: 0.6rem 0; }
 
-/* ===== LOGO (Monogram Fallback) ===== */
 .logo-premium {
     display: flex; align-items: center; gap: 0.75rem;
     text-decoration: none; color: inherit;
@@ -594,7 +569,6 @@ body {
 .logo-premium:hover .logo-icon-premium { transform: scale(1.05) rotate(-5deg); }
 .logo-premium:hover .logo-icon-premium::before { transform: translateX(100%); }
 
-/* ===== LOGO IMAGE (dari upload admin - PATCH #5) ===== */
 .logo-img-premium {
     width: 45px;
     height: 45px;
@@ -624,7 +598,6 @@ body {
     .logo-img-premium { width: 38px; height: 38px; padding: 3px; }
 }
 
-/* ===== LOGO TEXT ===== */
 .logo-text-premium { display: flex; flex-direction: column; }
 .logo-title-premium {
     font-family: var(--font-display); font-size: 1.25rem; font-weight: 800;
@@ -636,7 +609,6 @@ body {
     letter-spacing: 0.05em; text-transform: uppercase;
 }
 
-/* ===== NAV MENU ===== */
 .nav-menu-premium {
     display: flex; list-style: none; gap: 0.25rem; margin: 0; padding: 0;
 }
@@ -670,7 +642,6 @@ body {
 }
 .nav-dropdown-premium:hover .arrow-premium { transform: rotate(180deg); }
 
-/* ===== MEGA MENU DROPDOWN ===== */
 .dropdown-menu-premium {
     position: absolute; top: 100%; left: 0;
     background: var(--bg-primary); border: 1px solid var(--border);
@@ -714,10 +685,10 @@ body {
     width: 34px; height: 34px; border-radius: 10px;
     background: rgba(10, 104, 71, 0.1);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; flex-shrink: 0; transition: all 0.3s;
+    flex-shrink: 0; transition: all 0.3s; line-height: 1;
 }
 .dropdown-menu-premium li a:hover .dropdown-icon {
-    background: var(--primary); color: white; transform: scale(1.05);
+    background: var(--primary); transform: scale(1.05);
 }
 .dropdown-label { display: flex; flex-direction: column; }
 .dropdown-label strong { font-weight: 700; color: var(--text-primary); font-size: 0.9rem; }
@@ -731,7 +702,6 @@ body {
 .badge-hot { background: #fee2e2; color: #dc2626; }
 .badge-new { background: #dcfce7; color: #16a34a; }
 
-/* ===== NAV ACTIONS ===== */
 .nav-actions-premium {
     display: flex; align-items: center; gap: 0.5rem;
 }
@@ -739,8 +709,8 @@ body {
     width: 40px; height: 40px; border-radius: 10px;
     border: 1px solid rgba(0,0,0,0.08);
     background: transparent; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; font-size: 1.1rem; transition: all 0.3s ease;
-    position: relative; color: var(--text-secondary);
+    justify-content: center; transition: all 0.3s ease;
+    position: relative; color: var(--text-secondary); line-height: 1;
 }
 [data-theme="dark"] .icon-btn-premium {
     border-color: rgba(255,255,255,0.1); color: var(--text-secondary);
@@ -792,7 +762,6 @@ body {
     box-shadow: 0 8px 20px rgba(10, 104, 71, 0.35);
 }
 
-/* ===== MOBILE TOGGLE ===== */
 .nav-toggle-premium {
     display: none; flex-direction: column; gap: 5px; background: none;
     border: none; cursor: pointer; padding: 0.5rem; z-index: 1002;
@@ -807,7 +776,6 @@ body {
 .nav-toggle-premium.active span:nth-child(2) { opacity: 0; }
 .nav-toggle-premium.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-/* ===== MOBILE MENU OVERLAY ===== */
 .mobile-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px); z-index: 998;
@@ -815,9 +783,6 @@ body {
 }
 .mobile-overlay.show { opacity: 1; visibility: visible; }
 
-/* =====================================================
-   BREADCRUMB
-   ===================================================== */
 .breadcrumb {
     display: flex; flex-wrap: wrap; gap: 0.35rem;
     align-items: center; font-size: 0.85rem;
@@ -831,9 +796,6 @@ body {
 .breadcrumb span.separator { color: var(--text-muted); padding: 0 0.25rem; }
 .breadcrumb span.current { color: var(--text-primary); font-weight: 600; }
 
-/* =====================================================
-   PRELOADER (EXTREME) - Logo Upload + FU Monogram
-   ===================================================== */
 .preloader {
     position: fixed; inset: 0; background: var(--bg-primary); z-index: 9999;
     display: flex; align-items: center; justify-content: center;
@@ -842,7 +804,6 @@ body {
 .preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader { text-align: center; padding: 2rem; }
 
-/* Logo Box (fallback monogram) */
 .loader-logo {
     width: 96px; height: 96px; margin: 0 auto 1.75rem;
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
@@ -853,7 +814,6 @@ body {
     animation: loaderFloat 2s ease-in-out infinite;
 }
 
-/* Shine effect - z-index 1 (di bawah logo) */
 .loader-logo::before {
     content: ''; position: absolute; top: -50%; left: -50%;
     width: 200%; height: 200%;
@@ -862,14 +822,12 @@ body {
     z-index: 1; pointer-events: none;
 }
 
-/* Inner glow ring */
 .loader-logo::after {
     content: ''; position: absolute; inset: 0; border-radius: 22px;
     box-shadow: inset 0 0 20px rgba(255,255,255,0.15);
     z-index: 1; pointer-events: none;
 }
 
-/* Huruf "FU" fallback - z-index 2 (di atas shine) */
 .loader-letter {
     position: relative; z-index: 2;
     font-family: var(--font-display);
@@ -881,7 +839,6 @@ body {
     text-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 0 20px rgba(255,255,255,0.3);
 }
 
-/* Logo Image dari upload admin - PATCH #6 */
 .loader-logo-img {
     width: 64px;
     height: 64px;
@@ -920,7 +877,6 @@ body {
     100% { transform: translateX(100%) rotate(45deg); }
 }
 
-/* Progress Bar Preloader */
 .loader-bar {
     width: 200px; height: 4px; background: var(--bg-tertiary);
     border-radius: 4px; overflow: hidden; position: relative;
@@ -936,7 +892,6 @@ body {
     100% { transform: translateX(350%); }
 }
 
-/* Teks Preloader (kontras tinggi) */
 .loader-text {
     margin-top: 1.25rem;
     color: var(--text-primary);
@@ -965,9 +920,6 @@ body {
 }
 [data-theme="dark"] .loader-text { color: #f1f5f9; }
 
-/* =====================================================
-   SEARCH MODAL (EXTREME)
-   ===================================================== */
 .search-modal {
     position: fixed; inset: 0; z-index: 9998;
     background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
@@ -1021,15 +973,12 @@ body {
 .search-result-icon {
     width: 36px; height: 36px; border-radius: 10px;
     background: var(--bg-secondary); display: flex;
-    align-items: center; justify-content: center; flex-shrink: 0;
+    align-items: center; justify-content: center; flex-shrink: 0; line-height: 1;
 }
 .search-result-text { flex: 1; }
 .search-result-text strong { display: block; font-size: 0.92rem; }
 .search-result-text small { color: var(--text-muted); font-size: 0.78rem; }
 
-/* =====================================================
-   NOTIFICATION PANEL
-   ===================================================== */
 .notif-panel {
     position: fixed; top: 0; right: -400px; width: 100%; max-width: 400px;
     height: 100vh; background: var(--bg-primary); z-index: 9997;
@@ -1042,7 +991,7 @@ body {
     padding: 1.5rem; border-bottom: 1px solid var(--border);
     display: flex; justify-content: space-between; align-items: center;
 }
-.notif-header h3 { margin: 0; font-size: 1.25rem; }
+.notif-header h3 { margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
 .notif-close {
     background: var(--bg-secondary); border: none; width: 36px; height: 36px;
     border-radius: 50%; cursor: pointer; font-size: 1rem;
@@ -1061,10 +1010,26 @@ body {
     font-size: 0.78rem; color: var(--text-muted);
     display: flex; gap: 0.5rem; align-items: center;
 }
+.notif-item-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
 
-/* =====================================================
-   RESPONSIVE MOBILE
-   ===================================================== */
+/* ✅ IKON REALISTIS — penyesuaian tampilan sprite SVG untuk header */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ic {
+    display: inline-block; vertical-align: -0.15em; flex: none;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22));
+}
+.nav-link-premium .ic { vertical-align: -0.25em; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); }
+.dropdown-icon .ic    { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.25)); }
+.icon-btn-premium .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25)); }
+.btn-portal-premium .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.30)); }
+.search-result-icon .ic { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.25)); }
+.topbar-message .ic   { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); vertical-align: -0.2em; }
+.notif-item-meta .ic  { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); }
+.notif-empty .ic      { filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15)); }
+
+/* Saat dropdown icon di-hover → background hijau, tapi ikon tetap punya kontras.
+   Ikon SVG menggunakan warna solid yang tidak bergantung pada color, jadi aman. */
+
 @media (max-width: 1024px) {
     .nav-menu-premium {
         position: fixed; top: 0; right: -100%; width: 85%; max-width: 340px; height: 100vh;
@@ -1106,18 +1071,16 @@ body {
 </style>
 </head>
 <body>
-    <!-- Skip to Content (Accessibility) -->
+<?php echo icon_sprite(); // ✅ IKON REALISTIS: sprite dicetak sekali untuk seluruh situs ?>
+
     <a href="#main" class="skip-link">Langsung ke konten utama</a>
 
-<!-- Preloader - AUTO-DETECT LOGO dari upload admin -->
 <div class="preloader" id="preloader" aria-hidden="true">
     <div class="loader" role="status" aria-label="Memuat halaman">
         <div class="loader-logo">
             <?php if ($active_logo_url): ?>
-                <!-- Logo dari upload admin (assets/images/logo.*) -->
                 <img src="<?= $active_logo_url ?>" alt="FKIP UNIMOF" class="loader-logo-img">
             <?php else: ?>
-                <!-- Fallback: Monogram "FU" jika belum ada logo upload -->
                 <span class="loader-letter">FU</span>
             <?php endif; ?>
         </div>
@@ -1126,12 +1089,11 @@ body {
     </div>
 </div>
 
-    <!-- ===== TOP BAR (Announcement) ===== -->
     <?php if (!empty($topbar_msg)): ?>
     <div class="topbar-premium" id="topbarPremium">
         <div class="container topbar-inner">
             <div class="topbar-message">
-                <span><?= sanitize($topbar_msg) ?></span>
+                <span><?= ric_text(sanitize($topbar_msg)) ?></span>
             </div>
             <a href="<?= base_url('pmb.php') ?>" class="topbar-cta">Daftar Sekarang →</a>
             <button class="topbar-close" id="topbarClose" aria-label="Tutup pengumuman">✕</button>
@@ -1139,19 +1101,15 @@ body {
     </div>
     <?php endif; ?>
 
-<!-- ===== PREMIUM HEADER ===== -->
 <header class="header-premium" id="header">
     <nav class="navbar-premium" aria-label="Navigasi utama">
         <div class="container navbar-container">
-            <!-- Logo - AUTO-DETECT dari upload admin -->
             <a href="<?= base_url() ?>" class="logo-premium" aria-label="FKIP UNIMOF - Beranda">
                 <?php if ($active_logo_url): ?>
-                    <!-- Logo dari upload admin (assets/images/logo.*) -->
                     <div class="logo-img-premium" aria-hidden="true">
                         <img src="<?= $active_logo_url ?>" alt="Logo FKIP UNIMOF">
                     </div>
                 <?php else: ?>
-                    <!-- Fallback: Monogram "F" jika belum ada logo upload -->
                     <div class="logo-icon-premium" aria-hidden="true"><span>F</span></div>
                 <?php endif; ?>
                 <div class="logo-text-premium">
@@ -1160,43 +1118,41 @@ body {
                 </div>
             </a>
 
-                <!-- Menu Utama -->
                 <ul class="nav-menu-premium" id="navMenu" role="menubar">
                     <li role="none">
                         <a href="<?= base_url() ?>" class="nav-link-premium <?= $current_page === 'index.php' ? 'active' : '' ?>" role="menuitem">
-                            🏠 Beranda
+                            <?= ric('home', 17) ?> Beranda
                         </a>
                     </li>
 
-                    <!-- Dropdown: Profil -->
                     <li class="nav-dropdown-premium" role="none">
                         <a href="#" class="nav-link-premium <?= $is_profil ? 'active' : '' ?>" role="menuitem" aria-haspopup="true" onclick="toggleMobileDropdown(event, this)">
                             Profil <span class="arrow-premium" aria-hidden="true">▾</span>
                         </a>
                         <ul class="dropdown-menu-premium" role="menu">
                             <li role="none"><a href="<?= base_url('about.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🏛️</span>
+                                <span class="dropdown-icon"><?= ric('bank', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Tentang Kami</strong>
                                     <small>Visi, Misi, Sejarah</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('dosen.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">👨‍🏫</span>
+                                <span class="dropdown-icon"><?= ric('teacher', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Dosen & Pengajar</strong>
                                     <small>Tim akademis profesional</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('fasilitas.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🏢</span>
+                                <span class="dropdown-icon"><?= ric('building', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Fasilitas & Lab</strong>
                                     <small>Sarana modern & lengkap</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('prestasi.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🏆</span>
+                                <span class="dropdown-icon"><?= ric('trophy', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Prestasi Mahasiswa</strong>
                                     <small>Hall of Fame</small>
@@ -1204,14 +1160,14 @@ body {
                                 <span class="dropdown-badge badge-hot">Hot</span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('akreditasi.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🏅</span>
+                                <span class="dropdown-icon"><?= ric('medal', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Akreditasi</strong>
                                     <small>BAN-PT & LAMDIK</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('kerjasama.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🤝</span>
+                                <span class="dropdown-icon"><?= ric('handshake', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Kerjasama & Mitra</strong>
                                     <small>Nasional & Internasional</small>
@@ -1220,21 +1176,20 @@ body {
                         </ul>
                     </li>
 
-                    <!-- Dropdown: Akademik -->
                     <li class="nav-dropdown-premium" role="none">
                         <a href="#" class="nav-link-premium <?= $is_akademik ? 'active' : '' ?>" role="menuitem" aria-haspopup="true" onclick="toggleMobileDropdown(event, this)">
                             Akademik <span class="arrow-premium" aria-hidden="true">▾</span>
                         </a>
                         <ul class="dropdown-menu-premium" role="menu">
                             <li role="none"><a href="<?= base_url('program.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🎓</span>
+                                <span class="dropdown-icon"><?= ric('grad', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Program Studi</strong>
                                     <small>8 prodi unggulan</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('riset.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🔬</span>
+                                <span class="dropdown-icon"><?= ric('micro', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Pusat Riset</strong>
                                     <small>Penelitian pendidikan</small>
@@ -1242,7 +1197,7 @@ body {
                                 <span class="dropdown-badge badge-new">New</span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('jurnal.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">📚</span>
+                                <span class="dropdown-icon"><?= ric('books', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Jurnal Ilmiah</strong>
                                     <small>SINTA & Scopus</small>
@@ -1251,14 +1206,13 @@ body {
                         </ul>
                     </li>
 
-                    <!-- Dropdown: Kemahasiswaan -->
                     <li class="nav-dropdown-premium" role="none">
                         <a href="#" class="nav-link-premium <?= $is_mahasiswa ? 'active' : '' ?>" role="menuitem" aria-haspopup="true" onclick="toggleMobileDropdown(event, this)">
                             Kemahasiswaan <span class="arrow-premium" aria-hidden="true">▾</span>
                         </a>
                         <ul class="dropdown-menu-premium" role="menu">
                             <li role="none"><a href="<?= base_url('pmb.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">📝</span>
+                                <span class="dropdown-icon"><?= ric('pen', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Pendaftaran (PMB)</strong>
                                     <small>2026/2027 Gel. 1</small>
@@ -1266,14 +1220,14 @@ body {
                                 <span class="dropdown-badge badge-hot">Buka</span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('beasiswa.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">💰</span>
+                                <span class="dropdown-icon"><?= ric('coins', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Program Beasiswa</strong>
                                     <small>KIP-K & Muhammadiyah</small>
                                 </span>
                             </a></li>
                             <li role="none"><a href="<?= base_url('alumni.php') ?>" role="menuitem">
-                                <span class="dropdown-icon">🎓</span>
+                                <span class="dropdown-icon"><?= ric('grad', 22) ?></span>
                                 <span class="dropdown-label">
                                     <strong>Jejaring Alumni</strong>
                                     <small>Ikatan & karir</small>
@@ -1282,14 +1236,13 @@ body {
                         </ul>
                     </li>
 
-<!-- Dropdown: Informasi -->
 <li class="nav-dropdown-premium" role="none">
     <a href="#" class="nav-link-premium <?= $is_info ? 'active' : '' ?>" role="menuitem" aria-haspopup="true" onclick="toggleMobileDropdown(event, this)">
         Informasi <span class="arrow-premium" aria-hidden="true">▾</span>
     </a>
     <ul class="dropdown-menu-premium" role="menu">
         <li role="none"><a href="<?= base_url('berita.php') ?>" role="menuitem">
-            <span class="dropdown-icon">📰</span>
+            <span class="dropdown-icon"><?= ric('news', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Berita Terkini</strong>
                 <small>Kabar kampus terbaru</small>
@@ -1297,7 +1250,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('blog.php') ?>" role="menuitem">
-            <span class="dropdown-icon">💡</span>
+            <span class="dropdown-icon"><?= ric('bulb', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Ide &amp; Wawasan</strong>
                 <small>Artikel &amp; opini dosen</small>
@@ -1306,7 +1259,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('video.php') ?>" role="menuitem">
-            <span class="dropdown-icon">🎬</span>
+            <span class="dropdown-icon"><?= ric('film', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Video &amp; Podcast</strong>
                 <small>Konten multimedia kampus</small>
@@ -1315,7 +1268,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('agenda.php') ?>" role="menuitem">
-            <span class="dropdown-icon">📅</span>
+            <span class="dropdown-icon"><?= ric('cal', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Agenda &amp; Kalender</strong>
                 <small>Jadwal akademik</small>
@@ -1323,7 +1276,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('download.php') ?>" role="menuitem">
-            <span class="dropdown-icon">📥</span>
+            <span class="dropdown-icon"><?= ric('dl', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Download Center</strong>
                 <small>Formulir &amp; dokumen</small>
@@ -1331,7 +1284,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('faq.php') ?>" role="menuitem">
-            <span class="dropdown-icon">❓</span>
+            <span class="dropdown-icon"><?= ric('help', 22) ?></span>
             <span class="dropdown-label">
                 <strong>FAQ</strong>
                 <small>Pertanyaan umum</small>
@@ -1339,7 +1292,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('galeri.php') ?>" role="menuitem">
-            <span class="dropdown-icon">📸</span>
+            <span class="dropdown-icon"><?= ric('cam', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Galeri</strong>
                 <small>Dokumentasi kegiatan</small>
@@ -1347,7 +1300,7 @@ body {
         </a></li>
 
         <li role="none"><a href="<?= base_url('kontak.php') ?>" role="menuitem">
-            <span class="dropdown-icon">✉️</span>
+            <span class="dropdown-icon"><?= ric('mail', 22) ?></span>
             <span class="dropdown-label">
                 <strong>Hubungi Kami</strong>
                 <small>Kontak &amp; lokasi</small>
@@ -1356,34 +1309,28 @@ body {
     </ul>
 </li>
 
-                <!-- Aksi Kanan -->
                 <div class="nav-actions-premium">
-                    <!-- Search Button -->
                     <button class="icon-btn-premium" id="searchTrigger" aria-label="Cari" data-tooltip="Cari (/)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                         </svg>
                     </button>
 
-                    <!-- Notification Button -->
                     <button class="icon-btn-premium" id="notifTrigger" aria-label="Notifikasi" data-tooltip="Notifikasi">
-                        🔔
+                        <?= ric('bell', 18) ?>
                         <?php if ($notif_count > 0): ?>
                         <span class="notif-badge" id="notifBadge"><?= $notif_count ?></span>
                         <?php endif; ?>
                     </button>
 
-                    <!-- Theme Toggle -->
                     <button class="icon-btn-premium" id="themeToggle" aria-label="Toggle dark mode" data-tooltip="Mode gelap (D)">
-                        <span class="theme-icon-premium">🌙</span>
+                        <span class="theme-icon-premium" data-moon="<?= htmlspecialchars(ric('moon', 18)) ?>" data-sun="<?= htmlspecialchars(ric('sun', 18)) ?>"><?= ric('moon', 18) ?></span>
                     </button>
 
-                    <!-- Portal Button -->
                     <a href="<?= base_url('admin/login.php') ?>" class="btn-portal-premium" aria-label="Login portal">
-                        <span>🔐</span> <span>Portal</span>
+                        <span><?= ric('lock', 16) ?></span> <span>Portal</span>
                     </a>
 
-                    <!-- Mobile Toggle -->
                     <button class="nav-toggle-premium" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
                         <span></span>
                         <span></span>
@@ -1394,10 +1341,8 @@ body {
         </nav>
     </header>
 
-    <!-- Mobile Menu Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Search Modal -->
     <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Pencarian">
         <div class="search-box">
             <div class="search-input-wrap">
@@ -1411,28 +1356,28 @@ body {
                 <div class="search-group">
                     <div class="search-group-title">Pencarian Cepat</div>
                     <a href="<?= base_url('pmb.php') ?>" class="search-result-item">
-                        <div class="search-result-icon">📝</div>
+                        <div class="search-result-icon"><?= ric('pen', 20) ?></div>
                         <div class="search-result-text">
                             <strong>Daftar PMB 2026/2027</strong>
                             <small>Pendaftaran mahasiswa baru</small>
                         </div>
                     </a>
                     <a href="<?= base_url('program.php') ?>" class="search-result-item">
-                        <div class="search-result-icon">🎓</div>
+                        <div class="search-result-icon"><?= ric('grad', 20) ?></div>
                         <div class="search-result-text">
                             <strong>Program Studi</strong>
                             <small>Lihat 8 prodi unggulan</small>
                         </div>
                     </a>
                     <a href="<?= base_url('beasiswa.php') ?>" class="search-result-item">
-                        <div class="search-result-icon">💰</div>
+                        <div class="search-result-icon"><?= ric('coins', 20) ?></div>
                         <div class="search-result-text">
                             <strong>Beasiswa</strong>
                             <small>KIP-K, Muhammadiyah, Prestasi</small>
                         </div>
                     </a>
                     <a href="<?= base_url('kontak.php') ?>" class="search-result-item">
-                        <div class="search-result-icon">📞</div>
+                        <div class="search-result-icon"><?= ric('phone', 20) ?></div>
                         <div class="search-result-text">
                             <strong>Kontak & Lokasi</strong>
                             <small>Hubungi kami</small>
@@ -1443,16 +1388,15 @@ body {
         </div>
     </div>
 
-    <!-- Notification Panel -->
     <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifikasi">
         <div class="notif-header">
-            <h3>🔔 Notifikasi</h3>
+            <h3><?= ric('bell', 20) ?> Notifikasi</h3>
             <button class="notif-close" id="notifClose" aria-label="Tutup notifikasi">✕</button>
         </div>
         <div class="notif-list">
             <?php if (empty($notif_items)): ?>
-                <div style="text-align:center; padding:3rem 1rem; color: var(--text-muted);">
-                    <div style="font-size:3rem; margin-bottom:0.5rem;">📭</div>
+                <div class="notif-empty" style="text-align:center; padding:3rem 1rem; color: var(--text-muted);">
+                    <div style="margin-bottom:0.5rem;"><?= ric('inbox', 52) ?></div>
                     <p>Belum ada notifikasi baru</p>
                 </div>
             <?php else: ?>
@@ -1460,7 +1404,7 @@ body {
                 <div class="notif-item">
                     <div class="notif-item-title"><?= sanitize($n['judul'] ?? 'Pengumuman') ?></div>
                     <div class="notif-item-meta">
-                        <span>📅 <?= date('d M Y', strtotime($n['tanggal'] ?? 'now')) ?></span>
+                        <span><?= ric('cal', 13) ?> <?= date('d M Y', strtotime($n['tanggal'] ?? 'now')) ?></span>
                         <?php if (!empty($n['kategori'])): ?>
                         <span>• <?= sanitize($n['kategori']) ?></span>
                         <?php endif; ?>
@@ -1471,19 +1415,14 @@ body {
         </div>
     </div>
 
-    <!-- Spacer untuk fixed header (auto-adjusted via JS jika topbar ada) -->
     <div id="headerSpacer" style="height: 80px;"></div>
 
     <main id="main">
 
     <script>
-    // =====================================================
-    // HEADER EXTREME MULTIMATE SCRIPT
-    // =====================================================
     (function() {
         'use strict';
 
-        // ===== 1. TOP BAR DISMISS =====
         const topbar = document.getElementById('topbarPremium');
         const topbarClose = document.getElementById('topbarClose');
         if (topbar && localStorage.getItem('fkip_topbar_dismissed') === 'true') {
@@ -1497,7 +1436,6 @@ body {
             });
         }
 
-        // ===== 2. HEADER SPACER ADJUSTMENT =====
         function adjustHeaderSpacer() {
             const header = document.getElementById('header');
             const spacer = document.getElementById('headerSpacer');
@@ -1507,7 +1445,6 @@ body {
             const headerHeight = header.offsetHeight;
             spacer.style.height = (headerHeight + topbarHeight) + 'px';
 
-            // Adjust header top position
             if (topbarVisible) {
                 header.style.top = topbarHeight + 'px';
             } else {
@@ -1517,7 +1454,6 @@ body {
         window.addEventListener('load', adjustHeaderSpacer);
         window.addEventListener('resize', adjustHeaderSpacer);
 
-        // ===== 3. MOBILE DROPDOWN TOGGLE =====
         window.toggleMobileDropdown = function(e, el) {
             if (window.innerWidth > 1024) return;
             e.preventDefault();
@@ -1526,7 +1462,6 @@ body {
             if (dropdown) dropdown.classList.toggle('open');
         };
 
-        // ===== 4. MOBILE MENU OVERLAY SYNC =====
         const navToggle = document.getElementById('navToggle');
         const navMenu = document.getElementById('navMenu');
         const mobileOverlay = document.getElementById('mobileOverlay');
@@ -1553,7 +1488,6 @@ body {
             });
         }
 
-        // ===== 5. SEARCH MODAL =====
         const searchTrigger = document.getElementById('searchTrigger');
         const searchModal = document.getElementById('searchModal');
         const searchInput = document.getElementById('globalSearchInput');
@@ -1575,17 +1509,14 @@ body {
             });
         }
 
-        // ===== 6. NOTIFICATION PANEL =====
         const notifTrigger = document.getElementById('notifTrigger');
         const notifPanel = document.getElementById('notifPanel');
         const notifClose = document.getElementById('notifClose');
-        const mobileOverlay2 = document.getElementById('mobileOverlay');
 
         function toggleNotif(show) {
             if (!notifPanel) return;
             notifPanel.classList.toggle('show', show);
             if (mobileOverlay) mobileOverlay.classList.toggle('show', show);
-            // Clear badge
             if (show) {
                 const badge = document.getElementById('notifBadge');
                 if (badge) badge.remove();
@@ -1594,12 +1525,66 @@ body {
         if (notifTrigger) notifTrigger.addEventListener('click', () => toggleNotif(!notifPanel.classList.contains('show')));
         if (notifClose) notifClose.addEventListener('click', () => toggleNotif(false));
 
-        // ===== 7. GLOBAL KEYBOARD SHORTCUTS =====
+        // =====================================================
+        // ✅ THEME CONTROLLER — satu-satunya sumber kebenaran:
+        //    localStorage['fkip_theme'] + atribut data-theme di <html>.
+        //    stopImmediatePropagation (fase capture) memblokir handler
+        //    duplikat bawaan main.js yang sebelumnya membatalkan toggle
+        //    dan menimpa ikon SVG dengan emoji 🌙/️.
+        // =====================================================
+        const THEME_KEY = 'fkip_theme';
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIconSpan = themeToggle ? themeToggle.querySelector('.theme-icon-premium') : null;
+
+        function themeStored() {
+            let t = null;
+            try { t = localStorage.getItem(THEME_KEY); } catch (e) {}
+            if (t !== 'dark' && t !== 'light') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            return t;
+        }
+
+        function themeApply(t, silent) {
+            document.documentElement.setAttribute('data-theme', t);
+            if (themeIconSpan) {
+                // pakai SVG realistis dari data-moon / data-sun (bukan emoji)
+                themeIconSpan.innerHTML = themeIconSpan.dataset[t === 'dark' ? 'sun' : 'moon'] || '';
+            }
+            // ✅ fitur toast bawaan dipertahankan
+            if (!silent && window.FKIPToast && typeof window.FKIPToast.info === 'function') {
+                window.FKIPToast.info(t === 'dark' ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan');
+            }
+        }
+
+        function themeReconcile() { themeApply(themeStored(), true); }
+
+        if (themeToggle) {
+            // capture=true + stopImmediatePropagation => handler main.js
+            // (di tombol, di span ikon, maupun delegasi di document) TIDAK akan jalan
+            themeToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+                try { localStorage.setItem(THEME_KEY, next); } catch (err) {}
+                themeApply(next, false);
+            }, true);
+        }
+
+        // Sinkronkan ulang SETELAH main.js (defer) selesai init,
+        // supaya tema & ikon SVG tidak tertimpa state/emoji bawaannya
+        themeReconcile();
+        document.addEventListener('DOMContentLoaded', themeReconcile);
+        window.addEventListener('load', themeReconcile);
+        setTimeout(themeReconcile, 700);
+        window.addEventListener('storage', function (ev) {
+            if (ev.key === THEME_KEY) themeReconcile();
+        });
+
         document.addEventListener('keydown', (e) => {
             const tag = document.activeElement?.tagName;
             const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
 
-            // Escape: close semua modal
             if (e.key === 'Escape') {
                 closeSearch();
                 toggleNotif(false);
@@ -1611,20 +1596,19 @@ body {
 
             if (isTyping) return;
 
-            // / untuk search
             if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 openSearch();
             }
-            // N untuk notifikasi
             if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 if (notifPanel) toggleNotif(!notifPanel.classList.contains('show'));
             }
+            if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) {
+                if (themeToggle) themeToggle.click();
+            }
         });
 
-        // ===== 8. SMART SCROLL HIDE/SHOW =====
-        // Hanya sembunyikan navbar saat scroll DOWN (kecuali di atas topbar)
         const header = document.getElementById('header');
         let lastScrollY = window.pageYOffset;
         let ticking = false;
@@ -1633,7 +1617,6 @@ body {
             const scrollY = window.pageYOffset;
             if (!header) return;
 
-            // Jangan sembunyikan di dekat top (untuk topbar visibility)
             if (scrollY < 100) {
                 header.classList.remove('nav-hidden');
                 lastScrollY = scrollY;
@@ -1642,14 +1625,12 @@ body {
             }
 
             if (scrollY > lastScrollY && scrollY > 200) {
-                // Scroll down → sembunyikan
                 header.classList.add('nav-hidden');
                 if (topbar && !topbar.classList.contains('dismissed')) {
                     topbar.classList.add('dismissed');
                     localStorage.setItem('fkip_topbar_dismissed', 'true');
                 }
             } else if (scrollY < lastScrollY) {
-                // Scroll up → tampilkan
                 header.classList.remove('nav-hidden');
             }
 
@@ -1664,7 +1645,7 @@ body {
             }
         }, { passive: true });
 
-        console.log('%c🎓 Header EXTREME MULTIMATE', 'color:#0a6847;font-size:12px;font-weight:bold');
+        console.log('%cHeader EXTREME MULTIMATE (Ikon Realistis)', 'color:#0a6847;font-size:12px;font-weight:bold');
         console.log('%cShortcuts: / (cari) • N (notif) • D (dark) • Esc (tutup)', 'color:#64748b;font-size:11px');
     })();
     </script>

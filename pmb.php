@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
+if (!function_exists('ric')) require_once __DIR__ . '/includes/icons.php';
+
 $page_title = 'Penerimaan Mahasiswa Baru (PMB)';
 $page_description = 'Informasi lengkap pendaftaran mahasiswa baru FKIP UNIMOF: alur, persyaratan, biaya, jalur beasiswa, dan kontak admin.';
 
@@ -53,11 +55,11 @@ if (!$active_gelombang) {
     $deadline_iso = date('c', strtotime($active_gelombang['end'] . ' 23:59:59'));
 }
 
-// ===== JALUR PENDAFTARAN =====
+// ===== JALUR PENDAFTARAN (ikon SVG — bukan emoji) =====
 $jalur_pmb = [
     'reguler' => [
         'title' => 'Jalur Reguler',
-        'icon' => '🎓',
+        'icon'  => 'grad',
         'color' => '#0a6847',
         'diskon_pangkal' => 0,
         'diskon_spp' => 0,
@@ -68,7 +70,7 @@ $jalur_pmb = [
     ],
     'prestasi' => [
         'title' => 'Jalur Prestasi',
-        'icon' => '🏆',
+        'icon'  => 'trophy',
         'color' => '#f59e0b',
         'diskon_pangkal' => 50,
         'diskon_spp' => 0,
@@ -79,7 +81,7 @@ $jalur_pmb = [
     ],
     'beasiswa' => [
         'title' => 'Jalur Beasiswa',
-        'icon' => '💰',
+        'icon'  => 'coins',
         'color' => '#8b5cf6',
         'diskon_pangkal' => 100,
         'diskon_spp' => 50,
@@ -144,8 +146,55 @@ $persen_terisi = $pmb_config['kuota_total'] > 0 ? round(($pmb_config['kuota_teri
 
 require_once __DIR__ . '/includes/header.php';
 ?>
-
 <style>
+/* ✅ IKON REALISTIS — Penyesuaian tampilan sprite SVG di PMB */
+.pmb-hero-extreme .ic,
+.pmb-stat-icon .ic,
+.why-icon .ic,
+.step-icon-extreme .ic,
+.gelombang-date .ic,
+.gelombang-discount .ic,
+.jalur-tab .ic,
+.jalur-info h3 .ic,
+.jalur-syarat h4 .ic,
+.compare-jalur-icon .ic,
+.biaya-icon-box .ic,
+.calc-card h3 .ic,
+.calc-field label .ic,
+.section-nav-link .ic,
+.countdown-caption .ic,
+.faq-search .s-icon .ic,
+.faq-icon-pmb .ic,
+.testi-meta .ic,
+.testi-stars .ic,
+.testi-arrow .ic,
+.form-btn .ic,
+.modal-close .ic,
+.floating-wa .ic,
+.back-to-top .ic,
+.hero-badge-pill .ic {
+    display: inline-block;
+    vertical-align: -0.15em;
+    flex: none;
+}
+.pmb-stat-icon .ic,
+.why-icon .ic,
+.step-icon-extreme .ic {
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.30));
+}
+.biaya-card.featured .biaya-icon-box .ic {
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35));
+}
+.jalur-syarat h4 .ic,
+.jalur-info h3 .ic,
+.calc-card h3 .ic {
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+}
+/* Saat dropdown-icon di-hover di jalur tab active, ikon SVG harus tetap terlihat — pakai filter putih */
+.jalur-tab.active .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.40)) brightness(1.2); }
+.biaya-card.featured .biaya-icon-box { color: #ffffff; }
+.biaya-card.featured .biaya-icon-box .ic { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)) brightness(1.2); }
+
 /* ===== HERO ===== */
 .pmb-hero-extreme {
     position: relative; background: linear-gradient(135deg, #0a6847 0%, #084d35 40%, #16213e 100%);
@@ -221,8 +270,9 @@ require_once __DIR__ . '/includes/header.php';
 }
 .quota-bar-head {
     display: flex; justify-content: space-between; font-size: 0.82rem;
-    font-weight: 700; margin-bottom: 0.5rem;
+    font-weight: 700; margin-bottom: 0.5rem; align-items: center;
 }
+.quota-bar-head > span:first-child { display: inline-flex; align-items: center; gap: 0.35rem; }
 .quota-bar-track {
     height: 10px; background: rgba(255,255,255,0.2); border-radius: 999px; overflow: hidden;
 }
@@ -255,7 +305,7 @@ require_once __DIR__ . '/includes/header.php';
     background: linear-gradient(90deg, var(--stat-color, var(--primary)), transparent);
 }
 .pmb-stat-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); border-color: var(--stat-color, var(--primary)); }
-.pmb-stat-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.pmb-stat-icon { font-size: 2rem; margin-bottom: 0.5rem; line-height: 1; }
 .pmb-stat-num {
     font-family: var(--font-display); font-size: 2.25rem; font-weight: 900;
     color: var(--stat-color, var(--primary)); line-height: 1; margin-bottom: 0.35rem;
@@ -283,6 +333,7 @@ require_once __DIR__ . '/includes/header.php';
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
     color: white; box-shadow: 0 4px 12px rgba(10,104,71,0.25);
 }
+.section-nav-link.active .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)) brightness(1.2); }
 
 /* ===== WHY CHOOSE US ===== */
 .why-grid {
@@ -301,7 +352,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 .why-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); border-color: var(--why-color, var(--primary)); }
 .why-card:hover::before { transform: scaleX(1); }
-.why-icon { font-size: 2.5rem; margin-bottom: 1rem; transition: transform 0.3s; }
+.why-icon { font-size: 2.5rem; margin-bottom: 1rem; transition: transform 0.3s; line-height: 1; }
 .why-card:hover .why-icon { transform: scale(1.15) rotate(-8deg); }
 .why-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; }
 .why-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
@@ -330,7 +381,7 @@ require_once __DIR__ . '/includes/header.php';
     transition: all 0.3s;
 }
 .step-card-extreme:hover .step-number-extreme { transform: scale(1.1) rotate(360deg); }
-.step-icon-extreme { font-size: 2rem; margin-bottom: 0.75rem; }
+.step-icon-extreme { font-size: 2rem; margin-bottom: 0.75rem; line-height: 1; }
 .step-card-extreme h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
 .step-card-extreme p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
 .step-duration {
@@ -408,13 +459,13 @@ require_once __DIR__ . '/includes/header.php';
 }
 .jalur-info p { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
 .jalur-benefit { margin-bottom: 1.5rem; }
-.jalur-benefit h4 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-primary); }
+.jalur-benefit h4 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; }
 .jalur-benefit ul { list-style: none; padding: 0; }
 .jalur-benefit li {
     padding: 0.5rem 0; font-size: 0.88rem; color: var(--text-secondary);
     display: flex; align-items: center; gap: 0.5rem;
 }
-.jalur-benefit li::before { content: '✨'; font-size: 0.85rem; }
+.jalur-benefit li::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
 .jalur-syarat {
     background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-lg);
     border-left: 4px solid var(--primary);
@@ -425,6 +476,7 @@ require_once __DIR__ . '/includes/header.php';
 
 /* Compare toggle */
 .compare-toggle-wrap { text-align: center; margin-top: 1.5rem; }
+.compare-toggle-wrap .btn { display: inline-flex; align-items: center; gap: 0.4rem; }
 
 /* Compare table */
 .compare-table-wrap {
@@ -446,7 +498,7 @@ require_once __DIR__ . '/includes/header.php';
 .compare-table td:first-child { font-weight: 700; color: var(--text-primary); background: var(--bg-secondary); min-width: 160px; }
 .compare-table td { color: var(--text-secondary); }
 .compare-table td.center { text-align: center; }
-.compare-jalur-icon { font-size: 1.75rem; display: block; margin-bottom: 0.35rem; }
+.compare-jalur-icon { font-size: 1.75rem; display: block; margin-bottom: 0.35rem; line-height: 1; }
 
 /* ===== BIAYA: PRICING + CALCULATOR ===== */
 .biaya-layout {
@@ -467,10 +519,11 @@ require_once __DIR__ . '/includes/header.php';
 .biaya-icon-box {
     width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
     background: var(--bg-secondary); display: flex; align-items: center;
-    justify-content: center; font-size: 1.75rem; border: 1px solid var(--border);
+    justify-content: center; font-size: 1.75rem; border: 1px solid var(--border); line-height: 1;
 }
 .biaya-card.featured .biaya-icon-box {
     background: linear-gradient(135deg, var(--primary), var(--primary-light)); border: none;
+    color: white;
 }
 .biaya-info { flex: 1; }
 .biaya-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; margin-bottom: 0.35rem; }
@@ -481,7 +534,7 @@ require_once __DIR__ . '/includes/header.php';
     padding: 0.4rem 0; font-size: 0.85rem; color: var(--text-secondary);
     display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.5;
 }
-.biaya-features li::before { content: '✅'; font-size: 0.75rem; margin-top: 0.15rem; }
+.biaya-features li::before { content: '✓'; color: #10b981; font-weight: 800; font-size: 0.85rem; margin-top: 0.15rem; flex-shrink: 0; }
 .biaya-popular-tag {
     position: absolute; top: 1rem; right: -2rem;
     background: var(--primary); color: white; padding: 0.2rem 2.5rem;
@@ -501,7 +554,8 @@ require_once __DIR__ . '/includes/header.php';
 .calc-card > p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 .calc-field { margin-bottom: 1.15rem; }
 .calc-field label {
-    display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
 }
 .calc-field select, .calc-field input {
@@ -623,7 +677,7 @@ require_once __DIR__ . '/includes/header.php';
     color: var(--text-primary); transition: all 0.3s;
 }
 .faq-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(10,104,71,0.1); }
-.faq-search .s-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.faq-search .s-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); }
 .faq-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .faq-chip {
     padding: 0.45rem 0.9rem; border-radius: 999px; border: 1px solid var(--border);
@@ -654,7 +708,7 @@ require_once __DIR__ . '/includes/header.php';
 .faq-icon-pmb {
     width: 28px; height: 28px; border-radius: 50%; background: var(--bg-secondary);
     display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s; flex-shrink: 0; font-size: 1rem;
+    transition: all 0.3s; flex-shrink: 0; font-size: 1rem; color: var(--text-secondary); line-height: 1;
 }
 .faq-item-pmb.open .faq-icon-pmb { background: var(--primary); color: white; transform: rotate(45deg); }
 .faq-answer-pmb { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
@@ -684,8 +738,8 @@ require_once __DIR__ . '/includes/header.php';
 }
 .testi-quote { font-size: 1.05rem; color: var(--text-primary); line-height: 1.8; font-style: italic; margin-bottom: 1.25rem; }
 .testi-name { font-weight: 800; font-size: 1rem; color: var(--text-primary); }
-.testi-meta { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; }
-.testi-stars { color: #f59e0b; font-size: 1rem; margin-top: 0.5rem; letter-spacing: 0.15em; }
+.testi-meta { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+.testi-stars { margin-top: 0.5rem; display: flex; justify-content: center; gap: 3px; }
 .testi-nav {
     display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.5rem;
 }
@@ -705,7 +759,7 @@ require_once __DIR__ . '/includes/header.php';
 
 /* ===== CTA ===== */
 .pmb-cta-extreme {
-    background: linear-gradient(135deg, var(--secondary) 0%, #d97706 100%);
+    background: linear-gradient(135deg, var(--secondary, #f59e0b) 0%, #d97706 100%);
     border-radius: var(--radius-xl); padding: 4rem 2rem; text-align: center;
     color: white; position: relative; overflow: hidden; margin-top: 4rem;
 }
@@ -721,7 +775,7 @@ require_once __DIR__ . '/includes/header.php';
     width: 60px; height: 60px; border-radius: 50%;
     background: linear-gradient(135deg, #25D366, #128C7E);
     color: white; display: flex; align-items: center; justify-content: center;
-    font-size: 1.75rem; text-decoration: none; box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    text-decoration: none; box-shadow: 0 8px 25px rgba(37,211,102,0.4);
     transition: all 0.3s; animation: waFloat 3s ease-in-out infinite;
 }
 .floating-wa:hover { transform: scale(1.1); }
@@ -737,7 +791,7 @@ require_once __DIR__ . '/includes/header.php';
     width: 48px; height: 48px; border-radius: 50%;
     background: var(--bg-primary); border: 1px solid var(--border);
     color: var(--text-secondary); display: flex; align-items: center;
-    justify-content: center; font-size: 1.1rem; cursor: pointer;
+    justify-content: center; cursor: pointer;
     box-shadow: var(--shadow-md); transition: all 0.3s;
     opacity: 0; pointer-events: none; transform: translateY(20px);
 }
@@ -768,13 +822,14 @@ require_once __DIR__ . '/includes/header.php';
 }
 .modal-form-header h2 {
     font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; margin-bottom: 0.35rem;
+    display: flex; align-items: center; gap: 0.5rem;
 }
 .modal-form-header p { font-size: 0.88rem; opacity: 0.9; }
 .modal-close {
     position: absolute; top: 1rem; right: 1rem;
     width: 38px; height: 38px; border-radius: 50%;
     background: rgba(255,255,255,0.2); border: none; color: white;
-    cursor: pointer; font-size: 1.05rem; z-index: 2;
+    cursor: pointer; z-index: 2;
     display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
 .modal-close:hover { background: #dc2626; transform: rotate(90deg); }
@@ -924,7 +979,7 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Countdown -->
         <div data-aos="fade-up" data-aos-delay="200">
             <div class="countdown-caption">
-                ⏰ <span id="countdownCaption">Pendaftaran <?= sanitize($active_gelombang['name']) ?> ditutup dalam:</span>
+                <?= ric('alarm', 16) ?> <span id="countdownCaption">Pendaftaran <?= sanitize($active_gelombang['name']) ?> ditutup dalam:</span>
             </div>
             <div class="countdown-wrapper" style="margin: 0 0 1.5rem;">
                 <div class="countdown-box"><div class="countdown-num" id="cd-days">00</div><div class="countdown-label">Hari</div></div>
@@ -937,7 +992,7 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Quota bar -->
         <div class="quota-bar-wrap" data-aos="fade-up" data-aos-delay="250">
             <div class="quota-bar-head">
-                <span>🔥 Kuota Terisi</span>
+                <span><?= ric('flame', 14) ?> Kuota Terisi</span>
                 <span><?= $pmb_config['kuota_terisi'] ?> / <?= $pmb_config['kuota_total'] ?> (<?= $persen_terisi ?>%)</span>
             </div>
             <div class="quota-bar-track">
@@ -949,11 +1004,11 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;" data-aos="fade-up" data-aos-delay="300">
-            <button class="btn btn-lg" style="background: white; color: var(--primary); font-weight: 800; border: none; cursor: pointer; font-family: inherit;" onclick="openFormModal()">
-                📝 Daftar Sekarang
+            <button class="btn btn-lg" style="background: white; color: var(--primary); font-weight: 800; border: none; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 0.5rem;" onclick="openFormModal()">
+                <?= ric('pen', 18) ?> Daftar Sekarang
             </button>
-            <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin%20PMB%20FKIP%20UNIMOF,%20saya%20ingin%20bertanya%20tentang%20pendaftaran." target="_blank" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
-                💬 Tanya Admin via WhatsApp
+            <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin%20PMB%20FKIP%20UNIMOF,%20saya%20ingin%20bertanya%20tentang%20pendaftaran." target="_blank" class="btn btn-outline btn-lg" style="border-color: white; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <?= ric('chat-w', 18) ?> Tanya Admin via WhatsApp
             </a>
         </div>
     </div>
@@ -963,27 +1018,27 @@ require_once __DIR__ . '/includes/header.php';
 <div class="container">
     <div class="pmb-stats-bar" data-aos="fade-up">
         <div class="pmb-stat-card" style="--stat-color: #0a6847;">
-            <div class="pmb-stat-icon">🎓</div>
+            <div class="pmb-stat-icon"><?= ric('grad', 36) ?></div>
             <div class="pmb-stat-num count-up" data-target="<?= count($prodi_options) ?>">0</div>
             <div class="pmb-stat-label">Program Studi</div>
         </div>
         <div class="pmb-stat-card" style="--stat-color: #f59e0b;">
-            <div class="pmb-stat-icon">🔥</div>
+            <div class="pmb-stat-icon"><?= ric('flame', 36) ?></div>
             <div class="pmb-stat-num count-up" data-target="<?= $pmb_config['kuota_terisi'] ?>">0</div>
             <div class="pmb-stat-label">Pendaftar</div>
         </div>
         <div class="pmb-stat-card" style="--stat-color: #3b82f6;">
-            <div class="pmb-stat-icon">💺</div>
+            <div class="pmb-stat-icon"><?= ric('seat', 36) ?></div>
             <div class="pmb-stat-num count-up" data-target="<?= $kuota_sisa ?>">0</div>
             <div class="pmb-stat-label">Sisa Kuota</div>
         </div>
         <div class="pmb-stat-card" style="--stat-color: #8b5cf6;">
-            <div class="pmb-stat-icon">💰</div>
+            <div class="pmb-stat-icon"><?= ric('coins', 36) ?></div>
             <div class="pmb-stat-num count-up" data-target="4">0</div>
             <div class="pmb-stat-label">Jenis Beasiswa</div>
         </div>
         <div class="pmb-stat-card" style="--stat-color: #10b981;">
-            <div class="pmb-stat-icon">📅</div>
+            <div class="pmb-stat-icon"><?= ric('cal', 36) ?></div>
             <div class="pmb-stat-num count-up" data-target="<?= count($gelombang_list) ?>">0</div>
             <div class="pmb-stat-label">Gelombang</div>
         </div>
@@ -996,14 +1051,14 @@ require_once __DIR__ . '/includes/header.php';
 
         <!-- Sticky Section Nav -->
         <nav class="section-nav" id="sectionNav" data-aos="fade-up">
-            <a href="#why" class="section-nav-link active">✨ Keunggulan</a>
-            <a href="#alur" class="section-nav-link"> Alur</a>
-            <a href="#gelombang" class="section-nav-link">📅 Gelombang</a>
-            <a href="#jalur" class="section-nav-link"> Jalur</a>
-            <a href="#biaya" class="section-nav-link">💰 Biaya</a>
-            <a href="#berkas" class="section-nav-link">📋 Berkas</a>
-            <a href="#faq" class="section-nav-link">❓ FAQ</a>
-            <a href="#testimoni" class="section-nav-link">💬 Testimoni</a>
+            <a href="#why" class="section-nav-link active"><?= ric('star', 14) ?> Keunggulan</a>
+            <a href="#alur" class="section-nav-link"><?= ric('arrow-r', 14) ?> Alur</a>
+            <a href="#gelombang" class="section-nav-link"><?= ric('cal', 14) ?> Gelombang</a>
+            <a href="#jalur" class="section-nav-link"><?= ric('grad', 14) ?> Jalur</a>
+            <a href="#biaya" class="section-nav-link"><?= ric('coins', 14) ?> Biaya</a>
+            <a href="#berkas" class="section-nav-link"><?= ric('folder', 14) ?> Berkas</a>
+            <a href="#faq" class="section-nav-link"><?= ric('help', 14) ?> FAQ</a>
+            <a href="#testimoni" class="section-nav-link"><?= ric('chat', 14) ?> Testimoni</a>
         </nav>
 
         <!-- WHY CHOOSE US -->
@@ -1014,22 +1069,22 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <div class="why-grid">
                 <div class="why-card" style="--why-color: #0a6847;" data-aos="fade-up">
-                    <div class="why-icon">🎓</div>
+                    <div class="why-icon"><?= ric('grad', 42) ?></div>
                     <h3 class="why-title">Akreditasi Unggul</h3>
                     <p class="why-desc">Program studi kami telah terakreditasi dengan predikat terbaik dari BAN-PT.</p>
                 </div>
                 <div class="why-card" style="--why-color: #f59e0b;" data-aos="fade-up" data-aos-delay="100">
-                    <div class="why-icon">💰</div>
+                    <div class="why-icon"><?= ric('coins', 42) ?></div>
                     <h3 class="why-title">Biaya Terjangkau</h3>
                     <p class="why-desc">Tersedia berbagai program beasiswa dan fasilitas cicilan tanpa bunga hingga 6x.</p>
                 </div>
                 <div class="why-card" style="--why-color: #3b82f6;" data-aos="fade-up" data-aos-delay="200">
-                    <div class="why-icon">💼</div>
+                    <div class="why-icon"><?= ric('briefcase', 42) ?></div>
                     <h3 class="why-title">Siap Kerja</h3>
                     <p class="why-desc">Kurikulum berbasis MBKM dengan program magang di sekolah-sekolah mitra.</p>
                 </div>
                 <div class="why-card" style="--why-color: #8b5cf6;" data-aos="fade-up" data-aos-delay="300">
-                    <div class="why-icon">🕌</div>
+                    <div class="why-icon"><?= ric('mosque', 42) ?></div>
                     <h3 class="why-title">Lingkungan Islami</h3>
                     <p class="why-desc">Pembentukan karakter berlandaskan nilai-nilai keislaman dan kemuhammadiyahan.</p>
                 </div>
@@ -1047,31 +1102,31 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="alur-steps-extreme">
                     <div class="step-card-extreme" data-aos="fade-up">
                         <div class="step-number-extreme">1</div>
-                        <div class="step-icon-extreme">📝</div>
+                        <div class="step-icon-extreme"><?= ric('pen', 36) ?></div>
                         <h3>Isi Formulir Online</h3>
                         <p>Daftar melalui website atau datang langsung ke kampus untuk mengisi formulir pendaftaran.</p>
-                        <span class="step-duration">⏱️ ± 10 menit</span>
+                        <span class="step-duration"><?= ric('stopwatch', 12) ?> ± 10 menit</span>
                     </div>
                     <div class="step-card-extreme" data-aos="fade-up" data-aos-delay="100">
                         <div class="step-number-extreme">2</div>
-                        <div class="step-icon-extreme">📤</div>
+                        <div class="step-icon-extreme"><?= ric('upload', 36) ?></div>
                         <h3>Upload Berkas</h3>
                         <p>Unggah scan Ijazah/SKL, KK, KTP, Pas Foto, dan dokumen pendukung lainnya.</p>
-                        <span class="step-duration">⏱️ ± 15 menit</span>
+                        <span class="step-duration"><?= ric('stopwatch', 12) ?> ± 15 menit</span>
                     </div>
                     <div class="step-card-extreme" data-aos="fade-up" data-aos-delay="200">
                         <div class="step-number-extreme">3</div>
-                        <div class="step-icon-extreme">💳</div>
+                        <div class="step-icon-extreme"><?= ric('credit', 36) ?></div>
                         <h3>Pembayaran</h3>
                         <p>Lakukan pembayaran biaya pendaftaran melalui Virtual Account bank mitra atau transfer.</p>
-                        <span class="step-duration">⏱️ ± 5 menit</span>
+                        <span class="step-duration"><?= ric('stopwatch', 12) ?> ± 5 menit</span>
                     </div>
                     <div class="step-card-extreme" data-aos="fade-up" data-aos-delay="300">
                         <div class="step-number-extreme">4</div>
-                        <div class="step-icon-extreme">🎉</div>
+                        <div class="step-icon-extreme"><?= ric('party', 36) ?></div>
                         <h3>Tes & Pengumuman</h3>
                         <p>Ikuti tes potensi akademik (atau wawancara) dan pantau hasil kelulusan di website.</p>
-                        <span class="step-duration">⏱️ 3-7 hari kerja</span>
+                        <span class="step-duration"><?= ric('stopwatch', 12) ?> 3-7 hari kerja</span>
                     </div>
                 </div>
             </div>
@@ -1095,12 +1150,12 @@ require_once __DIR__ . '/includes/header.php';
                     <span class="gelombang-status status-<?= $status ?>"><?= $status_label ?></span>
                     <h3 class="gelombang-name"><?= sanitize($g['name']) ?></h3>
                     <div class="gelombang-date">
-                        📅 <?= date('d M Y', strtotime($g['start'])) ?> — <?= date('d M Y', strtotime($g['end'])) ?>
+                        <?= ric('cal', 15) ?> <?= date('d M Y', strtotime($g['start'])) ?> — <?= date('d M Y', strtotime($g['end'])) ?>
                     </div>
                     <?php if ($g['discount'] > 0): ?>
-                        <div class="gelombang-discount">🎁 Diskon <?= $g['discount'] ?>% Uang Pangkal</div>
+                        <div class="gelombang-discount"><?= ric('gift', 14) ?> Diskon <?= $g['discount'] ?>% Uang Pangkal</div>
                     <?php else: ?>
-                        <div class="gelombang-discount" style="background: linear-gradient(135deg, #94a3b8, #64748b);">📌 Kuota Terakhir</div>
+                        <div class="gelombang-discount" style="background: linear-gradient(135deg, #94a3b8, #64748b);"><?= ric('pin', 14) ?> Kuota Terakhir</div>
                     <?php endif; ?>
                     <p class="gelombang-note"><?= sanitize($g['note']) ?></p>
                 </div>
@@ -1119,7 +1174,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="jalur-tabs" data-aos="fade-up">
                 <?php foreach ($jalur_pmb as $key => $jalur): ?>
                 <button class="jalur-tab <?= $key === 'reguler' ? 'active' : '' ?>" onclick="switchJalur('<?= $key ?>', this)">
-                    <span><?= $jalur['icon'] ?></span> <?= $jalur['title'] ?>
+                    <span><?= ric($jalur['icon'], 18) ?></span> <?= $jalur['title'] ?>
                 </button>
                 <?php endforeach; ?>
             </div>
@@ -1128,10 +1183,10 @@ require_once __DIR__ . '/includes/header.php';
             <div id="jalur-<?= $key ?>" class="jalur-panel <?= $key === 'reguler' ? 'active' : '' ?>">
                 <div class="jalur-content">
                     <div class="jalur-info">
-                        <h3><span style="font-size: 2rem;"><?= $jalur['icon'] ?></span> <?= $jalur['title'] ?></h3>
+                        <h3><span style="font-size: 2rem; line-height: 1;"><?= ric($jalur['icon'], 32) ?></span> <?= $jalur['title'] ?></h3>
                         <p><?= sanitize($jalur['desc']) ?></p>
                         <div class="jalur-benefit">
-                            <h4>✨ Keuntungan Jalur Ini</h4>
+                            <h4><?= ric('star', 14) ?> Keuntungan Jalur Ini</h4>
                             <ul>
                                 <?php foreach ($jalur['benefit'] as $b): ?>
                                 <li><?= sanitize($b) ?></li>
@@ -1140,11 +1195,11 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                         <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
                             <button class="btn btn-primary" onclick="openFormModal('<?= $key ?>')">Daftar Jalur Ini →</button>
-                            <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo,%20saya%20tertarik%20dengan%20<?= urlencode($jalur['title']) ?>%20FKIP%20UNIMOF" target="_blank" class="btn btn-secondary">💬 Konsultasi</a>
+                            <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo,%20saya%20tertarik%20dengan%20<?= urlencode($jalur['title']) ?>%20FKIP%20UNIMOF" target="_blank" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:0.4rem;"><?= ric('chat', 14) ?> Konsultasi</a>
                         </div>
                     </div>
                     <div class="jalur-syarat" style="border-left-color: <?= $jalur['color'] ?>;">
-                        <h4>📋 Persyaratan Khusus</h4>
+                        <h4><?= ric('folder', 16) ?> Persyaratan Khusus</h4>
                         <ul>
                             <?php foreach ($jalur['syarat'] as $syarat): ?>
                             <li><?= sanitize($syarat) ?></li>
@@ -1162,7 +1217,7 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Compare -->
             <div class="compare-toggle-wrap" data-aos="fade-up">
                 <button class="btn btn-secondary" onclick="toggleCompareJalur()" id="compareToggleBtn">
-                    ⚖️ Bandingkan Semua Jalur
+                    <?= ric('scale', 16) ?> <span>Bandingkan Semua Jalur</span>
                 </button>
             </div>
             <div class="compare-table-wrap" id="compareTableWrap">
@@ -1172,7 +1227,7 @@ require_once __DIR__ . '/includes/header.php';
                             <th>Atribut</th>
                             <?php foreach ($jalur_pmb as $j): ?>
                             <th class="jalur-head">
-                                <span class="compare-jalur-icon"><?= $j['icon'] ?></span>
+                                <span class="compare-jalur-icon"><?= ric($j['icon'], 28) ?></span>
                                 <?= sanitize($j['title']) ?>
                             </th>
                             <?php endforeach; ?>
@@ -1232,7 +1287,7 @@ require_once __DIR__ . '/includes/header.php';
                 <!-- Pricing cards -->
                 <div class="biaya-grid" data-aos="fade-up">
                     <div class="biaya-card">
-                        <div class="biaya-icon-box">📝</div>
+                        <div class="biaya-icon-box"><?= ric('pen', 28) ?></div>
                         <div class="biaya-info">
                             <h3 class="biaya-title">Biaya Pendaftaran</h3>
                             <div class="biaya-price">Rp <?= number_format($pmb_config['biaya_pendaftaran'], 0, ',', '.') ?></div>
@@ -1246,7 +1301,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div class="biaya-card featured">
                         <span class="biaya-popular-tag">POPULER</span>
-                        <div class="biaya-icon-box">🎓</div>
+                        <div class="biaya-icon-box"><?= ric('grad', 28) ?></div>
                         <div class="biaya-info">
                             <h3 class="biaya-title">Semester 1 (Total)</h3>
                             <div class="biaya-price">Rp <?= number_format($pmb_config['biaya_pendaftaran'] + $pmb_config['uang_pangkal'] + $pmb_config['spp_per_semester'], 0, ',', '.') ?> <small>/estimasi</small></div>
@@ -1259,7 +1314,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                     </div>
                     <div class="biaya-card">
-                        <div class="biaya-icon-box">💰</div>
+                        <div class="biaya-icon-box"><?= ric('coins', 28) ?></div>
                         <div class="biaya-info">
                             <h3 class="biaya-title">SPP per Semester</h3>
                             <div class="biaya-price">Rp <?= number_format($pmb_config['spp_per_semester'], 0, ',', '.') ?> <small>/semester</small></div>
@@ -1275,19 +1330,19 @@ require_once __DIR__ . '/includes/header.php';
 
                 <!-- Calculator -->
                 <div class="calc-card" data-aos="fade-left">
-                    <h3>🧮 Kalkulator Biaya</h3>
+                    <h3><?= ric('calc', 20) ?> Kalkulator Biaya</h3>
                     <p>Hitung estimasi biaya personal Anda berdasarkan jalur, gelombang, dan skema cicilan.</p>
 
                     <div class="calc-field">
-                        <label>🎯 Jalur Pendaftaran</label>
+                        <label><?= ric('target', 14) ?> Jalur Pendaftaran</label>
                         <select id="calcJalur" onchange="hitungBiaya()">
                             <?php foreach ($jalur_pmb as $key => $j): ?>
-                            <option value="<?= $key ?>"><?= $j['icon'] ?> <?= sanitize($j['title']) ?></option>
+                            <option value="<?= $key ?>"><?= sanitize($j['title']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="calc-field">
-                        <label>📅 Gelombang</label>
+                        <label><?= ric('cal', 14) ?> Gelombang</label>
                         <select id="calcGelombang" onchange="hitungBiaya()">
                             <?php foreach ($gelombang_list as $i => $g): ?>
                             <option value="<?= $i ?>" <?= $g['name'] === $active_gelombang['name'] ? 'selected' : '' ?>>
@@ -1297,7 +1352,7 @@ require_once __DIR__ . '/includes/header.php';
                         </select>
                     </div>
                     <div class="calc-field">
-                        <label>💳 Skema Pembayaran</label>
+                        <label><?= ric('card', 14) ?> Skema Pembayaran</label>
                         <div class="calc-radio-group" id="calcCicilanGroup">
                             <div class="calc-radio active" data-val="1" onclick="setCicilan(1, this)">Lunas</div>
                             <div class="calc-radio" data-val="3" onclick="setCicilan(3, this)">3x Cicilan</div>
@@ -1309,8 +1364,8 @@ require_once __DIR__ . '/includes/header.php';
                         <!-- diisi oleh JS -->
                     </div>
 
-                    <button class="btn btn-primary btn-block" style="margin-top: 1.25rem; justify-content: center;" onclick="openFormModal(document.getElementById('calcJalur').value)">
-                        📝 Daftar dengan Estimasi Ini
+                    <button class="btn btn-primary btn-block" style="margin-top: 1.25rem; justify-content: center; display: flex; align-items: center; gap: 0.4rem;" onclick="openFormModal(document.getElementById('calcJalur').value)">
+                        <?= ric('pen', 16) ?> Daftar dengan Estimasi Ini
                     </button>
                 </div>
             </div>
@@ -1362,11 +1417,11 @@ require_once __DIR__ . '/includes/header.php';
                         ⚠️ <?= count(array_filter($checklist_items, fn($i) => $i['wajib'])) ?> berkas wajib belum lengkap
                     </div>
                     <div class="checklist-actions">
-                        <button class="btn btn-primary btn-block" style="justify-content:center;" onclick="openFormModal()" id="checklistDaftarBtn" disabled>
-                            📝 Daftar Sekarang
+                        <button class="btn btn-primary btn-block" style="justify-content:center; display:flex; align-items:center; gap:0.4rem;" onclick="openFormModal()" id="checklistDaftarBtn" disabled>
+                            <?= ric('pen', 16) ?> Daftar Sekarang
                         </button>
-                        <button class="btn btn-secondary btn-block" style="justify-content:center;" onclick="resetChecklist()">
-                            🔄 Reset Checklist
+                        <button class="btn btn-secondary btn-block" style="justify-content:center; display:flex; align-items:center; gap:0.4rem;" onclick="resetChecklist()">
+                            <?= ric('refresh', 16) ?> Reset Checklist
                         </button>
                     </div>
                 </div>
@@ -1382,7 +1437,7 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="faq-toolbar" data-aos="fade-up">
                 <div class="faq-search">
-                    <span class="s-icon">🔍</span>
+                    <span class="s-icon"><?= ric('search', 16) ?></span>
                     <input type="text" id="faqSearch" placeholder="Cari pertanyaan...">
                 </div>
                 <div class="faq-chips" id="faqChips">
@@ -1404,7 +1459,7 @@ require_once __DIR__ . '/includes/header.php';
                             <span class="faq-kat-tag"><?= sanitize($faq['kat']) ?></span>
                             <span><?= sanitize($faq['q']) ?></span>
                         </span>
-                        <span class="faq-icon-pmb">+</span>
+                        <span class="faq-icon-pmb"><?= ric('plus', 14) ?></span>
                     </button>
                     <div class="faq-answer-pmb">
                         <div class="faq-answer-inner-pmb"><?= sanitize($faq['a']) ?></div>
@@ -1412,7 +1467,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <?php endforeach; ?>
                 <div id="faqEmpty" style="display:none; text-align:center; padding:2.5rem; background:var(--bg-secondary); border-radius:var(--radius-xl); border:2px dashed var(--border);">
-                    <div style="font-size:3rem; margin-bottom:0.75rem; opacity:0.5;">🔍</div>
+                    <div style="margin-bottom:0.75rem; opacity:0.5;"><?= ric('search', 48) ?></div>
                     <h3 style="font-size:1.1rem;">Pertanyaan tidak ditemukan</h3>
                     <p style="color:var(--text-muted); font-size:0.88rem; margin-top:0.35rem;">Coba kata kunci lain atau tanyakan langsung ke admin via WhatsApp.</p>
                 </div>
@@ -1437,17 +1492,17 @@ require_once __DIR__ . '/includes/header.php';
                                 <div class="testi-avatar"><?= $initials ?></div>
                                 <p class="testi-quote"><?= sanitize($t['quote']) ?></p>
                                 <div class="testi-name"><?= sanitize($t['nama']) ?></div>
-                                <div class="testi-meta">🎓 <?= sanitize($t['prodi']) ?> • Angkatan <?= sanitize($t['angkatan']) ?></div>
-                                <div class="testi-stars"><?= str_repeat('★', $t['rating']) . str_repeat('☆', 5 - $t['rating']) ?></div>
+                                <div class="testi-meta"><?= ric('grad', 14) ?> <?= sanitize($t['prodi']) ?> • Angkatan <?= sanitize($t['angkatan']) ?></div>
+                                <div class="testi-stars"><?php for ($i = 1; $i <= 5; $i++): echo $i <= $t['rating'] ? ric('star', 16) : ric('star-o', 16); endfor; ?></div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
                 <div class="testi-nav">
-                    <button class="testi-arrow" onclick="moveTesti(-1)">←</button>
+                    <button class="testi-arrow" onclick="moveTesti(-1)"><?= ric('arrow-l', 16) ?></button>
                     <div class="testi-dots" id="testiDots"></div>
-                    <button class="testi-arrow" onclick="moveTesti(1)">→</button>
+                    <button class="testi-arrow" onclick="moveTesti(1)"><?= ric('arrow-r', 16) ?></button>
                 </div>
             </div>
         </div>
@@ -1460,11 +1515,11 @@ require_once __DIR__ . '/includes/header.php';
                     Bergabunglah dengan ribuan mahasiswa yang telah memilih FKIP UNIMOF sebagai rumah akademik mereka. Wujudkan mimpimu mulai dari sini.
                 </p>
                 <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn btn-lg" style="background: white; color: #d97706; font-weight: 800; border: none; cursor: pointer; font-family: inherit;" onclick="openFormModal()">
-                        📝 Daftar Sekarang →
+                    <button class="btn btn-lg" style="background: white; color: #d97706; font-weight: 800; border: none; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 0.5rem;" onclick="openFormModal()">
+                        <?= ric('pen', 18) ?> Daftar Sekarang →
                     </button>
-                    <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin,%20saya%20ingin%20mendaftar%20PMB%20FKIP%20UNIMOF" target="_blank" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
-                        💬 Daftar via WhatsApp
+                    <a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin,%20saya%20ingin%20mendaftar%20PMB%20FKIP%20UNIMOF" target="_blank" class="btn btn-outline btn-lg" style="border-color: white; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <?= ric('chat-w', 18) ?> Daftar via WhatsApp
                     </a>
                 </div>
             </div>
@@ -1476,8 +1531,8 @@ require_once __DIR__ . '/includes/header.php';
 <div class="modal-overlay" id="formModal" onclick="if(event.target===this)closeFormModal()">
     <div class="modal-content-form">
         <div class="modal-form-header">
-            <button class="modal-close" onclick="closeFormModal()">✕</button>
-            <h2>📝 Formulir Pendaftaran PMB</h2>
+            <button class="modal-close" onclick="closeFormModal()" aria-label="Tutup"><?= ric('close', 16) ?></button>
+            <h2><?= ric('pen', 22) ?> Formulir Pendaftaran PMB</h2>
             <p>FKIP UNIMOF — Tahun Akademik <?= sanitize($pmb_config['tahun_akademik']) ?> • <?= sanitize($active_gelombang['name']) ?></p>
         </div>
 
@@ -1546,7 +1601,7 @@ require_once __DIR__ . '/includes/header.php';
                         <label>Jalur Pendaftaran <span class="req">*</span></label>
                         <select id="fJalur" onchange="updateFormSummary()">
                             <?php foreach ($jalur_pmb as $key => $j): ?>
-                            <option value="<?= $key ?>"><?= $j['icon'] ?> <?= sanitize($j['title']) ?></option>
+                            <option value="<?= $key ?>"><?= sanitize($j['title']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -1575,22 +1630,27 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="form-footer">
-            <button class="form-btn secondary" id="formBackBtn" onclick="formStep(-1)" style="visibility:hidden;">← Kembali</button>
-            <button class="form-btn primary" id="formNextBtn" onclick="formStep(1)">Lanjutkan →</button>
-            <button class="form-btn wa" id="formSubmitBtn" onclick="submitFormToWA()" style="display:none;">💬 Kirim via WhatsApp</button>
+            <button class="form-btn secondary" id="formBackBtn" onclick="formStep(-1)" style="visibility:hidden;"><?= ric('arrow-l', 14) ?> Kembali</button>
+            <button class="form-btn primary" id="formNextBtn" onclick="formStep(1)">Lanjutkan <?= ric('arrow-r', 14) ?></button>
+            <button class="form-btn wa" id="formSubmitBtn" onclick="submitFormToWA()" style="display:none;"><?= ric('chat-w', 16) ?> Kirim via WhatsApp</button>
         </div>
     </div>
 </div>
 
 <!-- ===== FLOATING ===== -->
-<a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin%20PMB%20FKIP%20UNIMOF!" target="_blank" class="floating-wa" title="Chat Admin PMB">💬</a>
-<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Kembali ke atas">↑</button>
+<a href="https://wa.me/<?= $pmb_config['wa_number'] ?>?text=Halo%20Admin%20PMB%20FKIP%20UNIMOF!" target="_blank" class="floating-wa" title="Chat Admin PMB"><?= ric('chat-w', 28) ?></a>
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Kembali ke atas"><?= ric('arrow-r', 18, 'ic btt-arrow-icon') ?></button>
 
 <!-- Toast -->
 <div class="pub-toast" id="pubToast">
     <span class="pub-toast-icon" id="pubToastIcon">✓</span>
     <span id="pubToastMsg">Berhasil</span>
 </div>
+
+<style>
+/* Rotate arrow-up untuk back-to-top (ric arrow-r default panah kanan) */
+.btt-arrow-icon { transform: rotate(-90deg); }
+</style>
 
 <script>
 // ===== DATA =====
@@ -1657,7 +1717,7 @@ function updateCountdown() {
     if (distance < 0) {
         els.forEach(e => e && (e.innerText = '00'));
         const cap = document.getElementById('countdownCaption');
-        if (cap) cap.textContent = '⏰ Pendaftaran gelombang ini telah ditutup. Nantikan gelombang berikutnya!';
+        if (cap) cap.textContent = 'Pendaftaran gelombang ini telah ditutup. Nantikan gelombang berikutnya!';
         return;
     }
     const d = Math.floor(distance / 86400000);
@@ -1715,7 +1775,7 @@ function toggleCompareJalur() {
     const wrap = document.getElementById('compareTableWrap');
     const btn = document.getElementById('compareToggleBtn');
     wrap.classList.toggle('show');
-    btn.innerHTML = wrap.classList.contains('show') ? ' Sembunyikan Perbandingan' : '⚖️ Bandingkan Semua Jalur';
+    btn.querySelector('span').textContent = wrap.classList.contains('show') ? 'Sembunyikan Perbandingan' : 'Bandingkan Semua Jalur';
 }
 
 // ===== KALKULATOR BIAYA =====
@@ -1981,17 +2041,17 @@ function submitFormToWA() {
         '*PENDAFTARAN PMB FKIP UNIMOF*',
         'T.A. ' + PMB.tahun + ' — ' + PMB.gelombang_name,
         '─────────────────',
-        '👤 Nama: ' + document.getElementById('fNama').value,
-        '🔢 NISN: ' + (document.getElementById('fNisn').value || '-'),
-        '🏫 Asal Sekolah: ' + document.getElementById('fSekolah').value,
-        '📱 No. WA: ' + document.getElementById('fHp').value,
-        '📧 Email: ' + (document.getElementById('fEmail').value || '-'),
-        '🎓 Prodi: ' + document.getElementById('fProdi').value,
-        '🎯 Jalur: ' + j.title,
-        '💰 Estimasi Sem. 1: ' + rupiah(total),
+        'Nama: ' + document.getElementById('fNama').value,
+        'NISN: ' + (document.getElementById('fNisn').value || '-'),
+        'Asal Sekolah: ' + document.getElementById('fSekolah').value,
+        'No. WA: ' + document.getElementById('fHp').value,
+        'Email: ' + (document.getElementById('fEmail').value || '-'),
+        'Prodi: ' + document.getElementById('fProdi').value,
+        'Jalur: ' + j.title,
+        'Estimasi Sem. 1: ' + rupiah(total),
     ];
     const pesan = document.getElementById('fPesan').value.trim();
-    if (pesan) lines.push('💬 Pesan: ' + pesan);
+    if (pesan) lines.push('Pesan: ' + pesan);
     lines.push('─────────────────', 'Dikirim melalui website FKIP UNIMOF');
 
     const url = 'https://wa.me/' + PMB.wa + '?text=' + encodeURIComponent(lines.join('\n'));
@@ -2016,7 +2076,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('%c📝 PMB FKIP UNIMOF - EXTREME MULTIMATE', 'color:#0a6847;font-size:16px;font-weight:bold');
+console.log('%cPMB FKIP UNIMOF - EXTREME MULTIMATE (Ikon Realistis)', 'color:#0a6847;font-size:16px;font-weight:bold');
 console.log('%cShortcuts: / (Cari FAQ) • ESC (Tutup modal)', 'color:#64748b');
 </script>
 
