@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
+if (!function_exists('ric')) require_once __DIR__ . '/includes/icons.php';
+
 $page_title = 'Tentang Kami';
 $page_description = 'Profil lengkap FKIP UNIMOF: Visi, Misi, Sejarah, Struktur Organisasi, Nilai Inti, dan Sambutan Dekan';
 
@@ -167,24 +169,25 @@ try {
 
 // =====================================================
 // DATA STATIS (Core Values, Milestone, FAQ)
+// ✅ IKON REALISTIS: kolom 'icon' berisi nama simbol SVG
 // =====================================================
 $core_values = [
-    ['icon' => '🎯', 'title' => 'Unggul',       'desc' => 'Standar akademik tertinggi dengan akreditasi unggul dari BAN-PT', 'color' => ['#10b981','#059669']],
-    ['icon' => '💡', 'title' => 'Inovatif',     'desc' => 'Kurikulum adaptif mengikuti perkembangan teknologi pendidikan 4.0', 'color' => ['#3b82f6','#2563eb']],
-    ['icon' => '🕌', 'title' => 'Islami',       'desc' => 'Menanamkan nilai keislaman dan kemuhammadiyahan dalam setiap aktivitas', 'color' => ['#f59e0b','#d97706']],
-    ['icon' => '🌏', 'title' => 'Global',       'desc' => 'Jejaring internasional dengan universitas di ASEAN dan Timur Tengah', 'color' => ['#8b5cf6','#7c3aed']],
-    ['icon' => '🤝', 'title' => 'Kolaboratif',  'desc' => 'Kerjasama dengan sekolah, pemerintah, dan industri pendidikan', 'color' => ['#ec4899','#db2777']],
-    ['icon' => '⭐', 'title' => 'Berkarakter', 'desc' => 'Membentuk pendidik yang berakhlak mulia dan berjiwa pemimpin', 'color' => ['#ef4444','#dc2626']],
+    ['icon' => 'target',    'title' => 'Unggul',       'desc' => 'Standar akademik tertinggi dengan akreditasi unggul dari BAN-PT', 'color' => ['#10b981','#059669']],
+    ['icon' => 'bulb',      'title' => 'Inovatif',     'desc' => 'Kurikulum adaptif mengikuti perkembangan teknologi pendidikan 4.0', 'color' => ['#3b82f6','#2563eb']],
+    ['icon' => 'mosque',    'title' => 'Islami',       'desc' => 'Menanamkan nilai keislaman dan kemuhammadiyahan dalam setiap aktivitas', 'color' => ['#f59e0b','#d97706']],
+    ['icon' => 'globe',     'title' => 'Global',       'desc' => 'Jejaring internasional dengan universitas di ASEAN dan Timur Tengah', 'color' => ['#8b5cf6','#7c3aed']],
+    ['icon' => 'handshake', 'title' => 'Kolaboratif',  'desc' => 'Kerjasama dengan sekolah, pemerintah, dan industri pendidikan', 'color' => ['#ec4899','#db2777']],
+    ['icon' => 'star',      'title' => 'Berkarakter',  'desc' => 'Membentuk pendidik yang berakhlak mulia dan berjiwa pemimpin', 'color' => ['#ef4444','#dc2626']],
 ];
 
 $milestones = [
-    ['year' => '1995', 'title' => 'Cikal Bakal FKIP',         'desc' => 'Berdiri sebagai Sekolah Tinggi Keguruan dan Ilmu Pendidikan (STKIP) dengan 2 program studi awal: Pendidikan Matematika dan Pendidikan Bahasa Indonesia.', 'icon' => '🌱'],
-    ['year' => '2000', 'title' => 'Integrasi ke UNIMOF',      'desc' => 'Bergabung resmi menjadi Fakultas Keguruan dan Ilmu Pendidikan di bawah Universitas Muhammadiyah Maumere dengan 4 program studi.', 'icon' => '🏛️'],
-    ['year' => '2008', 'title' => 'Ekspansi 8 Prodi',         'desc' => 'Membuka 4 program studi baru: Pendidikan Fisika, Pendidikan Biologi, Pendidikan Kimia, dan Pendidikan Ekonomi untuk menjawab kebutuhan guru di NTT.', 'icon' => '📈'],
-    ['year' => '2015', 'title' => 'Akreditasi B & A',         'desc' => 'Meraih akreditasi B dari BAN-PT untuk seluruh program studi, dengan 2 prodi meraih akreditasi A.', 'icon' => '🏆'],
-    ['year' => '2020', 'title' => 'Transformasi Digital',     'desc' => 'Implementasi Learning Management System (LMS) dan kelas hybrid sebagai respons terhadap pandemi global.', 'icon' => '💻'],
-    ['year' => '2023', 'title' => 'Era Akreditasi Unggul',    'desc' => 'Tiga program studi meraih predikat "Unggul" dari BAN-PT. Kerjasama internasional dengan universitas di Malaysia dan Turki.', 'icon' => '🌟'],
-    ['year' => '2026', 'title' => 'Visi 2030',                'desc' => 'Menargetkan seluruh program studi berakreditasi Unggul dan menjadi pusat riset pendidikan terdepan di Indonesia Timur.', 'icon' => '🚀'],
+    ['year' => '1995', 'title' => 'Cikal Bakal FKIP',         'desc' => 'Berdiri sebagai Sekolah Tinggi Keguruan dan Ilmu Pendidikan (STKIP) dengan 2 program studi awal: Pendidikan Matematika dan Pendidikan Bahasa Indonesia.', 'icon' => 'seed'],
+    ['year' => '2000', 'title' => 'Integrasi ke UNIMOF',      'desc' => 'Bergabung resmi menjadi Fakultas Keguruan dan Ilmu Pendidikan di bawah Universitas Muhammadiyah Maumere dengan 4 program studi.', 'icon' => 'bank'],
+    ['year' => '2008', 'title' => 'Ekspansi 8 Prodi',         'desc' => 'Membuka 4 program studi baru: Pendidikan Fisika, Pendidikan Biologi, Pendidikan Kimia, dan Pendidikan Ekonomi untuk menjawab kebutuhan guru di NTT.', 'icon' => 'chart'],
+    ['year' => '2015', 'title' => 'Akreditasi B & A',         'desc' => 'Meraih akreditasi B dari BAN-PT untuk seluruh program studi, dengan 2 prodi meraih akreditasi A.', 'icon' => 'trophy'],
+    ['year' => '2020', 'title' => 'Transformasi Digital',     'desc' => 'Implementasi Learning Management System (LMS) dan kelas hybrid sebagai respons terhadap pandemi global.', 'icon' => 'laptop'],
+    ['year' => '2023', 'title' => 'Era Akreditasi Unggul',    'desc' => 'Tiga program studi meraih predikat "Unggul" dari BAN-PT. Kerjasama internasional dengan universitas di Malaysia dan Turki.', 'icon' => 'star'],
+    ['year' => '2026', 'title' => 'Visi 2030',                'desc' => 'Menargetkan seluruh program studi berakreditasi Unggul dan menjadi pusat riset pendidikan terdepan di Indonesia Timur.', 'icon' => 'rocket'],
 ];
 
 $faqs = [
@@ -205,6 +208,19 @@ require_once __DIR__ . '/includes/header.php';
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <style>
+/* ===== ✅ IKON REALISTIS (SVG) — penyesuaian tampilan ===== */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ic { display: inline-block; vertical-align: -0.15em; flex: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22)); }
+.trust-pill .ic, .btn .ic, .section-nav-link .ic, .dekan-jabatan .ic,
+.tujuan-item strong .ic, .timeline-year-extreme .ic, .chart-card-extreme h3 .ic,
+.stat-summary h3 .ic, .tab-extreme .ic, .modal-btn .ic, .modal-info-label .ic,
+.modal-section h4 .ic, .partner-kind .ic, .pub-toast-icon .ic { vertical-align: -0.2em; }
+.stat-icon-extreme, .value-icon, .vm-icon-extreme, .partner-icon-box, .dekan-photo { line-height: 1; }
+.stat-icon-extreme .ic, .value-icon .ic, .vm-icon-extreme .ic, .partner-icon-box .ic { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.30)); }
+.dekan-photo .ic { filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35)); }
+.btn .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25)); }
+.tab-extreme.active .ic, .section-nav-link.active .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)) brightness(1.2); }
+
 /* ===== HERO EXTREME ===== */
 .about-hero-extreme {
     position: relative; min-height: 70vh; display: flex; align-items: center;
@@ -279,7 +295,9 @@ require_once __DIR__ . '/includes/header.php';
     border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);
     border-radius: 999px; font-size: 0.82rem; font-weight: 600;
 }
+.trust-pill .ic { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)); }
 .hero-cta-extreme { display: flex; gap: 1rem; flex-wrap: wrap; }
+.hero-cta-extreme .btn span { display: inline-flex; align-items: center; gap: 0.5rem; }
 
 /* ===== STATS BAR ===== */
 .stats-bar-extreme {
@@ -456,7 +474,7 @@ require_once __DIR__ . '/includes/header.php';
     border-left: 3px solid #f59e0b; transition: all 0.3s;
 }
 .tujuan-item:hover { transform: translateX(3px); background: var(--bg-tertiary); }
-.tujuan-item strong { color: var(--text-primary); display: block; margin-bottom: 0.35rem; font-size: 0.95rem; }
+.tujuan-item strong { color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; font-size: 0.95rem; }
 .tujuan-item small { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
 
 /* ===== TIMELINE ===== */
@@ -618,7 +636,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 .partner-icon-box img { width: 100%; height: 100%; object-fit: contain; padding: 0.4rem; }
 .partner-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
-.partner-kind { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.25rem; }
+.partner-kind { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.25rem; display: inline-flex; align-items: center; gap: 0.3rem; }
 
 /* ===== FAQ ===== */
 .faq-toolbar {
@@ -632,7 +650,7 @@ require_once __DIR__ . '/includes/header.php';
     color: var(--text-primary); transition: all 0.3s;
 }
 .faq-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(10,104,71,0.1); }
-.faq-search .s-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.faq-search .s-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); }
 .faq-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .faq-chip {
     padding: 0.45rem 0.9rem; border-radius: 999px; border: 1px solid var(--border);
@@ -665,7 +683,7 @@ require_once __DIR__ . '/includes/header.php';
 .faq-icon-extreme {
     width: 28px; height: 28px; border-radius: 50%; background: var(--bg-secondary);
     display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s; flex-shrink: 0; font-size: 1rem;
+    transition: all 0.3s; flex-shrink: 0; font-size: 1rem; color: var(--text-secondary); line-height: 1;
 }
 .faq-item-extreme.open .faq-icon-extreme { background: var(--primary); color: white; transform: rotate(45deg); }
 .faq-answer-extreme { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
@@ -690,6 +708,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 .cta-extreme p { font-size: 1.1rem; opacity: 0.95; margin-bottom: 2rem; }
 .cta-actions-extreme { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.cta-actions-extreme .btn { display: inline-flex; align-items: center; gap: 0.5rem; }
 
 /* ===== MODAL ===== */
 .modal-overlay {
@@ -752,6 +771,7 @@ require_once __DIR__ . '/includes/header.php';
 .modal-info-label {
     font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;
     letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.25rem;
+    display: flex; align-items: center; gap: 0.35rem;
 }
 .modal-info-value {
     font-size: 0.9rem; color: var(--text-primary); font-weight: 600;
@@ -795,6 +815,7 @@ require_once __DIR__ . '/includes/header.php';
     max-width: 90%; font-size: 0.9rem; font-weight: 600;
 }
 .pub-toast.show { transform: translateX(-50%) translateY(0); }
+.pub-toast-icon { display: inline-flex; align-items: center; }
 
 /* ===== STICKY SECTION NAV ===== */
 .section-nav {
@@ -868,20 +889,20 @@ require_once __DIR__ . '/includes/header.php';
             mencetak pendidik profesional berkarakter Islami yang siap membangun Indonesia Timur.
         </p>
         <div class="hero-trust-row" data-aos="fade-up" data-aos-delay="300">
-            <span class="trust-pill">🎓 <?= $stat_prodi ?> Prodi</span>
-            <span class="trust-pill">👨‍🏫 <?= $stat_dosen ?> Dosen</span>
-            <span class="trust-pill">👨‍🎓 <?= number_format($stat_mahasiswa) ?> Mahasiswa</span>
-            <span class="trust-pill">🌏 <?= $stat_intl ?> Mitra Internasional</span>
+            <span class="trust-pill"><?= ric('grad', 15) ?> <?= $stat_prodi ?> Prodi</span>
+            <span class="trust-pill"><?= ric('teacher', 15) ?> <?= $stat_dosen ?> Dosen</span>
+            <span class="trust-pill"><?= ric('student', 15) ?> <?= number_format($stat_mahasiswa) ?> Mahasiswa</span>
+            <span class="trust-pill"><?= ric('globe', 15) ?> <?= $stat_intl ?> Mitra Internasional</span>
         </div>
         <div class="hero-cta-extreme" data-aos="fade-up" data-aos-delay="400">
             <a href="#sambutan" class="btn btn-primary btn-lg" style="background: white; color: var(--primary); border: none; cursor: pointer;">
-                <span>📢 Sambutan Dekan</span>
+                <span><?= ric('mega', 17) ?> Sambutan Dekan</span>
             </a>
             <a href="<?= base_url('program.php') ?>" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
-                <span>🎓 Lihat Program Studi</span>
+                <span><?= ric('grad', 17) ?> Lihat Program Studi</span>
             </a>
             <button class="btn btn-outline btn-lg" style="border-color: white; color: white;" onclick="shareAbout()">
-                <span>🔗 Bagikan</span>
+                <span><?= ric('link', 17) ?> Bagikan</span>
             </button>
         </div>
     </div>
@@ -894,27 +915,27 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Stats Bar -->
         <div class="stats-bar-extreme" data-aos="fade-up">
             <div class="stat-card-extreme" style="--stat-color: #3b82f6;">
-                <div class="stat-icon-extreme">🎓</div>
+                <div class="stat-icon-extreme"><?= ric('grad', 34) ?></div>
                 <div class="stat-num-extreme count-up" data-target="<?= $stat_prodi ?>">0</div>
                 <div class="stat-label-extreme">Program Studi</div>
             </div>
             <div class="stat-card-extreme" style="--stat-color: #10b981;">
-                <div class="stat-icon-extreme">👨‍🏫</div>
+                <div class="stat-icon-extreme"><?= ric('teacher', 34) ?></div>
                 <div class="stat-num-extreme count-up" data-target="<?= $stat_dosen ?>">0</div>
                 <div class="stat-label-extreme">Dosen Berkualitas</div>
             </div>
             <div class="stat-card-extreme" style="--stat-color: #f59e0b;">
-                <div class="stat-icon-extreme">👨‍🎓</div>
+                <div class="stat-icon-extreme"><?= ric('student', 34) ?></div>
                 <div class="stat-num-extreme count-up" data-target="<?= $stat_mahasiswa ?>">0</div>
                 <div class="stat-label-extreme">Mahasiswa Aktif</div>
             </div>
             <div class="stat-card-extreme" style="--stat-color: #8b5cf6;">
-                <div class="stat-icon-extreme">🎖️</div>
+                <div class="stat-icon-extreme"><?= ric('medal', 34) ?></div>
                 <div class="stat-num-extreme count-up" data-target="<?= $stat_alumni ?>">0</div>
                 <div class="stat-label-extreme">Alumni Sukses</div>
             </div>
             <div class="stat-card-extreme" style="--stat-color: #ef4444;">
-                <div class="stat-icon-extreme">🏆</div>
+                <div class="stat-icon-extreme"><?= ric('trophy', 34) ?></div>
                 <div class="stat-num-extreme count-up" data-target="<?= $stat_prestasi ?>">0</div>
                 <div class="stat-label-extreme">Prestasi</div>
             </div>
@@ -922,12 +943,12 @@ require_once __DIR__ . '/includes/header.php';
 
         <!-- Sticky Section Nav -->
         <nav class="section-nav" id="sectionNav" data-aos="fade-up">
-            <a href="#sambutan" class="section-nav-link active">📢 Sambutan</a>
-            <a href="#nilai" class="section-nav-link">✨ Nilai Inti</a>
-            <a href="#profil" class="section-nav-link">🏛️ Profil</a>
-            <a href="#testimoni" class="section-nav-link">💬 Testimoni</a>
-            <a href="#mitra" class="section-nav-link">🤝 Mitra</a>
-            <a href="#faq" class="section-nav-link">❓ FAQ</a>
+            <a href="#sambutan" class="section-nav-link active"><?= ric('mega', 14) ?> Sambutan</a>
+            <a href="#nilai" class="section-nav-link"><?= ric('star', 14) ?> Nilai Inti</a>
+            <a href="#profil" class="section-nav-link"><?= ric('bank', 14) ?> Profil</a>
+            <a href="#testimoni" class="section-nav-link"><?= ric('chat', 14) ?> Testimoni</a>
+            <a href="#mitra" class="section-nav-link"><?= ric('handshake', 14) ?> Mitra</a>
+            <a href="#faq" class="section-nav-link"><?= ric('help', 14) ?> FAQ</a>
         </nav>
 
         <!-- SAMBUTAN DEKAN -->
@@ -942,21 +963,21 @@ require_once __DIR__ . '/includes/header.php';
                     <?php if (!empty($dekan['foto'])): ?>
                         <img src="<?= asset('dosen/' . basename($dekan['foto'])) ?>" alt="<?= sanitize($dekan['nama']) ?>">
                     <?php else: ?>
-                        <span>👨‍🏫</span>
+                        <?= ric('teacher', 110) ?>
                     <?php endif; ?>
                 </div>
                 <div class="dekan-info">
                     <h3><?= sanitize($dekan['nama']) ?></h3>
                     <div class="dekan-jabatan">
-                        <span>🎓</span> <?= sanitize($dekan['jabatan_struktural'] ?? $dekan['jabatan_fungsional'] ?? 'Dekan FKIP UNIMOF') ?>
+                        <?= ric('grad', 16) ?> <?= sanitize($dekan['jabatan_struktural'] ?? $dekan['jabatan_fungsional'] ?? 'Dekan FKIP UNIMOF') ?>
                     </div>
                     <div class="dekan-quote">
                         "<?= sanitize(excerpt($dekan['sambutan'] ?? 'Kami berkomitmen untuk terus meningkatkan kualitas pendidikan, penelitian, dan pengabdian masyarakat. Melalui kurikulum yang adaptif, dosen yang kompeten, dan fasilitas modern, kami mengajak Anda menjadi bagian dari keluarga besar FKIP UNIMOF.', 350)) ?>"
                         <span class="dekan-name">— <?= sanitize($dekan['nama']) ?></span>
                     </div>
                     <div class="dekan-actions" onclick="event.stopPropagation();">
-                        <button class="btn btn-primary" onclick='openDekanModal(<?= htmlspecialchars(json_encode($dekan), ENT_QUOTES, "UTF-8") ?>)'>📖 Baca Sambutan Lengkap</button>
-                        <a href="<?= base_url('kontak.php') ?>" class="btn btn-secondary">📞 Hubungi Dekanat</a>
+                        <button class="btn btn-primary" onclick='openDekanModal(<?= htmlspecialchars(json_encode($dekan), ENT_QUOTES, "UTF-8") ?>)'><?= ric('book', 16) ?> Baca Sambutan Lengkap</button>
+                        <a href="<?= base_url('kontak.php') ?>" class="btn btn-secondary"><?= ric('phone', 16) ?> Hubungi Dekanat</a>
                     </div>
                 </div>
             </div>
@@ -973,7 +994,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="values-grid">
                 <?php foreach ($core_values as $i => $v): ?>
                 <div class="value-card" style="--value-color: <?= $v['color'][0] ?>; --value-color-light: <?= $v['color'][1] ?>;" data-aos="fade-up" data-aos-delay="<?= $i * 100 ?>">
-                    <div class="value-icon"><?= $v['icon'] ?></div>
+                    <div class="value-icon"><?= ric($v['icon'], 30) ?></div>
                     <h3 class="value-title"><?= sanitize($v['title']) ?></h3>
                     <p class="value-desc"><?= sanitize($v['desc']) ?></p>
                 </div>
@@ -990,24 +1011,24 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="tabs-extreme" data-aos="fade-up">
-                    <button class="tab-extreme active" onclick="switchAboutTab(event, 'tab-vm')">👁️ Visi & Misi</button>
-                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-sejarah')">📜 Sejarah</button>
-                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-struktur')">🏛️ Struktur</button>
-                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-chart')">📊 Statistik</button>
+                    <button class="tab-extreme active" onclick="switchAboutTab(event, 'tab-vm')"><?= ric('eye', 16) ?> Visi & Misi</button>
+                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-sejarah')"><?= ric('book', 16) ?> Sejarah</button>
+                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-struktur')"><?= ric('bank', 16) ?> Struktur</button>
+                    <button class="tab-extreme" onclick="switchAboutTab(event, 'tab-chart')"><?= ric('chart', 16) ?> Statistik</button>
                 </div>
 
                 <!-- TAB: VISI MISI -->
                 <div id="tab-vm" class="tab-panel-extreme active">
                     <div class="vm-grid-extreme">
                         <div class="vm-card-extreme" style="--vm-color: #10b981; --vm-color-light: #059669;">
-                            <div class="vm-icon-extreme">👁️</div>
+                            <div class="vm-icon-extreme"><?= ric('eye', 32) ?></div>
                             <h3>Visi</h3>
                             <p style="font-style: italic; font-size: 1.05rem; border-left: 3px solid #10b981; padding-left: 1rem; background: rgba(16,185,129,0.05); padding: 1.25rem; border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                                 "Menjadi Fakultas Keguruan dan Ilmu Pendidikan yang <strong>unggul, inovatif, dan berkarakter Islami</strong> dalam menghasilkan pendidik profesional berdaya saing global pada tahun 2030."
                             </p>
                         </div>
                         <div class="vm-card-extreme" style="--vm-color: #3b82f6; --vm-color-light: #2563eb;">
-                            <div class="vm-icon-extreme">🚀</div>
+                            <div class="vm-icon-extreme"><?= ric('rocket', 32) ?></div>
                             <h3>Misi</h3>
                             <ul>
                                 <li>Menyelenggarakan pendidikan tinggi yang <strong>berkualitas dan relevan</strong> dengan perkembangan IPTEK.</li>
@@ -1021,23 +1042,23 @@ require_once __DIR__ . '/includes/header.php';
 
                     <!-- Tujuan Strategis -->
                     <div class="vm-card-extreme" style="--vm-color: #f59e0b; --vm-color-light: #d97706; margin-top: 2rem;">
-                        <div class="vm-icon-extreme">🎯</div>
+                        <div class="vm-icon-extreme"><?= ric('target', 32) ?></div>
                         <h3>Tujuan Strategis</h3>
                         <div class="tujuan-grid">
                             <div class="tujuan-item">
-                                <strong>🎓 Lulusan Berkualitas</strong>
+                                <strong><?= ric('grad', 14) ?> Lulusan Berkualitas</strong>
                                 <small>90% lulusan terserap di dunia kerja dalam 1 tahun</small>
                             </div>
                             <div class="tujuan-item">
-                                <strong>🔬 Riset Produktif</strong>
+                                <strong><?= ric('micro', 14) ?> Riset Produktif</strong>
                                 <small>Minimal 50 publikasi ilmiah per tahun</small>
                             </div>
                             <div class="tujuan-item">
-                                <strong>🌏 Kerjasama Global</strong>
+                                <strong><?= ric('globe', 14) ?> Kerjasama Global</strong>
                                 <small>Mitra dengan 15+ universitas internasional</small>
                             </div>
                             <div class="tujuan-item">
-                                <strong>⭐ Akreditasi Unggul</strong>
+                                <strong><?= ric('star', 14) ?> Akreditasi Unggul</strong>
                                 <small>Seluruh prodi berakreditasi Unggul pada 2030</small>
                             </div>
                         </div>
@@ -1052,7 +1073,7 @@ require_once __DIR__ . '/includes/header.php';
                             <div class="timeline-dot-extreme"></div>
                             <div class="timeline-card-extreme">
                                 <div class="timeline-year-extreme">
-                                    <span style="font-size: 1.5rem;"><?= $m['icon'] ?></span>
+                                    <span style="line-height:1;"><?= ric($m['icon'], 26) ?></span>
                                     <span><?= $m['year'] ?></span>
                                 </div>
                                 <h4 class="timeline-title-extreme"><?= sanitize($m['title']) ?></h4>
@@ -1136,8 +1157,8 @@ require_once __DIR__ . '/includes/header.php';
                         <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
                             *Struktur organisasi disederhanakan untuk tampilan web.
                         </p>
-                        <a href="<?= base_url('download.php?kategori=Formulir') ?>" class="btn btn-secondary">
-                            📥 Unduh SK Struktur Organisasi Lengkap
+                        <a href="<?= base_url('download.php?kategori=Formulir') ?>" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                            <?= ric('dl', 16) ?> Unduh SK Struktur Organisasi Lengkap
                         </a>
                     </div>
                 </div>
@@ -1146,18 +1167,18 @@ require_once __DIR__ . '/includes/header.php';
                 <div id="tab-chart" class="tab-panel-extreme">
                     <div class="charts-row-extreme">
                         <div class="chart-card-extreme">
-                            <h3>🎓 Distribusi Mahasiswa per Prodi</h3>
+                            <h3><?= ric('grad', 18) ?> Distribusi Mahasiswa per Prodi</h3>
                             <div id="chartProdi"></div>
                         </div>
                         <div class="chart-card-extreme">
-                            <h3>🏆 Status Akreditasi</h3>
+                            <h3><?= ric('trophy', 18) ?> Status Akreditasi</h3>
                             <div id="chartAkreditasi"></div>
                         </div>
                     </div>
 
                     <!-- Summary -->
                     <div class="stat-summary">
-                        <h3>📊 Ringkasan Statistik FKIP UNIMOF</h3>
+                        <h3><?= ric('chart', 18) ?> Ringkasan Statistik FKIP UNIMOF</h3>
                         <div class="stat-summary-grid">
                             <div class="stat-summary-item" style="--sum-color: #10b981;">
                                 <div class="stat-summary-label">Program Studi</div>
@@ -1238,25 +1259,25 @@ require_once __DIR__ . '/includes/header.php';
             <div class="partners-grid" data-aos="fade-up">
                 <?php foreach ($partners as $p):
                     $jenis = $p['jenis'] ?? 'Mitra';
-                    $icon = $jenis === 'Universitas' ? '🎓' : ($jenis === 'Pemerintah' ? '🏛️' : ($jenis === 'Industri' ? '🏭' : '🤝'));
+                    $icon = $jenis === 'Universitas' ? 'grad' : ($jenis === 'Pemerintah' ? 'bank' : ($jenis === 'Industri' ? 'factory' : 'handshake'));
                 ?>
                 <div class="partner-card" onclick='openPartnerModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, "UTF-8") ?>)'>
                     <div class="partner-icon-box">
                         <?php if (!empty($p['logo'])): ?>
                             <img src="<?= asset('uploads/kerjasama/' . basename($p['logo'])) ?>" alt="">
                         <?php else: ?>
-                            <span><?= $icon ?></span>
+                            <?= ric($icon, 30) ?>
                         <?php endif; ?>
                     </div>
                     <div class="partner-name"><?= sanitize($p['nama_institusi']) ?></div>
-                    <div class="partner-kind"><?= sanitize($jenis) ?><?= !empty($p['negara']) && $p['negara'] !== 'Indonesia' ? ' 🌐' : '' ?></div>
+                    <div class="partner-kind"><?= sanitize($jenis) ?><?= !empty($p['negara']) && $p['negara'] !== 'Indonesia' ? ric('globe', 12) : '' ?></div>
                 </div>
                 <?php endforeach; ?>
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
-                <a href="<?= base_url('kerjasama.php') ?>" class="btn btn-secondary">
-                    🌐 Lihat Semua Mitra →
+                <a href="<?= base_url('kerjasama.php') ?>" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                    <?= ric('globe', 16) ?> Lihat Semua Mitra →
                 </a>
             </div>
         </div>
@@ -1272,7 +1293,7 @@ require_once __DIR__ . '/includes/header.php';
 
                 <div class="faq-toolbar" data-aos="fade-up">
                     <div class="faq-search">
-                        <span class="s-icon">🔍</span>
+                        <span class="s-icon"><?= ric('search', 16) ?></span>
                         <input type="text" id="faqSearch" placeholder="Cari pertanyaan...">
                     </div>
                     <div class="faq-chips">
@@ -1299,7 +1320,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <?php endforeach; ?>
                     <div id="faqEmpty" style="display:none; text-align:center; padding:2.5rem; background:var(--bg-primary); border-radius:var(--radius-xl); border:2px dashed var(--border);">
-                        <div style="font-size:3rem; margin-bottom:0.75rem; opacity:0.5;">🔍</div>
+                        <div style="margin-bottom:0.75rem; opacity:0.5;"><?= ric('search', 48) ?></div>
                         <h3 style="font-size:1.1rem;">Pertanyaan tidak ditemukan</h3>
                         <p style="color:var(--text-muted); font-size:0.88rem; margin-top:0.35rem;">Coba kata kunci lain atau hubungi kami.</p>
                     </div>
@@ -1314,10 +1335,10 @@ require_once __DIR__ . '/includes/header.php';
                 <p>Jadilah bagian dari generasi pendidik unggul yang akan membangun peradaban Indonesia Timur.</p>
                 <div class="cta-actions-extreme">
                     <a href="<?= base_url('pmb.php') ?>" class="btn btn-primary btn-lg" style="background: white; color: var(--primary); font-weight: 800; border: none;">
-                        📝 Daftar Sekarang →
+                        <?= ric('pen', 18) ?> Daftar Sekarang →
                     </a>
                     <a href="<?= base_url('kontak.php') ?>" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
-                        💬 Konsultasi Gratis
+                        <?= ric('chat-w', 18) ?> Konsultasi Gratis
                     </a>
                 </div>
             </div>
@@ -1341,6 +1362,9 @@ require_once __DIR__ . '/includes/header.php';
 // ===== DATA =====
 const PRODI_LIST = <?= json_encode($prodi_list) ?>;
 const AKREDITASI_DIST = <?= json_encode($akreditasi_dist) ?>;
+
+// ✅ IKON REALISTIS: helper SVG untuk template string JS
+const IC = (name, size = 14) => '<svg class="ic" width="' + size + '" height="' + size + '" aria-hidden="true"><use href="#ic-' + name + '"></use></svg>';
 
 // ===== HERO PARTICLES =====
 (function() {
@@ -1376,11 +1400,16 @@ const countObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
 
-// ===== TOAST =====
+// ===== TOAST (✅ mendukung ikon SVG: pubToast('msg', 'ic-nama')) =====
 function pubToast(msg, icon = '✓') {
     const t = document.getElementById('pubToast');
     document.getElementById('pubToastMsg').textContent = msg;
-    document.getElementById('pubToastIcon').textContent = icon;
+    const iconEl = document.getElementById('pubToastIcon');
+    if (icon && String(icon).indexOf('ic-') === 0) {
+        iconEl.innerHTML = '<svg class="ic" width="18" height="18"><use href="#' + icon + '"></use></svg>';
+    } else {
+        iconEl.textContent = icon;
+    }
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
 }
@@ -1526,13 +1555,13 @@ function openDekanModal(d) {
     const sambutan = d.sambutan || 'Sambutan belum tersedia.';
 
     let info_items = '';
-    if (d.jabatan_fungsional) info_items += `<div class="modal-info-item"><div class="modal-info-label">🎓 Jabatan Fungsional</div><div class="modal-info-value">${escapeHtml(d.jabatan_fungsional)}</div></div>`;
-    if (d.pendidikan_terakhir) info_items += `<div class="modal-info-item"><div class="modal-info-label">📚 Pendidikan</div><div class="modal-info-value">${escapeHtml(d.pendidikan_terakhir)}</div></div>`;
-    if (d.email) info_items += `<div class="modal-info-item"><div class="modal-info-label">📧 Email</div><div class="modal-info-value"><a href="mailto:${escapeHtml(d.email)}">${escapeHtml(d.email)}</a></div></div>`;
-    if (d.telepon) info_items += `<div class="modal-info-item"><div class="modal-info-label">📞 Telepon</div><div class="modal-info-value">${escapeHtml(d.telepon)}</div></div>`;
+    if (d.jabatan_fungsional) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('grad')} Jabatan Fungsional</div><div class="modal-info-value">${escapeHtml(d.jabatan_fungsional)}</div></div>`;
+    if (d.pendidikan_terakhir) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('books')} Pendidikan</div><div class="modal-info-value">${escapeHtml(d.pendidikan_terakhir)}</div></div>`;
+    if (d.email) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('mail')} Email</div><div class="modal-info-value"><a href="mailto:${escapeHtml(d.email)}">${escapeHtml(d.email)}</a></div></div>`;
+    if (d.telepon) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('phone')} Telepon</div><div class="modal-info-value">${escapeHtml(d.telepon)}</div></div>`;
 
     const html = `
-        <button class="modal-close" onclick="closeAboutModal()">✕</button>
+        <button class="modal-close" onclick="closeAboutModal()">${IC('close', 16)}</button>
         <div class="modal-header-about">
             <div class="modal-header-content">
                 <div class="modal-photo">
@@ -1545,14 +1574,14 @@ function openDekanModal(d) {
         <div class="modal-body-about">
             ${info_items ? `<div class="modal-info-grid">${info_items}</div>` : ''}
             <div class="modal-section">
-                <h4>📢 Sambutan</h4>
+                <h4>${IC('mega')} Sambutan</h4>
                 <p>${escapeHtml(sambutan)}</p>
             </div>
         </div>
         <div class="modal-footer">
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                ${d.email ? `<a href="mailto:${escapeHtml(d.email)}" class="modal-btn secondary">📧 Email</a>` : ''}
-                <button class="modal-btn secondary" onclick="sharePerson(${JSON.stringify(d).replace(/"/g, '&quot;')})">🔗 Share</button>
+                ${d.email ? `<a href="mailto:${escapeHtml(d.email)}" class="modal-btn secondary">${IC('mail')} Email</a>` : ''}
+                <button class="modal-btn secondary" onclick="sharePerson(${JSON.stringify(d).replace(/"/g, '&quot;')})">${IC('link')} Share</button>
             </div>
             <button class="modal-btn primary" onclick="closeAboutModal()">Tutup</button>
         </div>
@@ -1562,20 +1591,20 @@ function openDekanModal(d) {
 
 function openPartnerModal(p) {
     const initial = p.nama_institusi ? p.nama_institusi.charAt(0).toUpperCase() : '?';
-    const icon = p.jenis === 'Universitas' ? '🎓' : (p.jenis === 'Pemerintah' ? '🏛️' : (p.jenis === 'Industri' ? '🏭' : '🤝'));
+    const icon = p.jenis === 'Universitas' ? 'grad' : (p.jenis === 'Pemerintah' ? 'bank' : (p.jenis === 'Industri' ? 'factory' : 'handshake'));
 
     let info_items = '';
-    if (p.jenis) info_items += `<div class="modal-info-item"><div class="modal-info-label">🏷️ Jenis</div><div class="modal-info-value">${escapeHtml(p.jenis)}</div></div>`;
-    if (p.negara) info_items += `<div class="modal-info-item"><div class="modal-info-label">🌍 Negara</div><div class="modal-info-value">${escapeHtml(p.negara)}</div></div>`;
-    if (p.kota) info_items += `<div class="modal-info-item"><div class="modal-info-label">🏙️ Kota</div><div class="modal-info-value">${escapeHtml(p.kota)}</div></div>`;
-    if (p.status) info_items += `<div class="modal-info-item"><div class="modal-info-label">✓ Status</div><div class="modal-info-value">${escapeHtml(p.status)}</div></div>`;
+    if (p.jenis) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('tag')} Jenis</div><div class="modal-info-value">${escapeHtml(p.jenis)}</div></div>`;
+    if (p.negara) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('globe')} Negara</div><div class="modal-info-value">${escapeHtml(p.negara)}</div></div>`;
+    if (p.kota) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('building')} Kota</div><div class="modal-info-value">${escapeHtml(p.kota)}</div></div>`;
+    if (p.status) info_items += `<div class="modal-info-item"><div class="modal-info-label">${IC('check-circle')} Status</div><div class="modal-info-value">${escapeHtml(p.status)}</div></div>`;
 
     const html = `
-        <button class="modal-close" onclick="closeAboutModal()">✕</button>
+        <button class="modal-close" onclick="closeAboutModal()">${IC('close', 16)}</button>
         <div class="modal-header-about">
             <div class="modal-header-content">
                 <div class="modal-photo">
-                    ${p.logo ? `<img src="<?= asset('uploads/kerjasama/') ?>${encodeURIComponent(p.logo.split('/').pop())}" alt="">` : icon}
+                    ${p.logo ? `<img src="<?= asset('uploads/kerjasama/') ?>${encodeURIComponent(p.logo.split('/').pop())}" alt="">` : IC(icon, 44)}
                 </div>
                 <h2 class="modal-name">${escapeHtml(p.nama_institusi)}</h2>
                 <div class="modal-role">${escapeHtml(p.jenis || 'Mitra Kerjasama')}</div>
@@ -1583,13 +1612,13 @@ function openPartnerModal(p) {
         </div>
         <div class="modal-body-about">
             ${info_items ? `<div class="modal-info-grid">${info_items}</div>` : ''}
-            ${p.deskripsi ? `<div class="modal-section"><h4>📝 Deskripsi</h4><p>${escapeHtml(p.deskripsi)}</p></div>` : ''}
-            ${p.bentuk_kerjasama ? `<div class="modal-section"><h4>🤝 Bentuk Kerjasama</h4><p>${escapeHtml(p.bentuk_kerjasama)}</p></div>` : ''}
+            ${p.deskripsi ? `<div class="modal-section"><h4>${IC('pen')} Deskripsi</h4><p>${escapeHtml(p.deskripsi)}</p></div>` : ''}
+            ${p.bentuk_kerjasama ? `<div class="modal-section"><h4>${IC('handshake')} Bentuk Kerjasama</h4><p>${escapeHtml(p.bentuk_kerjasama)}</p></div>` : ''}
         </div>
         <div class="modal-footer">
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <button class="modal-btn secondary" onclick="sharePerson(${JSON.stringify(p).replace(/"/g, '&quot;')})">🔗 Share</button>
-                ${p.link_website ? `<a href="${escapeHtml(p.link_website)}" target="_blank" class="modal-btn secondary">🌐 Website</a>` : ''}
+                <button class="modal-btn secondary" onclick="sharePerson(${JSON.stringify(p).replace(/"/g, '&quot;')})">${IC('link')} Share</button>
+                ${p.link_website ? `<a href="${escapeHtml(p.link_website)}" target="_blank" class="modal-btn secondary">${IC('globe')} Website</a>` : ''}
             </div>
             <button class="modal-btn primary" onclick="closeAboutModal()">Tutup</button>
         </div>
@@ -1599,12 +1628,12 @@ function openPartnerModal(p) {
 
 // ===== SHARE =====
 function shareAbout() {
-    const text = `🏛️ Tentang FKIP UNIMOF\n${document.title}\n\nMembangun peradaban melalui pendidikan — Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere`;
+    const text = `Tentang FKIP UNIMOF\n${document.title}\n\nMembangun peradaban melalui pendidikan — Fakultas Keguruan dan Ilmu Pendidikan Universitas Muhammadiyah Maumere`;
     if (navigator.share) {
         navigator.share({ title: 'Tentang FKIP UNIMOF', text, url: window.location.href });
     } else if (navigator.clipboard) {
         navigator.clipboard.writeText(text + '\n' + window.location.href);
-        pubToast('Info dibagikan', '📋');
+        pubToast('Info dibagikan', 'ic-check-circle');
     }
 }
 
@@ -1614,7 +1643,7 @@ function sharePerson(p) {
         navigator.share({ title: p.nama || p.nama_institusi, text });
     } else if (navigator.clipboard) {
         navigator.clipboard.writeText(text);
-        pubToast('Info disalin', '📋');
+        pubToast('Info disalin', 'ic-check-circle');
     }
 }
 
@@ -1628,8 +1657,8 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('%c🏛️ Tentang FKIP UNIMOF - EXTREME MULTIMATE', 'color: #0a6847; font-size: 16px; font-weight: bold;');
-console.log('%cShortcuts: / (Cari FAQ) • ESC (Tutup modal) • 1-4 (Switch tab)', 'color: #64748b');
+console.log('%cTentang FKIP UNIMOF - EXTREME MULTIMATE (Ikon Realistis)', 'color: #0a6847; font-size: 16px; font-weight: bold;');
+console.log('%cShortcuts: / (Cari FAQ) • ESC (Tutup modal)', 'color: #64748b');
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
